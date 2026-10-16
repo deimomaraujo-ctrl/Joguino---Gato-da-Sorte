@@ -3,338 +3,689 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RocaMap Pro - Sistema de Mapeamento Rural Offline</title>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#121812">
+    <meta name="theme-color" content="#090d16">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>AgroGeo - Demarcação Rural Offline</title>
     
-    <!-- Leaflet CSS -->
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2300e676'/><path d='M30 70 L50 30 L70 70 Z' fill='%23090d16'/></svg>">
+
+    <!-- Leaflet CSS & JS (Serão cacheados pelo Service Worker) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-        body { background-color: #0b0f0b; color: #e2e8f0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        
-        header {
-            background: linear-gradient(135deg, #143614, #0b1f0b);
-            color: #fff; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 2px solid #22c55e; box-shadow: 0 4px 12px rgba(0,0,0,0.6); z-index: 1000;
-        }
-        header h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: 0.5px; }
-        .status-badge { background-color: #16a34a; color: white; font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; font-weight: bold; text-transform: uppercase; }
-
-        #map-container { flex: 1; position: relative; width: 100%; background: #1a2e1a; z-index: 1; }
-        #map { width: 100%; height: 100%; }
-
-        /* Painel de Telemetria Flutuante sobre o Mapa */
-        .telemetry-panel {
-            position: absolute; top: 10px; left: 10px; right: 10px; background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(8px); border: 1px solid #334155; border-radius: 10px; padding: 8px 12px;
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; z-index: 999; font-size: 0.75rem; text-align: center;
-        }
-        .tel-item span { display: block; color: #94a3b8; }
-        .tel-item strong { color: #38bdf8; font-size: 0.85rem; }
-
-        /* Painel de Controle Inferior */
-        .control-panel {
-            background-color: #0f172a; border-top: 2px solid #1e293b; padding: 14px; z-index: 1000;
-            box-shadow: 0 -10px 25px rgba(0,0,0,0.8); max-height: 48vh; overflow-y: auto;
+        :root {
+            --bg-dark: #090d16;
+            --panel-bg: rgba(22, 31, 48, 0.95);
+            --border-color: #334155;
+            --accent-green: #00e676;
+            --accent-amber: #ff9100;
+            --accent-red: #ff1744;
+            --accent-blue: #29b6f6;
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
         }
 
-        .metrics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 12px; }
-        .metric-card { background: #1e293b; border: 1px solid #334155; padding: 10px; border-radius: 8px; text-align: center; }
-        .metric-card span { font-size: 0.7rem; color: #94a3b8; display: block; text-transform: uppercase; }
-        .metric-card strong { font-size: 1.05rem; color: #4ade80; }
-
-        .btn-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        button {
-            padding: 12px; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: bold; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; gap: 6px; color: white; transition: filter 0.2s;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
-        button:active { filter: brightness(0.8); }
-        .btn-full { grid-column: span 2; }
-        .btn-green { background: #16a34a; }
-        .btn-orange { background: #d97706; }
-        .btn-red { background: #dc2626; }
-        .btn-blue { background: #0284c7; }
 
-        #log-status { font-size: 0.8rem; text-align: center; margin-top: 10px; color: #f59e0b; font-weight: 500; }
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+        }
+
+        #app-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        /* Mapa */
+        #map {
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background: #111827;
+        }
+
+        /* Grid de fallback para offline quando não houver tiles cacheados */
+        .leaflet-container {
+            background-color: #0b0f19 !important;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* Telemetria Flutuante Superior */
+        .telemetry-bar {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            z-index: 1000;
+            background: var(--panel-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px 16px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+        }
+
+        .telemetry-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .telemetry-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 800;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .telemetry-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-top: 2px;
+        }
+
+        .accuracy-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .acc-good { background: rgba(0, 230, 118, 0.2); color: var(--accent-green); }
+        .acc-medium { background: rgba(255, 145, 0, 0.2); color: var(--accent-amber); }
+        .acc-bad { background: rgba(255, 23, 68, 0.2); color: var(--accent-red); }
+
+        /* Card de Área Calculada */
+        .area-card {
+            position: absolute;
+            top: 86px;
+            left: 12px;
+            right: 12px;
+            z-index: 1000;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+        }
+
+        .area-metric {
+            text-align: center;
+        }
+
+        .area-metric .val {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--accent-green);
+        }
+
+        .area-metric .lbl {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        /* Controles Inferiores */
+        .controls-panel {
+            position: absolute;
+            bottom: 16px;
+            left: 12px;
+            right: 12px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            height: 54px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            transition: transform 0.1s, background-color 0.2s;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-primary { background: var(--accent-green); color: #000; }
+        .btn-tracking { background: var(--accent-blue); color: #000; }
+        .btn-tracking.active { background: var(--accent-red); color: #fff; animation: pulse-red 1.5s infinite; }
+        .btn-secondary { background: #1e293b; color: var(--text-main); border: 1px solid var(--border-color); }
+        .btn-danger { background: rgba(255, 23, 68, 0.15); color: var(--accent-red); border: 1px solid var(--accent-red); }
 
         /* Modal de Estabilização */
-        #modal-stabilize {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; display: none;
-            flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(5px);
         }
-        .spinner { width: 60px; height: 60px; border: 6px solid #334155; border-top-color: #22c55e; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .modal-card {
+            background: #111827;
+            border: 2px solid var(--accent-green);
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 360px;
+            text-align: center;
+            box-shadow: 0 0 32px rgba(0, 230, 118, 0.3);
+        }
+
+        .countdown-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 6px solid var(--accent-green);
+            margin: 16px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: 900;
+            color: var(--accent-green);
+            box-shadow: 0 0 16px rgba(0, 230, 118, 0.2);
+        }
+
+        /* Estilização dos Marcadores Leaflet */
+        .custom-marker {
+            background: var(--accent-green);
+            color: #000;
+            font-weight: 900;
+            font-size: 12px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 10px rgba(0,0,0,0.8);
+        }
+
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(255, 23, 68, 0.7); }
+            70% { box-shadow: 0 0 0 12px rgba(255, 23, 68, 0); }
+            100% { shadow: 0 0 0 0 rgba(255, 23, 68, 0); }
+        }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>RocaMap Pro <span style="font-size:0.7rem; color:#86efac;">[Offline Master]</span></h1>
-        <div class="status-badge" id="net-status">Modo Roça Ativo</div>
-    </header>
-
-    <div id="map-container">
-        <!-- Telemetria em tempo real -->
-        <div class="telemetry-panel">
-            <div class="tel-item"><span>Precisão GPS</span><strong id="lbl-acc">-- m</strong></div>
-            <div class="tel-item"><span>Latitude</span><strong id="lbl-lat">--</strong></div>
-            <div class="tel-item"><span>Longitude</span><strong id="lbl-lon">--</strong></div>
+    <div id="app-container">
+        <!-- Telemetria Superior -->
+        <div class="telemetry-bar">
+            <div class="telemetry-item">
+                <span class="telemetry-label">Precisão GPS</span>
+                <span id="tele-acc" class="telemetry-value"><span class="accuracy-badge acc-bad">-- m</span></span>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-label">Latitude</span>
+                <span id="tele-lat" class="telemetry-value">0.000000</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-label">Longitude</span>
+                <span id="tele-lng" class="telemetry-value">0.000000</span>
+            </div>
         </div>
+
+        <!-- Painel de Calculo de Area -->
+        <div class="area-card">
+            <div class="area-metric">
+                <div id="area-m2" class="val">0,00</div>
+                <div class="lbl">Metros² (m²)</div>
+            </div>
+            <div class="area-metric">
+                <div id="area-ha" class="val">0,00</div>
+                <div class="lbl">Hectares (ha)</div>
+            </div>
+            <div class="area-metric">
+                <div id="area-alq" class="val">0,00</div>
+                <div class="lbl">Alqueires (SP)</div>
+            </div>
+        </div>
+
+        <!-- Renderizador do Mapa -->
         <div id="map"></div>
-    </div>
 
-    <div class="control-panel">
-        <div class="metrics-grid">
-            <div class="metric-card">
-                <span>Marcos Coletados</span>
-                <strong id="txt-marcos">0</strong>
+        <!-- Controles Principais -->
+        <div class="controls-panel">
+            <div class="btn-row">
+                <button id="btn-save-mark" class="btn btn-primary" onclick="startStabilization()">
+                    📍 Fixar Marco (15s)
+                </button>
+                <button id="btn-track" class="btn btn-tracking" onclick="toggleTracking()">
+                    🐾 Trilha: OFF
+                </button>
             </div>
-            <div class="metric-card">
-                <span>Área Total</span>
-                <strong id="txt-area">0.00 ha (0.0 alq)</strong>
+            <div class="btn-row">
+                <button class="btn btn-secondary" onclick="centerMapOnUser()">🎯 Recentralizar</button>
+                <button class="btn btn-secondary" onclick="exportJSONData()">💾 Exportar Backup</button>
+                <button class="btn btn-danger" onclick="clearAllData()">🗑️ Limpar</button>
             </div>
         </div>
+    </div>
 
-        <div class="btn-grid">
-            <button class="btn-green btn-full" onclick="iniciarEstabilizacaoMarco()">📍 Salvar Marco (Estabilizar 15s)</button>
-            <button class="btn-orange" onclick="toggleTrilha()" id="btn-trilha">🚶‍♂️ Iniciar Trilha</button>
-            <button class="btn-blue" onclick="exportarDadosJSON()">💾 Baixar Backup Dados</button>
-            <button class="btn-red btn-full" onclick="resetarTudo()">🗑️ Apagar Todos os Dados</button>
+    <!-- Modal de Estabilização de Sinal (Mata Fechada) -->
+    <div id="modal-stabilize" class="modal-overlay">
+        <div class="modal-card">
+            <h3 style="color: var(--accent-green); font-size: 18px;">Estabilizando Sinal GPS</h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Filtrando ruídos e desvios de copa de árvores...</p>
+            
+            <div id="modal-timer" class="countdown-circle">15</div>
+            
+            <p id="modal-samples" style="font-size: 13px; font-weight: bold;">Amostras coletadas: 0</p>
+            <p id="modal-current-acc" style="font-size: 12px; color: var(--accent-amber); margin-top: 4px;">Precisão atual: -- m</p>
         </div>
-
-        <div id="log-status">Sistema pronto. Aguardando sinal de satélite...</div>
     </div>
 
-    <!-- Tela de Carregamento / Estabilização -->
-    <div id="modal-stabilize">
-        <div class="spinner"></div>
-        <h2 style="color: #fff; margin-bottom: 10px;">Estabilizando Sinal sob a Mata</h2>
-        <p id="modal-timer" style="font-size: 1.5rem; color: #4ade80; font-weight: bold; margin-bottom: 15px;">15s</p>
-        <p style="color: #94a3b8; font-size: 0.9rem; max-width: 300px;">Mantenha o celular firme no marco para filtrar interferências das árvores.</p>
-    </div>
-
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Inicialização do Mapa com camadas de alta performance
-        let map = L.map('map', { zoomControl: false }).setView([-10.1835, -48.3336], 16);
-        L.control.zoom({ position: 'topright' }).addTo(map);
+        /* --- ESTADO GLOBAL DA APLICAÇÃO --- */
+        let map;
+        let userMarker = null;
+        let accuracyCircle = null;
+        let currentPosition = null;
 
-        // Camada de Satélite/Ruas compatível com cache offline do navegador
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: 'RocaMap Pro Field Engine'
-        }).addTo(map);
+        let markersData = [];       // [{ id: 1, lat: x, lng: y, acc: z }]
+        let mapLeafletMarkers = []; // Array de L.marker
+        let propertyPolygon = null;
 
-        let dadosApp = {
-            marcos: [],
-            trilha: []
-        };
+        let trailData = [];         // [{ lat: x, lng: y }]
+        let trailPolyline = null;
+        let isTracking = false;
 
-        let marcadorGPS = null;
-        let polylineTrilha = null;
-        let poligonoArea = null;
-        let markersList = [];
-        let ultimaLat = null, ultimaLon = null, ultimaAcc = 999;
-        let gravandoTrilha = false;
-        let watchId = null;
+        // Estabilização
+        let stabilizationActive = false;
+        let stabilizationSamples = [];
+        let countdownValue = 15;
+        let countdownInterval = null;
 
-        // Carrega dados salvos anteriormente no armazenamento local do celular
-        function carregarDadosLocais() {
-            let salvo = localStorage.getItem('rocamap_dados_v1');
-            if (salvo) {
-                try {
-                    dadosApp = JSON.parse(salvo);
-                    reconstruirElementosNaTela();
-                } catch(e) { console.error("Erro ao carregar dados locais"); }
+        const STORAGE_KEY_MARKERS = 'AGROGEO_MARKERS_V1';
+        const STORAGE_KEY_TRAILS = 'AGROGEO_TRAILS_V1';
+
+        /* --- INICIALIZAÇÃO DA APLICAÇÃO --- */
+        window.addEventListener('load', () => {
+            initMap();
+            initGeolocation();
+            loadStoredData();
+            registerServiceWorker();
+        });
+
+        /* --- REGISTRO DO SERVICE WORKER --- */
+        function registerServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js')
+                    .then(() => console.log('[PWA] Service Worker Registrado com Sucesso'))
+                    .catch(err => console.error('[PWA] Falha ao registrar Service Worker:', err));
             }
         }
 
-        function salvarDadosLocais() {
-            localStorage.setItem('rocamap_dados_v1', JSON.stringify(dadosApp));
+        /* --- INICIALIZAÇÃO DO MAPA (LEAFLET) --- */
+        function initMap() {
+            // Inicializa centralizado no Brasil por padrão
+            map = L.map('map', {
+                zoomControl: false,
+                attributionControl: false
+            }).setView([-15.7801, -47.9292], 4);
+
+            // Layer OpenStreetMap com Fallback Offline via Service Worker
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19
+            }).addTo(map);
+
+            // Redimensionamento de janela
+            window.addEventListener('resize', () => map.invalidateSize());
         }
 
-        // Rastreamento contínuo de alta precisão
-        if (navigator.geolocation) {
-            watchId = navigator.geolocation.watchPosition(pos => {
-                ultimaLat = pos.coords.latitude;
-                ultimaLon = pos.coords.longitude;
-                ultimaAcc = pos.coords.accuracy;
-
-                document.getElementById('lbl-acc').innerText = `±${ultimaAcc.toFixed(1)}m`;
-                document.getElementById('lbl-lat').innerText = ultimaLat.toFixed(6);
-                document.getElementById('lbl-lon').innerText = ultimaLon.toFixed(6);
-
-                let latLng = [ultimaLat, ultimaLon];
-
-                if (!marcadorGPS) {
-                    marcadorGPS = L.marker(latLng, {
-                        icon: L.divIcon({ className: 'gps-dot', html: '<div style="background:#38bdf8; width:16px; height:16px; border:3px solid white; border-radius:50%; box-shadow:0 0 10px #38bdf8;"></div>' })
-                    }).addTo(map);
-                    map.setView(latLng, 18);
-                } else {
-                    marcadorGPS.setLatLng(latLng);
-                }
-
-                if (gravandoTrilha) {
-                    dadosApp.trilha.push(latLng);
-                    atualizarTrilhaNaTela();
-                    salvarDadosLocais();
-                }
-            }, err => {
-                document.getElementById('log-status').innerText = "⚠️ Erro de GPS: Verifique se a localização do celular está ativa.";
-            }, { enableHighAccuracy: true, maximumAge: 0, timeout: 4000 });
-        }
-
-        // Sistema de Estabilização de Ponto para Mata Fechada (15 segundos coletando média)
-        function iniciarEstabilizacaoMarco() {
-            if (!ultimaLat || !ultimaLon) {
-                alert("Aguardando sinal válido do GPS para capturar o marco.");
+        /* --- MONITORAMENTO EM TEMPO REAL DE GPS --- */
+        function initGeolocation() {
+            if (!('geolocation' in navigator)) {
+                alert('Geolocalização não é suportada neste dispositivo.');
                 return;
             }
 
-            let modal = document.getElementById('modal-stabilize');
-            let timerEl = document.getElementById('modal-timer');
-            modal.style.display = 'flex';
-            
-            let segundos = 15;
-            timerEl.innerText = `${segundos}s`;
+            const geoOptions = {
+                enableHighAccuracy: true,
+                maximumAge: 0,
+                timeout: 15000
+            };
 
-            let amostrasLat = [];
-            let amostrasLon = [];
+            navigator.geolocation.watchPosition(
+                (pos) => handleGpsUpdate(pos),
+                (err) => handleGpsError(err),
+                geoOptions
+            );
+        }
 
-            // Coleta intensiva durante o tempo de espera
-            let intervalColeta = setInterval(() => {
-                if (ultimaLat && ultimaLon) {
-                    amostrasLat.push(ultimaLat);
-                    amostrasLon.push(ultimaLon);
-                }
-            }, 500);
+        function handleGpsUpdate(position) {
+            const { latitude, longitude, accuracy } = position.coords;
+            currentPosition = { lat: latitude, lng: longitude, acc: accuracy };
 
-            let countdown = setInterval(() => {
-                segundos--;
-                timerEl.innerText = `${segundos}s`;
+            // Atualiza Telemetria
+            document.getElementById('tele-lat').innerText = latitude.toFixed(6);
+            document.getElementById('tele-lng').innerText = longitude.toFixed(6);
 
-                if (segundos <= 0) {
-                    clearInterval(countdown);
-                    clearInterval(intervalColeta);
-                    modal.style.display = 'none';
+            const accElem = document.getElementById('tele-acc');
+            accElem.innerHTML = `<span class="accuracy-badge ${getAccClass(accuracy)}">± ${accuracy.toFixed(1)} m</span>`;
 
-                    if (amostrasLat.length > 0) {
-                        // Calcula a média exata para eliminar o erro de desvio da árvore
-                        let mediaLat = amostrasLat.reduce((a, b) => a + b, 0) / amostrasLat.length;
-                        let mediaLon = amostrasLon.reduce((a, b) => a + b, 0) / amostrasLon.length;
+            // Atualiza posição visual no mapa
+            const latLng = [latitude, longitude];
 
-                        dadosApp.marcos.push([mediaLat, mediaLon]);
-                        salvarDadosLocais();
-                        reconstruirElementosNaTela();
+            if (!userMarker) {
+                userMarker = L.circleMarker(latLng, {
+                    radius: 8,
+                    fillColor: '#29b6f6',
+                    color: '#ffffff',
+                    weight: 3,
+                    opacity: 1,
+                    fillOpacity: 0.9
+                }).addTo(map);
 
-                        document.getElementById('log-status').innerText = `✅ Marco ${dadosApp.marcos.length} fixado com alta precisão!`;
-                    } else {
-                        alert("Não foi possível coletar amostras suficientes. Tente novamente.");
-                    }
+                accuracyCircle = L.circle(latLng, {
+                    radius: accuracy,
+                    color: '#29b6f6',
+                    fillColor: '#29b6f6',
+                    fillOpacity: 0.15,
+                    weight: 1
+                }).addTo(map);
+
+                map.setView(latLng, 18); // Foco inicial
+            } else {
+                userMarker.setLatLng(latLng);
+                accuracyCircle.setLatLng(latLng);
+                accuracyCircle.setRadius(accuracy);
+            }
+
+            // Coleta de dados para estabilização se ativa
+            if (stabilizationActive) {
+                stabilizationSamples.push({ lat: latitude, lng: longitude, acc: accuracy });
+                document.getElementById('modal-samples').innerText = `Amostras coletadas: ${stabilizationSamples.length}`;
+                document.getElementById('modal-current-acc').innerText = `Precisão atual: ± ${accuracy.toFixed(1)} m`;
+            }
+
+            // Gravação de Trilha contínua
+            if (isTracking) {
+                trailData.push([latitude, longitude]);
+                renderTrail();
+                saveToStorage();
+            }
+        }
+
+        function handleGpsError(err) {
+            console.warn(`GPS Error (${err.code}): ${err.message}`);
+            document.getElementById('tele-acc').innerHTML = `<span class="accuracy-badge acc-bad">Sem Sinal</span>`;
+        }
+
+        function getAccClass(acc) {
+            if (acc <= 5) return 'acc-good';
+            if (acc <= 12) return 'acc-medium';
+            return 'acc-bad';
+        }
+
+        function centerMapOnUser() {
+            if (currentPosition) {
+                map.setView([currentPosition.lat, currentPosition.lng], 18);
+            } else {
+                alert('Aguardando sinal válido do GPS...');
+            }
+        }
+
+        /* --- SISTEMA DE ESTABILIZAÇÃO DE PONTO (MATA FECHADA) --- */
+        function startStabilization() {
+            if (!currentPosition) {
+                alert('Impossível salvar marco sem sinal de GPS!');
+                return;
+            }
+
+            stabilizationActive = true;
+            stabilizationSamples = [];
+            countdownValue = 15;
+
+            document.getElementById('modal-timer').innerText = countdownValue;
+            document.getElementById('modal-samples').innerText = 'Amostras coletadas: 0';
+            document.getElementById('modal-stabilize').style.display = 'flex';
+
+            countdownInterval = setInterval(() => {
+                countdownValue--;
+                document.getElementById('modal-timer').innerText = countdownValue;
+
+                if (countdownValue <= 0) {
+                    clearInterval(countdownInterval);
+                    finalizeStabilization();
                 }
             }, 1000);
         }
 
-        // Reconstrói marcos, polígonos e trilhas salvos no mapa
-        function reconstruirElementosNaTela() {
-            // Limpa marcadores antigos da tela
-            markersList.forEach(m => map.removeLayer(m));
-            markersList = [];
+        function finalizeStabilization() {
+            document.getElementById('modal-stabilize').style.display = 'none';
+            stabilizationActive = false;
 
-            if (poligonoArea) map.removeLayer(poligonoArea);
+            if (stabilizationSamples.length === 0) {
+                // Fallback caso não tenha entrado amostras no array durante a contagem
+                stabilizationSamples.push(currentPosition);
+            }
 
-            // Adiciona Marcos
-            dadosApp.marcos.forEach((coord, index) => {
-                let m = L.circleMarker(coord, { radius: 9, color: '#16a34a', fillColor: '#22c55e', fillOpacity: 1 })
-                    .addTo(map)
-                    .bindPopup(`<b>Marco ${index + 1}</b><br>Lat: ${coord[0].toFixed(6)}<br>Lon: ${coord[1].toFixed(6)}`);
-                markersList.push(m);
+            // Elimina ruídos pesados (filtra pontos com precisão 50% pior que a média)
+            const avgAcc = stabilizationSamples.reduce((acc, s) => acc + s.acc, 0) / stabilizationSamples.length;
+            const filteredSamples = stabilizationSamples.filter(s => s.acc <= avgAcc * 1.5);
+
+            // Cálculo da média matemática exata das coordenadas
+            const finalLat = filteredSamples.reduce((acc, s) => acc + s.lat, 0) / filteredSamples.length;
+            const finalLng = filteredSamples.reduce((acc, s) => acc + s.lng, 0) / filteredSamples.length;
+
+            const newId = markersData.length + 1;
+            const newMarker = { id: newId, lat: finalLat, lng: finalLng, acc: avgAcc };
+
+            markersData.push(newMarker);
+            renderMarkers();
+            calculateGeodesicArea();
+            saveToStorage();
+        }
+
+        /* --- RENDERIZAÇÃO E CÁLCULOS --- */
+        function renderMarkers() {
+            // Limpa marcadores anteriores do mapa
+            mapLeafletMarkers.forEach(m => map.removeLayer(m));
+            mapLeafletMarkers = [];
+
+            markersData.forEach((m) => {
+                const customIcon = L.divIcon({
+                    className: 'custom-marker',
+                    html: `M${m.id}`,
+                    iconSize: [28, 28]
+                });
+
+                const leafletMarker = L.marker([m.lat, m.lng], { icon: customIcon }).addTo(map);
+                mapLeafletMarkers.push(leafletMarker);
             });
 
-            document.getElementById('txt-marcos').innerText = dadosApp.marcos.length;
+            // Atualiza Polígono
+            if (propertyPolygon) map.removeLayer(propertyPolygon);
 
-            // Desenha Polígono e Área se houver 3 ou mais marcos
-            if (dadosApp.marcos.length >= 3) {
-                poligonoArea = L.polygon(dadosApp.marcos, { color: '#22c55e', fillColor: '#16a34a', fillOpacity: 0.35, weight: 3 }).addTo(map);
-                
-                let areaM2 = calcularAreaPoligono(dadosApp.marcos);
-                let hectares = areaM2 / 10000;
-                let alqueiresPaulistas = hectares / 2.42;
-
-                document.getElementById('txt-area').innerText = `${hectares.toFixed(2)} ha (${alqueiresPaulistas.toFixed(2)} alq)`;
-            } else {
-                document.getElementById('txt-area').innerText = "0.00 ha (0.0 alq)";
-            }
-
-            atualizarTrilhaNaTela();
-        }
-
-        function atualizarTrilhaNaTela() {
-            if (polylineTrilha) map.removeLayer(polylineTrilha);
-            if (dadosApp.trilha.length > 0) {
-                polylineTrilha = L.polyline(dadosApp.trilha, { color: '#f59e0b', weight: 4, opacity: 0.8 }).addTo(map);
+            if (markersData.length >= 3) {
+                const latLngs = markersData.map(m => [m.lat, m.lng]);
+                propertyPolygon = L.polygon(latLngs, {
+                    color: '#00e676',
+                    fillColor: '#00e676',
+                    fillOpacity: 0.25,
+                    weight: 3
+                }).addTo(map);
             }
         }
 
-        // Cálculo geométrico de área em metros quadrados para coordenadas geográficas
-        function calcularAreaPoligono(coords) {
-            if (coords.length < 3) return 0;
+        // Algoritmo Geodésico para Área em Esfera (WGS84)
+        function calculateGeodesicArea() {
+            if (markersData.length < 3) {
+                updateAreaUI(0);
+                return;
+            }
+
+            const RAD = Math.PI / 180;
+            const R = 6378137; // Raio da Terra em metros
             let area = 0;
-            let R = 6378137; // Raio da Terra em metros
-            for (let i = 0; i < coords.length; i++) {
-                let p1 = coords[i];
-                let p2 = coords[(i + 1) % coords.length];
-                let radLat1 = p1[0] * Math.PI / 180;
-                let radLat2 = p2[0] * Math.PI / 180;
-                let dLon = (p2[1] - p1[1]) * Math.PI / 180;
-                area += (dLon * (2 + Math.sin(radLat1) + Math.sin(radLat2)));
+
+            for (let i = 0; i < markersData.length; i++) {
+                const p1 = markersData[i];
+                const p2 = markersData[(i + 1) % markersData.length];
+
+                area += (p2.lng * RAD - p1.lng * RAD) * (2 + Math.sin(p1.lat * RAD) + Math.sin(p2.lat * RAD));
             }
-            area = area * R * R / 2;
-            return Math.abs(area);
+
+            area = Math.abs((area * R * R) / 2);
+            updateAreaUI(area);
         }
 
-        function toggleTrilha() {
-            gravandoTrilha = !gravandoTrilha;
-            let btn = document.getElementById('btn-trilha');
-            if (gravandoTrilha) {
-                btn.innerText = "⏹️ Parar Trilha";
-                btn.style.background = "#dc2626";
-                document.getElementById('log-status').innerText = "🚶‍♂️ Gravando trilha no terreno...";
+        function updateAreaUI(areaM2) {
+            const ha = areaM2 / 10000;
+            const alqPaulista = areaM2 / 24200; // 1 Alqueire Paulista = 24.200 m²
+
+            document.getElementById('area-m2').innerText = areaM2.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+            document.getElementById('area-ha').innerText = ha.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+            document.getElementById('area-alq').innerText = alqPaulista.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+        }
+
+        /* --- MODO RASTREAMENTO DE TRILHAS --- */
+        function toggleTracking() {
+            isTracking = !isTracking;
+            const btn = document.getElementById('btn-track');
+
+            if (isTracking) {
+                btn.classList.add('active');
+                btn.innerText = '🐾 Gravar: ON';
             } else {
-                btn.innerText = "🚶‍♂️ Iniciar Trilha";
-                btn.style.background = "#d97706";
-                document.getElementById('log-status').innerText = "✅ Trilha salva com sucesso!";
-                salvarDadosLocais();
+                btn.classList.remove('active');
+                btn.innerText = '🐾 Trilha: OFF';
             }
         }
 
-        function exportarDadosJSON() {
-            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dadosApp, null, 2));
-            let downloadAnchor = document.createElement('a');
+        function renderTrail() {
+            if (trailPolyline) map.removeLayer(trailPolyline);
+
+            if (trailData.length > 1) {
+                trailPolyline = L.polyline(trailData, {
+                    color: '#ff9100',
+                    weight: 4,
+                    dashArray: '6, 8'
+                }).addTo(map);
+            }
+        }
+
+        /* --- PERSISTÊNCIA LOCAL (LOCALSTORAGE) --- */
+        function saveToStorage() {
+            localStorage.setItem(STORAGE_KEY_MARKERS, JSON.stringify(markersData));
+            localStorage.setItem(STORAGE_KEY_TRAILS, JSON.stringify(trailData));
+        }
+
+        function loadStoredData() {
+            const savedMarkers = localStorage.getItem(STORAGE_KEY_MARKERS);
+            const savedTrails = localStorage.getItem(STORAGE_KEY_TRAILS);
+
+            if (savedMarkers) {
+                markersData = JSON.parse(savedMarkers);
+                renderMarkers();
+                calculateGeodesicArea();
+            }
+
+            if (savedTrails) {
+                trailData = JSON.parse(savedTrails);
+                renderTrail();
+            }
+        }
+
+        function clearAllData() {
+            if (confirm('Deseja REALMENTE apagar todos os marcos e trilhas salvos? Esta ação não pode ser desfeita.')) {
+                markersData = [];
+                trailData = [];
+                localStorage.removeItem(STORAGE_KEY_MARKERS);
+                localStorage.removeItem(STORAGE_KEY_TRAILS);
+
+                if (propertyPolygon) map.removeLayer(propertyPolygon);
+                if (trailPolyline) map.removeLayer(trailPolyline);
+                mapLeafletMarkers.forEach(m => map.removeLayer(m));
+                mapLeafletMarkers = [];
+
+                updateAreaUI(0);
+                alert('Todos os dados foram apagados com sucesso.');
+            }
+        }
+
+        /* --- EXPORTAÇÃO DE DADOS (JSON BACKUP) --- */
+        function exportJSONData() {
+            if (markersData.length === 0 && trailData.length === 0) {
+                alert('Não há dados salvos para exportar.');
+                return;
+            }
+
+            const payload = {
+                app: "AgroGeo PWA",
+                exportDate: new Date().toISOString(),
+                summary: {
+                    totalMarkers: markersData.length,
+                    areaM2: document.getElementById('area-m2').innerText,
+                    areaHa: document.getElementById('area-ha').innerText,
+                    areaAlqPaulista: document.getElementById('area-alq').innerText
+                },
+                markers: markersData,
+                trails: trailData
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload, null, 2));
+            const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `rocamap_backup_${new Date().toISOString().slice(0,10)}.json`);
+            downloadAnchor.setAttribute("download", `demarcacao_rural_${new Date().toISOString().slice(0,10)}.json`);
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             downloadAnchor.remove();
-        }
-
-        function resetarTudo() {
-            if (confirm("Tem certeza que deseja apagar todos os marcos e trilhas salvos?")) {
-                localStorage.removeItem('rocamap_dados_v1');
-                location.reload();
-            }
-        }
-
-        // Inicializa dados ao abrir
-        carregarDadosLocais();
-
-        // Service Worker PWA para funcionar 100% offline
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js').catch(() => {});
         }
     </script>
 </body>
