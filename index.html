@@ -1,4 +1,4 @@
-   <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -24,7 +24,7 @@
            RESET & CORE DESIGN SYSTEM
            ========================================== */
         :root {
-            --bg-dark: #0B0F19;
+            --bg-dark: #0F172A;
             --surface-dark: #1E293B;
             --surface-card: rgba(30, 41, 59, 0.85);
             --primary: #0EA5E9;
@@ -77,13 +77,13 @@
         #map {
             width: 100%;
             height: 100%;
-            background-color: #0B0F19 !important; /* Evita fundo branco durante carregamento */
+            background-color: #0F172A !important; /* Elimina fundo branco em carregamento */
             z-index: 1;
             touch-action: none;
         }
 
         .leaflet-container {
-            background: #0B0F19 !important;
+            background: #0F172A !important;
             font-family: var(--font-sans);
         }
 
@@ -94,7 +94,7 @@
 
         .leaflet-control-container .leaflet-routing-container,
         .leaflet-control-attribution {
-            display: none !important; /* Esconde marcas d'água desnecessárias */
+            display: none !important;
         }
 
         /* Marcadores Customizados */
@@ -137,7 +137,7 @@
             transition: transform 0.1s linear;
         }
 
-        /* PIN DE LOCALIZAÇÃO DO USUÁRIO ("FACADA") */
+        /* PIN DE LOCALIZAÇÃO DO USUÁRIO ("FACADA" DE PRECISÃO) */
         .user-location-wrapper {
             position: relative;
             width: 36px;
@@ -149,8 +149,8 @@
 
         .user-location-pulse {
             position: absolute;
-            width: 32px;
-            height: 32px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             background: rgba(14, 165, 233, 0.25);
             border: 1.5px solid rgba(14, 165, 233, 0.8);
@@ -262,7 +262,7 @@
             box-shadow: var(--shadow-glow);
         }
 
-        /* BOTÃO DE RECENTRALIZAR GPS */
+        /* BOTÃO RECENTRALIZAR GPS */
         .btn-gps-recenter {
             position: absolute;
             right: 16px;
@@ -288,7 +288,7 @@
             color: #fff;
         }
 
-        /* BOTÃO RESET DE ROTAS / BÚSSOLA */
+        /* BOTÃO RESET DE BÚSSOLA */
         .compass-btn {
             position: absolute;
             right: 16px;
@@ -694,7 +694,7 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        /* Esconder input de arquivo */
+        /* Input de arquivo oculto com aceitação total de extensão */
         #import-file-input {
             display: none;
         }
@@ -712,7 +712,7 @@
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 2 7 12 12 22 7 12 2"/></svg>
                 <div>
                     <div class="brand-title">Glow Medidas</div>
-                    <div class="project-badge" id="current-project-name">Sem Título</div>
+                    <div class="project-badge" id="current-project-name">Projeto Principal</div>
                 </div>
             </div>
 
@@ -786,7 +786,7 @@
             </div>
             <div class="sheet-body" id="sheet-content">
                 <div style="text-align:center; padding: 20px; color: var(--text-muted); font-size: 13px;">
-                    Toque em um ponto do polígono ou adicione um novo para visualizar todas as suas coordenadas calculadas (GEO, DMS, UTM, MGRS, Plus Code).
+                    Toque em um ponto do polígono para visualizar as coordenadas calculadas (GEO, DMS, UTM, MGRS, Plus Code).
                 </div>
             </div>
         </div>
@@ -802,7 +802,7 @@
                 <div class="form-group">
                     <label class="form-label">Nome do Projeto Atual</label>
                     <div style="display:flex; gap:8px;">
-                        <input type="text" id="project-name-input" class="form-input" placeholder="Ex: Gleba Santa Luzia - Lote 4">
+                        <input type="text" id="project-name-input" class="form-input" placeholder="Ex: Gleba Santa Luzia">
                         <button class="btn-prim" id="btn-save-project-name">Salvar</button>
                     </div>
                 </div>
@@ -902,11 +902,11 @@
                 </div>
                 <div style="display:flex; flex-direction:column; gap:8px;">
                     <button class="btn-sec" style="text-align:left; display:flex; justify-content:space-between; align-items:center;" onclick="setMapLayer('google-sat')">
-                        <span>🛰️ Google Satélite HD (Mais Recente no Brasil)</span>
+                        <span>🛰️ Google Satélite HD (Atualizado Brasil)</span>
                         <span id="check-google-sat" style="color:var(--accent);">✓</span>
                     </button>
                     <button class="btn-sec" style="text-align:left; display:flex; justify-content:space-between; align-items:center;" onclick="setMapLayer('google-hybrid')">
-                        <span>🗺️ Google Híbrido (Satélite + Estradas/Nomes)</span>
+                        <span>🗺️ Google Híbrido (Satélite + Estradas)</span>
                         <span id="check-google-hybrid" style="display:none; color:var(--accent);">✓</span>
                     </button>
                     <button class="btn-sec" style="text-align:left; display:flex; justify-content:space-between; align-items:center;" onclick="setMapLayer('esri-sat')">
@@ -924,7 +924,7 @@
         <!-- TOAST NOTIFICATION CONTAINER -->
         <div class="toast" id="toast"></div>
 
-        <!-- INPUT DE ARQUIVO DE BACKUP (OCULTO) -->
+        <!-- INPUT DE ARQUIVO DE BACKUP (OCULTO - ACEITA QUALQUER ARQUIVO DE TEXTO/JSON) -->
         <input type="file" id="import-file-input" accept="*/*">
     </div>
 
@@ -939,7 +939,7 @@
             projects: [],
             currentProject: {
                 id: 'proj_' + Date.now(),
-                name: 'Gleba Principal',
+                name: 'Projeto Principal',
                 points: [],
                 createdAt: new Date().toISOString()
             },
@@ -955,7 +955,6 @@
             db: null
         };
 
-        // Elementos DOM principais
         const dom = {
             map: document.getElementById('map'),
             valAreaM2: document.getElementById('val-area-m2'),
@@ -977,7 +976,7 @@
            2. INICIALIZAÇÃO DO BANCO DE DADOS INDEXEDDB E PWA OFFLINE
            ========================================================================== */
         function initDB() {
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve) => {
                 const request = indexedDB.open('GlowMedidasDB_v2', 2);
                 request.onupgradeneeded = (e) => {
                     const db = e.target.result;
@@ -989,26 +988,21 @@
                     state.db = e.target.result;
                     loadSavedProjects().then(resolve);
                 };
-                request.onerror = (e) => {
-                    console.error("Erro ao abrir IndexedDB", e);
-                    resolve();
-                };
+                request.onerror = () => resolve();
             });
         }
 
         function saveCurrentProjectToDB() {
             if (!state.db) return;
             const tx = state.db.transaction('projects', 'readwrite');
-            const store = tx.objectStore('projects');
-            store.put(state.currentProject);
+            tx.objectStore('projects').put(state.currentProject);
         }
 
         function loadSavedProjects() {
             return new Promise((resolve) => {
                 if (!state.db) return resolve();
                 const tx = state.db.transaction('projects', 'readonly');
-                const store = tx.objectStore('projects');
-                const req = store.getAll();
+                const req = tx.objectStore('projects').getAll();
                 req.onsuccess = () => {
                     state.projects = req.result || [];
                     if (state.projects.length > 0) {
@@ -1023,14 +1017,13 @@
             });
         }
 
-        // Geração do Service Worker e PWA Manifest Blob Dinâmico
         function initPWA() {
             const manifestData = {
                 name: "Glow Medidas - Topografia & Precisão",
                 short_name: "GlowMedidas",
                 start_url: "./",
                 display: "standalone",
-                background_color: "#0B0F19",
+                background_color: "#0F172A",
                 theme_color: "#0F172A",
                 icons: [{
                     src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230EA5E9'><polygon points='12 2 2 7 12 12 22 7 12 2'/></svg>",
@@ -1043,14 +1036,9 @@
 
             if ('serviceWorker' in navigator) {
                 const swCode = `
-                    const CACHE_NAME = 'glow-medidas-v3';
                     self.addEventListener('install', e => e.waitUntil(self.skipWaiting()));
                     self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
-                    self.addEventListener('fetch', e => {
-                        e.respondWith(
-                            fetch(e.request).catch(() => caches.match(e.request))
-                        );
-                    });
+                    self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
                 `;
                 const swBlob = new Blob([swCode], { type: 'application/javascript' });
                 navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
@@ -1058,47 +1046,46 @@
         }
 
         /* ==========================================================================
-           3. INICIALIZAÇÃO DO MAPA LEAFLET E CAMADAS HD
+           3. INICIALIZAÇÃO DO MAPA LEAFLET & CAMADAS HD
            ========================================================================== */
         let map;
         let polylineLayer, polygonLayer, markersGroup, segmentBadgesGroup;
 
         function initMap() {
-            // Instância do mapa com zoom estritamente travado no máximo 20 (impede tela branca)
+            // Inicializa mapa travado no zoom 22 com suporte a mosaicos HD sem gerar tela branca
             map = L.map('map', {
                 zoomControl: false,
                 attributionControl: false,
-                maxZoom: 20,
+                maxZoom: 22,
                 minZoom: 3,
                 zoomSnap: 0.5
-            }).setView([-15.7801, -47.9292], 4); // Visão geral do Brasil por padrão
+            }).setView([-15.7801, -47.9292], 4);
 
-            // Definição das Camadas do Mapa (Com Google Satélite HD para Brasil como padrão)
+            // Provedores de Satélite HD (Com Google Satélite e Híbrido atualizados para o Brasil)
             state.mapLayers = {
                 'google-sat': L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-                    maxZoom: 20,
+                    maxZoom: 22,
                     maxNativeZoom: 20,
                     subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
                 }),
                 'google-hybrid': L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-                    maxZoom: 20,
+                    maxZoom: 22,
                     maxNativeZoom: 20,
                     subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
                 }),
                 'esri-sat': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                    maxZoom: 20,
+                    maxZoom: 22,
                     maxNativeZoom: 18
                 }),
                 'osm-streets': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 20,
+                    maxZoom: 22,
                     maxNativeZoom: 19
                 })
             };
 
-            // Ativa camada padrão (Google Satélite HD)
+            // Aplica camada padrão (Google Satélite HD)
             state.mapLayers['google-sat'].addTo(map);
 
-            // Camadas vetoriais
             polygonLayer = L.polygon([], {
                 color: '#0EA5E9',
                 weight: 2.5,
@@ -1115,15 +1102,11 @@
             markersGroup = L.layerGroup().addTo(map);
             segmentBadgesGroup = L.layerGroup().addTo(map);
 
-            // Evento de clique no mapa para adicionar ponto
             map.on('click', (e) => {
                 addPoint(e.latlng.lat, e.latlng.lng);
             });
 
-            // Inicializa sistema de controle por gestos de toque (Pinça/Rotação com 2 dedos)
             initTouchRotation();
-
-            // Inicia monitoramento contínuo de posição GPS
             startGPSWatch();
         }
 
@@ -1133,7 +1116,6 @@
             state.mapLayers[layerKey].addTo(map);
             state.currentLayerKey = layerKey;
 
-            // Atualiza marcas de check no modal UI
             ['google-sat', 'google-hybrid', 'esri-sat', 'osm-streets'].forEach(k => {
                 const el = document.getElementById(`check-${k}`);
                 if (el) el.style.display = (k === layerKey) ? 'inline' : 'none';
@@ -1157,29 +1139,26 @@
                     state.userLocation = { lat, lng, accuracy };
                     updateUserLocationMarker(lat, lng, accuracy);
                 },
-                (err) => { console.warn("Erro ao ler GPS:", err.message); },
+                (err) => { console.warn("Erro ao obter GPS:", err.message); },
                 { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
             );
         }
 
         function updateUserLocationMarker(lat, lng, accuracy) {
-            // Criação do Ícone de Agulha ("Facada") de alta precisão
+            // Marcador estilo Agulha / Facada de alta precisão
             const needleIcon = L.divIcon({
                 className: 'user-location-wrapper',
                 html: `
                     <div class="user-location-pulse"></div>
                     <svg class="user-location-needle" viewBox="0 0 36 36" fill="none">
-                        <!-- Sombra da ponta -->
-                        <path d="M18 34L11 20C11 20 14 22 18 22C22 22 25 20 25 20L18 34Z" fill="rgba(0,0,0,0.3)"/>
-                        <!-- Corpo da agulha de precisão (Facada) -->
+                        <path d="M18 34L11 20C11 20 14 22 18 22C22 22 25 20 25 20L18 34Z" fill="rgba(0,0,0,0.35)"/>
                         <path d="M18 34L12 18C10 14 13 8 18 8C23 8 26 14 24 18L18 34Z" fill="#0EA5E9" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"/>
-                        <!-- Centro da mira -->
                         <circle cx="18" cy="15" r="3" fill="#FFF"/>
                         <circle cx="18" cy="15" r="1.5" fill="#0EA5E9"/>
                     </svg>
                 `,
                 iconSize: [36, 36],
-                iconAnchor: [18, 34] // A ponta exata da agulha é o ponto de ancoragem na coordenada real
+                iconAnchor: [18, 34] // Ancoragem exata na ponta da agulha
             });
 
             if (!state.userLocationMarker) {
@@ -1199,26 +1178,22 @@
             }
         }
 
-        // Centralizar o mapa na posição atual do usuário (Botão GPS)
         function recenterToUserLocation() {
             if (!state.userLocation) {
                 showToast("Aguardando sinal GPS...");
                 return;
             }
-            map.flyTo([state.userLocation.lat, state.userLocation.lng], 18, {
-                animate: true,
-                duration: 1.2
-            });
-            showToast("Mapa centralizado na sua posição GPS");
+            map.flyTo([state.userLocation.lat, state.userLocation.lng], 18, { animate: true, duration: 1.2 });
+            showToast("Mapa centralizado na sua posição");
         }
 
         /* ==========================================================================
-           5. ESTABILIZADOR GPS DE ALTA PRECISÃO (FILTRO PARA COBERTURA VEGETAL)
+           5. ESTABILIZADOR GPS DE ALTA PRECISÃO (CANOPIA VEGETAL)
            ========================================================================== */
         function captureStabilizedGPS() {
             if (state.isStabilizingGPS) return;
             if (!navigator.geolocation) {
-                showToast("GPS não suportado neste dispositivo.");
+                showToast("GPS não suportado.");
                 return;
             }
 
@@ -1229,11 +1204,9 @@
             let secondsLeft = 15;
             dom.gpsBtnText.innerText = `Calibrando (${secondsLeft}s)...`;
 
-            const countdownInterval = setInterval(() => {
+            const interval = setInterval(() => {
                 secondsLeft--;
-                if (secondsLeft > 0) {
-                    dom.gpsBtnText.innerText = `Calibrando (${secondsLeft}s)...`;
-                }
+                if (secondsLeft > 0) dom.gpsBtnText.innerText = `Calibrando (${secondsLeft}s)...`;
             }, 1000);
 
             const watchId = navigator.geolocation.watchPosition((pos) => {
@@ -1244,52 +1217,46 @@
                 });
             }, () => {}, { enableHighAccuracy: true, maximumAge: 0 });
 
-            // Após 15 segundos, processa média ponderada pela variância inversa
             setTimeout(() => {
-                clearInterval(countdownInterval);
+                clearInterval(interval);
                 navigator.geolocation.clearWatch(watchId);
                 state.isStabilizingGPS = false;
                 dom.btnAddGps.classList.remove('gps-stabilizing');
                 dom.gpsBtnText.innerText = "Capturar GPS";
 
                 if (samples.length === 0) {
-                    showToast("Falha ao obter dados do GPS.");
+                    showToast("Sinal GPS insuficiente.");
                     return;
                 }
 
-                // 1. Ordena amostras por precisão e descarta os 20% piores outliers
+                // Descarta os 20% piores e calcula a média ponderada (Inverse-Variance Weighting)
                 samples.sort((a, b) => a.accuracy - b.accuracy);
-                const validCount = Math.max(1, Math.floor(samples.length * 0.8));
-                const filteredSamples = samples.slice(0, validCount);
+                const validSamples = samples.slice(0, Math.max(1, Math.floor(samples.length * 0.8)));
 
-                // 2. Calcula Média Ponderada (Inverse-Variance Weighting: w_i = 1 / accuracy^2)
-                let totalWeight = 0;
-                let weightedLatSum = 0;
-                let weightedLngSum = 0;
-
-                filteredSamples.forEach(s => {
-                    const weight = 1 / (Math.pow(s.accuracy, 2) || 1);
-                    totalWeight += weight;
-                    weightedLatSum += s.lat * weight;
-                    weightedLngSum += s.lng * weight;
+                let totalWeight = 0, latSum = 0, lngSum = 0;
+                validSamples.forEach(s => {
+                    const w = 1 / (Math.pow(s.accuracy, 2) || 1);
+                    totalWeight += w;
+                    latSum += s.lat * w;
+                    lngSum += s.lng * w;
                 });
 
-                const finalLat = weightedLatSum / totalWeight;
-                const finalLng = weightedLngSum / totalWeight;
+                const finalLat = latSum / totalWeight;
+                const finalLng = lngSum / totalWeight;
 
                 if (state.editingPointIndex !== null) {
                     replacePoint(state.editingPointIndex, finalLat, finalLng);
                     state.editingPointIndex = null;
-                    showToast("Ponto substituído via GPS com Alta Precisão!");
+                    showToast("Ponto substituído com precisão!");
                 } else {
                     addPoint(finalLat, finalLng);
-                    showToast(`Ponto GPS fixado! (${filteredSamples.length} amostras filtradas)`);
+                    showToast(`Ponto capturado! (${validSamples.length} leituras acumuladas)`);
                 }
             }, 15000);
         }
 
         /* ==========================================================================
-           6. GERENCIAMENTO DE PONTOS, CÁLCULO DE ÁREA & DISTÂNCIA (GEO/UTM)
+           6. GERENCIAMENTO DE PONTOS E CÁLCULOS
            ========================================================================== */
         function addPoint(lat, lng) {
             state.currentProject.points.push({ lat, lng });
@@ -1317,12 +1284,12 @@
             state.currentProject.points.pop();
             saveCurrentProjectToDB();
             renderMapElements();
-            showToast("Último ponto removido");
+            showToast("Ponto removido");
         }
 
         function clearAllPoints() {
             if (state.currentProject.points.length === 0) return;
-            if (confirm("Deseja realmente apagar todos os pontos deste projeto?")) {
+            if (confirm("Limpar todos os pontos deste projeto?")) {
                 state.currentProject.points = [];
                 saveCurrentProjectToDB();
                 renderMapElements();
@@ -1352,7 +1319,6 @@
                 polylineLayer.setLatLngs([]);
             }
 
-            // Renderizar Marcadores e Metragens das Arestas
             pts.forEach((pt, idx) => {
                 const isSelected = (idx === state.selectedPointIndex);
                 const markerIcon = L.divIcon({
@@ -1368,12 +1334,10 @@
                     selectPoint(idx);
                 });
 
-                // Cálculo de distância de segmento (Aresta atual -> Próximo Ponto)
+                // Metragem sobre as linhas (Arestas)
                 if (pts.length >= 2) {
                     let nextIdx = idx + 1;
-                    if (nextIdx === pts.length && pts.length >= 3) {
-                        nextIdx = 0; // Fechamento do Polígono
-                    }
+                    if (nextIdx === pts.length && pts.length >= 3) nextIdx = 0;
 
                     if (nextIdx < pts.length) {
                         const nextPt = pts[nextIdx];
@@ -1392,10 +1356,7 @@
                 }
             });
 
-            // Aplica contra-rotação dinâmica nos marcadores para mantê-los sempre em pé
             applyCounterRotation();
-
-            // Calcular Métricas Totais
             calculateMetrics();
         }
 
@@ -1403,14 +1364,13 @@
            8. MATEMÁTICA GEODÉSICA: SHAPES, HAVERSINE E ALQUEIRES
            ========================================================================== */
         function computeHaversineDistance(lat1, lon1, lat2, lon2) {
-            const R = 6378137; // Raio da Terra em metros (WGS84)
+            const R = 6378137;
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
             const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
                       Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
                       Math.sin(dLon / 2) * Math.sin(dLon / 2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            return R * c;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         }
 
         function calculateMetrics() {
@@ -1423,33 +1383,28 @@
                 return;
             }
 
-            // Perímetro Total ou Distância da Linha
             let totalDist = 0;
             for (let i = 0; i < pts.length - 1; i++) {
                 totalDist += computeHaversineDistance(pts[i].lat, pts[i].lng, pts[i + 1].lat, pts[i + 1].lng);
             }
             if (pts.length >= 3) {
-                // Adiciona fechamento do polígono
                 totalDist += computeHaversineDistance(pts[pts.length - 1].lat, pts[pts.length - 1].lng, pts[0].lat, pts[0].lng);
             }
 
             dom.valDistM.innerText = `${totalDist.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m`;
             dom.valDistKm.innerText = `${(totalDist / 1000).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} km`;
 
-            // Cálculo da Área em Esfera (Spherical Shoelace)
             if (pts.length >= 3) {
                 const R = 6378137;
                 let area = 0;
                 for (let i = 0; i < pts.length; i++) {
                     const j = (i + 1) % pts.length;
-                    const p1 = pts[i];
-                    const p2 = pts[j];
-                    area += ((p2.lng - p1.lng) * Math.PI / 180) * (2 + Math.sin(p1.lat * Math.PI / 180) + Math.sin(p2.lat * Math.PI / 180));
+                    area += ((pts[j].lng - pts[i].lng) * Math.PI / 180) * (2 + Math.sin(pts[i].lat * Math.PI / 180) + Math.sin(pts[j].lat * Math.PI / 180));
                 }
                 area = Math.abs(area * R * R / 2);
 
                 const hectares = area / 10000;
-                const alqueireSP = area / 24200; // 1 Alqueire Paulista = 24.200 m²
+                const alqueireSP = area / 24200; // 1 Alqueire SP = 24.200 m²
 
                 dom.valAreaM2.innerText = `${area.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²`;
                 dom.valAreaHa.innerText = `${hectares.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })} ha | ${alqueireSP.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Alq SP`;
@@ -1460,7 +1415,7 @@
         }
 
         /* ==========================================================================
-           9. CONVERSÕES DE COORDENADAS (GEO, DMS, UTM, MGRS, PLUS CODE)
+           9. CONVERSÕES DE COORDENADAS (GEO, DMS, UTM)
            ========================================================================== */
         function convertGeoToDMS(lat, lng) {
             function toDMS(val, isLat) {
@@ -1479,7 +1434,6 @@
             const zone = Math.floor((lng + 180) / 6) + 1;
             const hemi = lat >= 0 ? 'N' : 'S';
             
-            // Aproximação WGS84 Simplificada para projeção Transversa de Mercator
             const latRad = lat * Math.PI / 180;
             const lngRad = lng * Math.PI / 180;
             const centralMeridian = ((zone - 1) * 6 - 180 + 3) * Math.PI / 180;
@@ -1500,11 +1454,7 @@
             
             if (lat < 0) northing += 10000000;
 
-            return {
-                zone: `${zone} ${hemi}`,
-                easting: easting.toFixed(2),
-                northing: northing.toFixed(2)
-            };
+            return { zone: `${zone} ${hemi}`, easting: easting.toFixed(2), northing: northing.toFixed(2) };
         }
 
         function convertUTMToGeo(zone, hemi, easting, northing) {
@@ -1557,7 +1507,7 @@
 
                     <div class="coord-card">
                         <div class="coord-info">
-                            <span class="coord-type">DMS (Graus, Min, Seg)</span>
+                            <span class="coord-type">DMS (GMS)</span>
                             <span class="coord-val">${dms.latDMS}<br>${dms.lngDMS}</span>
                         </div>
                         <button class="btn-copy" onclick="copyToClipboard('${dms.latDMS} ${dms.lngDMS}')">📋</button>
@@ -1592,7 +1542,6 @@
            ========================================================================== */
         function initTouchRotation() {
             let initialAngle = 0;
-            let currentAngle = 0;
             let isRotating = false;
             let initialDistance = 0;
 
@@ -1616,34 +1565,30 @@
                     const currentDistance = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
                     const distChange = Math.abs(currentDistance - initialDistance);
 
-                    // Evita pulos de rotação durante um gesto focado em zoom (pinça)
+                    // Evita pulos involuntários durante o gesto de zoom por pinça
                     if (distChange > 35) return;
 
                     const angle = Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX) * 180 / Math.PI;
                     const delta = angle - initialAngle;
 
-                    // Zona morta (dead-band): ignora tremores menores que 2.0 graus
-                    if (Math.abs(delta) > 2.0) {
-                        currentAngle = state.rotationAngle + delta * 0.45; // Suavizador Low-pass
-                        applyRotation(currentAngle);
+                    // Dead-band / Zona morta: ignora oscilações menores que 1.8 graus
+                    if (Math.abs(delta) > 1.8) {
+                        const newAngle = state.rotationAngle + (delta * 0.45);
+                        applyRotation(newAngle);
                         initialAngle = angle;
                     }
                 }
             }, { passive: true });
 
             mapEl.addEventListener('touchend', (e) => {
-                if (e.touches.length < 2) {
-                    isRotating = false;
-                }
+                if (e.touches.length < 2) isRotating = false;
             });
         }
 
         function applyRotation(deg) {
             state.rotationAngle = deg;
             const pane = document.querySelector('.leaflet-map-pane');
-            if (pane) {
-                pane.style.transform = `rotate(${deg}deg)`;
-            }
+            if (pane) pane.style.transform = `rotate(${deg}deg)`;
             dom.compassIcon.style.transform = `rotate(${-deg}deg)`;
             applyCounterRotation();
         }
@@ -1654,7 +1599,6 @@
         }
 
         function applyCounterRotation() {
-            // Contra-rotaciona os números dos marcadores e as metragens para não ficarem de ponta-cabeça
             const elements = document.querySelectorAll('.custom-marker, .segment-badge');
             elements.forEach(el => {
                 el.style.transform = `rotate(${-state.rotationAngle}deg)`;
@@ -1662,7 +1606,7 @@
         }
 
         /* ==========================================================================
-           12. GERENCIADOR DE PROJETOS, SALVAMENTO & IMPORTAÇÃO RESISTENTE A BACKUPS
+           12. GERENCIADOR DE PROJETOS & IMPORTAÇÃO DE BACKUP RESISTENTE A QUALQUER VERSÃO
            ========================================================================== */
         function renderProjectListUI() {
             const listEl = document.getElementById('project-list');
@@ -1739,7 +1683,6 @@
             }
         }
 
-        // EXPORTAÇÃO DE BACKUP COMPLETO (JSON)
         function exportBackup() {
             const backupData = {
                 appName: "Glow Medidas",
@@ -1747,19 +1690,17 @@
                 exportedAt: new Date().toISOString(),
                 projects: state.projects
             };
-            const jsonStr = JSON.stringify(backupData, null, 2);
-            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
-            
             const a = document.createElement('a');
             a.href = url;
             a.download = `GlowMedidas_Backup_${new Date().toISOString().slice(0,10)}.json`;
             a.click();
             URL.revokeObjectURL(url);
-            showToast("Backup exportado com sucesso!");
+            showToast("Backup exportado!");
         }
 
-        // IMPORTAÇÃO TOLERANTE A QUALQUER FORMATO DE BACKUP (INCLUINDO BACKUPS ANTIGOS "GLOBO MEDIDAS")
+        // IMPORTAÇÃO CORRIGIDA DE BACKUP (SUPORTA QUALQUER ESTRUTURA ANTIGA OU NOVA)
         function handleImportFile(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1770,34 +1711,33 @@
                     const content = JSON.parse(e.target.result);
                     let importedProjects = [];
 
-                    // 1. Caso o JSON seja um Backup completo { projects: [...] }
+                    // 1. Arquivo de Backup Estruturado { projects: [...] }
                     if (content.projects && Array.isArray(content.projects)) {
                         importedProjects = content.projects;
                     } 
-                    // 2. Caso seja um Array direto de projetos [ {...}, {...} ]
+                    // 2. Array direto de Projetos [ {...}, {...} ]
                     else if (Array.isArray(content)) {
                         importedProjects = content;
                     } 
-                    // 3. Caso seja um único projeto isolado { id, name, points }
-                    else if (content.points || content.name || content.latlngs) {
+                    // 3. Objeto de projeto único ou backup legado ("Globo Medidas")
+                    else if (content.points || content.latlngs || content.coordenadas || content.name) {
                         importedProjects = [content];
-                    }
-                    // 4. Caso o objeto contenha outra chave envelopada (ex: Globo Medidas legado)
+                    } 
+                    // 4. Procura recursiva por arrays dentro do JSON importado
                     else {
-                        for (let key in content) {
-                            if (Array.isArray(content[key])) {
-                                importedProjects = content[key];
+                        for (let k in content) {
+                            if (Array.isArray(content[k])) {
+                                importedProjects = content[k];
                                 break;
                             }
                         }
                     }
 
                     if (importedProjects.length === 0) {
-                        throw new Error("Nenhum formato de projeto válido encontrado no arquivo.");
+                        throw new Error("Nenhum dado de projeto reconhecido no arquivo.");
                     }
 
-                    // Padronização e Limpeza dos Projetos Importados
-                    let countAdded = 0;
+                    let addedCount = 0;
                     importedProjects.forEach(rawProj => {
                         const cleanPoints = [];
                         const rawPts = rawProj.points || rawProj.latlngs || rawProj.coordenadas || [];
@@ -1810,22 +1750,21 @@
                             }
                         });
 
-                        const validProject = {
-                            id: rawProj.id || ('proj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4)),
+                        const projObj = {
+                            id: rawProj.id || ('proj_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6)),
                             name: rawProj.name || rawProj.nome || ('Projeto Importado ' + (state.projects.length + 1)),
                             points: cleanPoints,
                             createdAt: rawProj.createdAt || new Date().toISOString()
                         };
 
-                        state.projects.push(validProject);
+                        state.projects.push(projObj);
                         if (state.db) {
                             const tx = state.db.transaction('projects', 'readwrite');
-                            tx.objectStore('projects').put(validProject);
+                            tx.objectStore('projects').put(projObj);
                         }
-                        countAdded++;
+                        addedCount++;
                     });
 
-                    // Define o último projeto importado como o projeto ativo
                     state.currentProject = state.projects[state.projects.length - 1];
                     updateUIProjectName();
                     renderProjectListUI();
@@ -1836,13 +1775,13 @@
                         map.fitBounds(state.currentProject.points.map(p => [p.lat, p.lng]), { padding: [50, 50] });
                     }
 
-                    showToast(`${countAdded} projeto(s) restaurado(s) com sucesso!`);
+                    showToast(`${addedCount} projeto(s) restaurado(s) com sucesso!`);
                 } catch (err) {
-                    alert("Erro ao ler o arquivo de backup: " + err.message);
+                    alert("Erro ao importar backup: " + err.message);
                 }
             };
             reader.readAsText(file);
-            event.target.value = ''; // Limpa o seletor para permitir re-importar o mesmo arquivo se desejado
+            event.target.value = '';
         }
 
         /* ==========================================================================
@@ -1903,17 +1842,17 @@
             }
 
             if (isNaN(lat) || isNaN(lng) || lat === null || lng === null) {
-                showToast("Por favor, preencha as coordenadas corretamente.");
+                showToast("Coordenadas inválidas. Verifique os campos.");
                 return;
             }
 
             if (state.editingPointIndex !== null) {
                 replacePoint(state.editingPointIndex, lat, lng);
                 state.editingPointIndex = null;
-                showToast("Ponto substituído!");
+                showToast("Ponto atualizado!");
             } else {
                 addPoint(lat, lng);
-                showToast("Coordenada adicionada!");
+                showToast("Ponto adicionado!");
             }
 
             closeModal('modal-manual-coord');
@@ -1921,7 +1860,7 @@
         }
 
         /* ==========================================================================
-           14. AUXILIARES DE UI, MODAIS & UTILITÁRIOS
+           14. AUXILIARES DE UI & MODAIS
            ========================================================================== */
         function openModal(id) { document.getElementById(id).classList.add('active'); }
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
@@ -1934,14 +1873,14 @@
 
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
-                showToast("Copiado para a área de transferência!");
+                showToast("Copiado!");
             }).catch(() => {
                 showToast("Erro ao copiar.");
             });
         }
 
         /* ==========================================================================
-           15. BINDING DE EVENTOS & ARRANQUE DA APLICAÇÃO
+           15. BINDING DE EVENTOS DA APLICAÇÃO
            ========================================================================== */
         window.addEventListener('DOMContentLoaded', async () => {
             initPWA();
@@ -1949,12 +1888,12 @@
             await initDB();
             renderMapElements();
 
-            // Event Listeners dos Botões Topo
+            // Botões do Topo
             document.getElementById('btn-projects').addEventListener('click', () => { renderProjectListUI(); openModal('modal-projects'); });
             document.getElementById('btn-layers').addEventListener('click', () => openModal('modal-layers'));
             document.getElementById('btn-manual-add').addEventListener('click', () => { state.editingPointIndex = null; openModal('modal-manual-coord'); });
 
-            // Recentralizar GPS e Reset Bússola
+            // Controles GPS e Bússola
             document.getElementById('btn-recenter-gps').addEventListener('click', recenterToUserLocation);
             document.getElementById('btn-reset-rotation').addEventListener('click', resetRotation);
 
@@ -1964,10 +1903,10 @@
             document.getElementById('btn-clear').addEventListener('click', clearAllPoints);
             document.getElementById('btn-open-details').addEventListener('click', () => {
                 if (state.currentProject.points.length > 0) selectPoint(0);
-                else showToast("Adicione ao menos um ponto no mapa");
+                else showToast("Adicione um ponto no mapa");
             });
 
-            // Modal Projetos
+            // Modal de Projetos e Backups
             document.getElementById('btn-save-project-name').addEventListener('click', () => {
                 const name = document.getElementById('project-name-input').value.trim();
                 if (name) {
@@ -1981,14 +1920,14 @@
             document.getElementById('btn-new-project').addEventListener('click', createNewProject);
             document.getElementById('btn-export-backup').addEventListener('click', exportBackup);
             
-            // Disparar Seleção de Arquivo de Backup
+            // Disparo de Importação de Arquivo
             document.getElementById('btn-trigger-import').addEventListener('click', () => dom.importFileInput.click());
             dom.importFileInput.addEventListener('change', handleImportFile);
 
-            // Modal Entrada Manual
+            // Submissão de Coordenadas Manuais
             document.getElementById('btn-submit-manual-coord').addEventListener('click', submitManualCoordinate);
 
-            // Painel Deslizante
+            // Painel Deslizante de Coordenadas
             document.getElementById('btn-close-sheet').addEventListener('click', closeBottomSheet);
             document.getElementById('sheet-header').addEventListener('click', (e) => {
                 if (e.target.tagName !== 'BUTTON') dom.bottomSheet.classList.toggle('open');
@@ -1996,4 +1935,4 @@
         });
     </script>
 </body>
-</html>     
+</html>
