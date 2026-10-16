@@ -49,8 +49,8 @@
     <style>
         :root {
             --bg-dark: #0F172A;
-            --surface-dark: rgba(30, 41, 59, 0.85);
-            --surface-border: rgba(255, 255, 255, 0.12);
+            --surface-dark: rgba(30, 41, 59, 0.88);
+            --surface-border: rgba(255, 255, 255, 0.15);
             --text-main: #F8FAFC;
             --text-muted: #94A3B8;
             --accent-green: #00E676;
@@ -59,13 +59,13 @@
             --accent-danger: #FF5252;
             --radius-main: 16px;
             --font-mono: 'JetBrains Mono', monospace;
-            --shadow-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            --shadow-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
         }
 
         body.light-theme {
             --bg-dark: #F1F5F9;
-            --surface-dark: rgba(255, 255, 255, 0.90);
-            --surface-border: rgba(0, 0, 0, 0.12);
+            --surface-dark: rgba(255, 255, 255, 0.92);
+            --surface-border: rgba(0, 0, 0, 0.15);
             --text-main: #0F172A;
             --text-muted: #64748B;
             --accent-cyan: #0284C7;
@@ -164,20 +164,31 @@
             color: var(--text-main);
         }
 
-        /* Floating Action Buttons (FABs) Right Side */
+        /* FAB Action Column Right Side */
         .fab-column {
             position: absolute;
             right: 12px;
-            top: 110px;
+            top: 100px;
             z-index: 1000;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
+        }
+
+        /* Zoom Control Column Left Side */
+        .zoom-column {
+            position: absolute;
+            left: 12px;
+            top: 100px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
         .fab-btn {
-            width: 46px;
-            height: 46px;
+            width: 44px;
+            height: 44px;
             border-radius: 14px;
             background: var(--surface-dark);
             backdrop-filter: blur(16px);
@@ -198,8 +209,8 @@
         }
 
         .fab-btn svg {
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
             fill: none;
             stroke: currentColor;
             stroke-width: 2;
@@ -223,30 +234,24 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
-            pointer-events: none;
-        }
-
-        .bottom-btn-group {
-            pointer-events: auto;
-            display: flex;
             gap: 8px;
+            pointer-events: none;
         }
 
         .btn-add-marco {
             pointer-events: auto;
-            flex: 1;
+            flex: 1.5;
             height: 56px;
             background: linear-gradient(135deg, #00E5FF 0%, #00E676 100%);
             border: none;
             border-radius: 18px;
             color: #0F172A;
-            font-size: 1.05rem;
+            font-size: 0.95rem;
             font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             box-shadow: 0 10px 25px rgba(0, 229, 255, 0.4);
             cursor: pointer;
             transition: all 0.2s ease;
@@ -254,19 +259,18 @@
 
         .btn-add-marco:active {
             transform: scale(0.96);
-            box-shadow: 0 5px 15px rgba(0, 229, 255, 0.2);
         }
 
         .btn-add-marco svg {
-            width: 26px;
-            height: 26px;
+            width: 22px;
+            height: 22px;
             stroke: #0F172A;
             stroke-width: 2.5;
         }
 
         .btn-secondary-action {
             pointer-events: auto;
-            width: 56px;
+            width: 52px;
             height: 56px;
             border-radius: 18px;
             background: var(--surface-dark);
@@ -280,6 +284,10 @@
             cursor: pointer;
         }
 
+        .btn-secondary-action:active {
+            transform: scale(0.92);
+        }
+
         /* Modal Overlay System */
         .modal-overlay {
             position: fixed;
@@ -287,7 +295,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(15, 23, 42, 0.85);
+            background: rgba(15, 23, 42, 0.88);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             z-index: 2000;
@@ -311,11 +319,11 @@
             border-radius: 24px;
             padding: 24px;
             width: 100%;
-            max-width: 440px;
+            max-width: 460px;
             box-shadow: var(--shadow-glow);
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 16px;
             transform: translateY(20px);
             transition: transform 0.3s ease;
         }
@@ -331,7 +339,7 @@
         }
 
         .modal-title {
-            font-size: 1.2rem;
+            font-size: 1.15rem;
             font-weight: 700;
             color: var(--text-main);
             display: flex;
@@ -347,12 +355,83 @@
             padding: 4px;
         }
 
+        /* Tab Controls in Modal Manual Coords */
+        .tab-group {
+            display: flex;
+            background: rgba(0,0,0,0.25);
+            padding: 4px;
+            border-radius: 12px;
+            border: 1px solid var(--surface-border);
+            gap: 4px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 8px 0;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--accent-cyan);
+            color: #0F172A;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .input-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--surface-border);
+            border-radius: 10px;
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .input-field:focus {
+            border-color: var(--accent-cyan);
+        }
+
+        .btn-confirm {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent-cyan);
+            border: none;
+            border-radius: 12px;
+            color: #0F172A;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
         /* GPS Stabilizer Display */
         .stabilizer-ring-container {
             position: relative;
-            width: 160px;
-            height: 160px;
-            margin: 10px auto;
+            width: 150px;
+            height: 150px;
+            margin: 0 auto;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -390,18 +469,17 @@
         }
 
         .stabilizer-timer-sub {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--text-muted);
             text-transform: uppercase;
             font-family: 'Inter', sans-serif;
-            margin-top: -4px;
         }
 
         .stabilizer-stats {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            background: rgba(0,0,0,0.2);
+            gap: 10px;
+            background: rgba(0,0,0,0.25);
             padding: 12px;
             border-radius: 12px;
             border: 1px solid var(--surface-border);
@@ -413,14 +491,14 @@
         }
 
         .stat-lbl {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: var(--text-muted);
             text-transform: uppercase;
         }
 
         .stat-val {
             font-family: var(--font-mono);
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 600;
             color: var(--accent-amber);
             margin-top: 2px;
@@ -463,7 +541,7 @@
         .coords-grid {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
 
         .coord-item {
@@ -485,7 +563,7 @@
         }
 
         .coord-type {
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             font-weight: 600;
             color: var(--accent-cyan);
             text-transform: uppercase;
@@ -508,7 +586,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.2s;
         }
 
         .btn-copy:active {
@@ -570,7 +647,6 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        /* Action Buttons Grid in Settings */
         .settings-btn-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -585,7 +661,7 @@
             background: rgba(255,255,255,0.05);
             color: var(--text-main);
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -628,7 +704,17 @@
         </div>
     </header>
 
-    <!-- Side Floating Control Buttons -->
+    <!-- Zoom Control Column (Left Side) -->
+    <div class="zoom-column">
+        <button id="btn-zoom-in" class="fab-btn" title="Aumentar Zoom (+)">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
+        <button id="btn-zoom-out" class="fab-btn" title="Diminuir Zoom (-)">
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
+    </div>
+
+    <!-- Side Floating Control Buttons (Right Side) -->
     <div class="fab-column">
         <button id="btn-locate" class="fab-btn" title="Minha Localização">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3m0 14v3M2 12h3m14 0h3"></path></svg>
@@ -655,58 +741,131 @@
 
     <!-- Bottom Action Controls -->
     <div class="bottom-bar">
-        <button id="btn-coords-toggle" class="btn-secondary-action" title="Ver Coordenadas Detalhadas">
-            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20M2 12h20"></path></svg>
+        <button id="btn-manual-coords" class="btn-secondary-action" title="Digite Coordenadas Manualmente">
+            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
         </button>
 
         <button id="btn-add-point" class="btn-add-marco">
             <svg viewBox="0 0 24 24" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            <span>ADICIONAR MARCO</span>
+            <span>CAPTURA GPS (MATA)</span>
+        </button>
+
+        <button id="btn-coords-toggle" class="btn-secondary-action" title="Ver Coordenadas Detalhadas">
+            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20M2 12h20"></path></svg>
         </button>
 
         <button id="btn-clear" class="btn-secondary-action" title="Limpar Tudo">
-            <svg viewBox="0 0 24 24" width="24" height="24" stroke="#FF5252" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            <svg viewBox="0 0 24 24" width="22" height="22" stroke="#FF5252" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
         </button>
     </div>
 
-    <!-- Modal: Dense Tree Canopy GPS Stabilizer -->
+    <!-- Modal: Dense Tree Canopy GPS Stabilizer Engine -->
     <div id="modal-stabilizer" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header">
                 <div class="modal-title">
                     <svg viewBox="0 0 24 24" width="22" height="22" stroke="var(--accent-cyan)" stroke-width="2" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                    Estabilizador de GPS (Mata)
+                    Filtro de Precisão Máxima GPS
                 </div>
                 <button class="modal-close" id="btn-cancel-stabilizer">
                     <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
             
-            <p style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">
-                Aguarde o cancelamento de ruído por amostragem contínua do sinal sob cobertura vegetal.
+            <p style="font-size: 0.78rem; color: var(--text-muted); text-align: center;">
+                Aguarde o cancelamento de ruídos geodésicos por Variância Inversa.
             </p>
 
             <div class="stabilizer-ring-container">
                 <svg class="stabilizer-svg">
-                    <circle class="stabilizer-circle-bg" cx="80" cy="80" r="70"></circle>
-                    <circle id="stabilizer-progress" class="stabilizer-circle-progress" cx="80" cy="80" r="70"></circle>
+                    <circle class="stabilizer-circle-bg" cx="75" cy="75" r="65"></circle>
+                    <circle id="stabilizer-progress" class="stabilizer-circle-progress" cx="75" cy="75" r="65"></circle>
                 </svg>
                 <div class="stabilizer-timer-text">
                     <span id="stabilizer-countdown">15</span>s
-                    <div class="stabilizer-timer-sub">Filtrando...</div>
+                    <div class="stabilizer-timer-sub">Processando...</div>
                 </div>
             </div>
 
             <div class="stabilizer-stats">
                 <div class="stat-box">
-                    <span class="stat-lbl">Amostras Coletadas</span>
+                    <span class="stat-lbl">Amostras Válidas</span>
                     <span id="stat-samples" class="stat-val">0</span>
                 </div>
                 <div class="stat-box">
-                    <span class="stat-lbl">Precisão Média</span>
-                    <span id="stat-accuracy" class="stat-val">0.0 m</span>
+                    <span class="stat-lbl">Precisão Calculada</span>
+                    <span id="stat-accuracy" class="stat-val">± 0.0 m</span>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal: Manual Coords Input -->
+    <div id="modal-manual-coords" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">Inserir Coordenada Manual</div>
+                <button class="modal-close" id="btn-close-manual-coords">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+
+            <div class="tab-group">
+                <button class="tab-btn active" data-tab="tab-geo">GEO Decimais</button>
+                <button class="tab-btn" data-tab="tab-dms">DMS (Graus)</button>
+                <button class="tab-btn" data-tab="tab-utm">UTM</button>
+            </div>
+
+            <!-- Tab: GEO Decimais -->
+            <div id="tab-geo" class="tab-content">
+                <div class="input-group" style="margin-bottom: 10px;">
+                    <label class="input-label">Latitude (Ex: -23.550520)</label>
+                    <input type="number" step="any" id="input-lat" class="input-field" placeholder="-23.550520">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Longitude (Ex: -46.633308)</label>
+                    <input type="number" step="any" id="input-lng" class="input-field" placeholder="-46.633308">
+                </div>
+            </div>
+
+            <!-- Tab: DMS -->
+            <div id="tab-dms" class="tab-content" style="display: none;">
+                <div class="input-group" style="margin-bottom: 10px;">
+                    <label class="input-label">Latitude DMS</label>
+                    <input type="text" id="input-dms-lat" class="input-field" placeholder="23°33'01.8&quot;S">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Longitude DMS</label>
+                    <input type="text" id="input-dms-lng" class="input-field" placeholder="46°37'59.9&quot;W">
+                </div>
+            </div>
+
+            <!-- Tab: UTM -->
+            <div id="tab-utm" class="tab-content" style="display: none;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+                    <div class="input-group">
+                        <label class="input-label">Zona (Ex: 23)</label>
+                        <input type="number" id="input-utm-zone" class="input-field" placeholder="23">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Hemisfério</label>
+                        <select id="input-utm-hemisphere" class="input-field">
+                            <option value="S">Sul (S)</option>
+                            <option value="N">Norte (N)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group" style="margin-bottom: 10px;">
+                    <label class="input-label">Este (Easting X em m)</label>
+                    <input type="number" step="any" id="input-utm-easting" class="input-field" placeholder="333200">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Norte (Northing Y em m)</label>
+                    <input type="number" step="any" id="input-utm-northing" class="input-field" placeholder="7394800">
+                </div>
+            </div>
+
+            <button id="btn-submit-manual-coord" class="btn-confirm">ADICIONAR MARCO AO MAPA</button>
         </div>
     </div>
 
@@ -733,7 +892,7 @@
             </div>
 
             <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: 10px;">
-                Glow Medidas v1.0 • 100% Operacional Offline via PWA
+                Glow Medidas v1.1 • Operação Geodésica Offline
             </div>
         </div>
     </div>
@@ -804,10 +963,10 @@
 
     <!-- MAIN APP SCRIPT -->
     <script>
-        /* --- 1. SERVICE WORKER REGISTER (DYNAMIC INLINE BLOB) --- */
+        /* --- 1. SERVICE WORKER REGISTER --- */
         if ('serviceWorker' in navigator) {
             const swCode = `
-                const CACHE_NAME = 'glow-medidas-v1';
+                const CACHE_NAME = 'glow-medidas-v2';
                 const ASSETS = [
                     './',
                     'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
@@ -879,9 +1038,8 @@
 
         /* --- 3. GEODESIC MATH & CONVERSION ALGORITHMS --- */
         const MathGeo = {
-            // Geodesic distance (Haversine formula)
             distance(lat1, lon1, lat2, lon2) {
-                const R = 6378137; // Earth's radius in meters
+                const R = 6378137;
                 const dLat = (lat2 - lat1) * Math.PI / 180;
                 const dLon = (lon2 - lon1) * Math.PI / 180;
                 const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
@@ -890,7 +1048,6 @@
                 return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
             },
 
-            // Spherical polygon area (Geodesic Shoelace)
             area(latlngs) {
                 if (latlngs.length < 3) return 0;
                 const R = 6378137;
@@ -918,10 +1075,23 @@
                 return `${d}°${m}'${s}"${direction}`;
             },
 
+            parseDMS(dmsStr) {
+                // Regex parser for DMS format: e.g. 23°33'01.8"S
+                const regex = /(\d+)\s*°\s*(\d+)\s*'\s*([\d.]+)\s*"?\s*([NSEWnsew])/;
+                const match = dmsStr.match(regex);
+                if (!match) return null;
+                const deg = parseFloat(match[1]);
+                const min = parseFloat(match[2]);
+                const sec = parseFloat(match[3]);
+                const dir = match[4].toUpperCase();
+                let dec = deg + (min / 60) + (sec / 3600);
+                if (dir === 'S' || dir === 'W') dec = -dec;
+                return dec;
+            },
+
             toUTM(lat, lon) {
                 const zone = Math.floor((lon + 180) / 6) + 1;
                 const letter = lat >= 0 ? 'N' : 'S';
-                // Approximate UTM projection parameters for exact visual representation
                 const rad = Math.PI / 180;
                 const k0 = 0.9996;
                 const a = 6378137;
@@ -938,6 +1108,35 @@
                 let northing = (k0 * (M + N * Math.tan(latRad) * (Math.pow(A,2)/2 + (5-T+9*C+4*Math.pow(C,2))*Math.pow(A,4)/24 + (61-58*T+Math.pow(T,2))*Math.pow(A,6)/720))).toFixed(1);
                 if (lat < 0) northing = (parseFloat(northing) + 10000000).toFixed(1);
                 return `${zone}${letter} E:${easting} m N:${northing} m`;
+            },
+
+            utmToLatLng(zone, hemisphere, easting, northing) {
+                // Reverse UTM Math (WGS84)
+                const k0 = 0.9996;
+                const a = 6378137;
+                const e = 0.081819191;
+                const e1sq = 0.006739497;
+                let x = easting - 500000;
+                let y = northing;
+                if (hemisphere === 'S') y -= 10000000;
+
+                const lon0 = ((zone - 1) * 6 - 180 + 3) * Math.PI / 180;
+                const M = y / k0;
+                const mu = M / (a * (1 - Math.pow(e, 2) / 4 - 3 * Math.pow(e, 4) / 64 - 5 * Math.pow(e, 6) / 256));
+
+                const e1 = (1 - Math.sqrt(1 - Math.pow(e, 2))) / (1 + Math.sqrt(1 - Math.pow(e, 2)));
+                const phi1Rad = mu + (3 * e1 / 2 - 27 * Math.pow(e1, 3) / 32) * Math.sin(2 * mu) + (21 * Math.pow(e1, 2) / 16 - 55 * Math.pow(e1, 4) / 32) * Math.sin(4 * mu);
+
+                const N1 = a / Math.sqrt(1 - Math.pow(e * Math.sin(phi1Rad), 2));
+                const T1 = Math.pow(Math.tan(phi1Rad), 2);
+                const C1 = e1sq * Math.pow(Math.cos(phi1Rad), 2);
+                const R1 = a * (1 - Math.pow(e, 2)) / Math.pow(1 - Math.pow(e * Math.sin(phi1Rad), 2), 1.5);
+                const D = x / (N1 * k0);
+
+                let lat = phi1Rad - (N1 * Math.tan(phi1Rad) / R1) * (Math.pow(D, 2) / 2 - (5 + 3 * T1 + 10 * C1 - 4 * Math.pow(C1, 2) - 9 * e1sq) * Math.pow(D, 4) / 24 + (61 + 90 * T1 + 298 * C1 + 45 * Math.pow(T1, 2) - 252 * e1sq) * Math.pow(D, 6) / 720);
+                let lon = lon0 + (D - (1 + 2 * T1 + C1) * Math.pow(D, 3) / 6 + (5 - 2 * C1 + 28 * T1 - 3 * Math.pow(C1, 2) + 8 * e1sq + 24 * Math.pow(T1, 2)) * Math.pow(D, 5) / 120) / Math.cos(phi1Rad);
+
+                return { lat: lat * 180 / Math.PI, lng: lon * 180 / Math.PI };
             },
 
             toMGRS(lat, lon) {
@@ -988,24 +1187,19 @@
                 let adjustedLat = Math.min(Math.max(lat + 90, 0), 180);
                 let adjustedLon = Math.min(Math.max(lon + 180, 0), 360);
                 let code = "";
-                
-                // Generates standard 10-char Open Location Code
                 let latDigit = Math.floor(adjustedLat / 8);
                 let lonDigit = Math.floor(adjustedLon / 8);
                 code += CODE_ALPHABET[latDigit] + CODE_ALPHABET[lonDigit];
-                
                 adjustedLat = (adjustedLat % 8) * 20;
                 adjustedLon = (adjustedLon % 8) * 20;
                 latDigit = Math.floor(adjustedLat);
                 lonDigit = Math.floor(adjustedLon);
                 code += CODE_ALPHABET[latDigit] + CODE_ALPHABET[lonDigit] + "+";
-                
                 adjustedLat = (adjustedLat % 1) * 20;
                 adjustedLon = (adjustedLon % 1) * 20;
                 latDigit = Math.floor(adjustedLat);
                 lonDigit = Math.floor(adjustedLon);
                 code += CODE_ALPHABET[latDigit] + CODE_ALPHABET[lonDigit];
-                
                 return code;
             }
         };
@@ -1030,18 +1224,22 @@
 
         /* --- 5. MAP & INTERFACE CONTROLLER --- */
         function initMap() {
-            // Leaflet map initialization
+            // Leaflet map initialization (Zoom Controls unlocked & customized)
             state.map = L.map('map', {
                 zoomControl: false,
-                attributionControl: false
-            }).setView([-15.7801, -47.9292], 4); // Default Brazil View
+                attributionControl: false,
+                scrollWheelZoom: true,
+                touchZoom: true,
+                doubleClickZoom: true,
+                maxZoom: 22
+            }).setView([-15.7801, -47.9292], 4);
 
             // Layers Config
-            state.layers.satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 });
-            state.layers.streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 });
+            state.layers.satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 19 });
+            state.layers.streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
             state.layers.hybrid = L.layerGroup([
                 state.layers.satellite,
-                L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-labels/{z}/{x}/{y}{r}.png', { maxZoom: 19 })
+                L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-labels/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 19 })
             ]);
 
             state.layers.satellite.addTo(state.map);
@@ -1086,7 +1284,6 @@
         }
 
         function renderMapElements() {
-            // Clear existing markers
             state.markers.forEach(m => state.map.removeLayer(m));
             state.markers = [];
 
@@ -1122,7 +1319,6 @@
                 );
             }
 
-            // Closed Loop Distance if Polygon
             if (state.points.length >= 3) {
                 totalDist += MathGeo.distance(
                     state.points[state.points.length - 1].lat, state.points[state.points.length - 1].lng,
@@ -1132,7 +1328,6 @@
 
             const areaM2 = MathGeo.area(state.points);
 
-            // Format Distance
             const distDisplay = document.getElementById('display-distance');
             if (state.unitDist === 'km') {
                 distDisplay.textContent = `${(totalDist / 1000).toFixed(3)} km`;
@@ -1140,12 +1335,10 @@
                 distDisplay.textContent = `${totalDist.toFixed(2)} m`;
             }
 
-            // Format Area
             const areaDisplay = document.getElementById('display-area');
             if (state.unitArea === 'ha') {
                 areaDisplay.textContent = `${(areaM2 / 10000).toFixed(4)} ha`;
             } else if (state.unitArea === 'alq') {
-                // Alqueire Paulista = 24.200 m²
                 areaDisplay.textContent = `${(areaM2 / 24200).toFixed(4)} alq`;
             } else {
                 areaDisplay.textContent = `${areaM2.toFixed(2)} m²`;
@@ -1168,7 +1361,7 @@
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        /* --- 6. DENSE CANOPY GPS STABILIZER ENGINE --- */
+        /* --- 6. HIGH-PRECISION INVERSE-VARIANCE GPS STABILIZER --- */
         let stabilizerInterval = null;
         let stabilizerSamples = [];
 
@@ -1188,26 +1381,28 @@
             let timeLeft = 15;
             countdownEl.textContent = timeLeft;
             samplesEl.textContent = '0';
-            accuracyEl.textContent = '0.0 m';
+            accuracyEl.textContent = '± 0.0 m';
             progressCircle.style.strokeDashoffset = '440';
 
             modal.classList.add('active');
 
             const watchId = navigator.geolocation.watchPosition(
                 (pos) => {
-                    stabilizerSamples.push({
-                        lat: pos.coords.latitude,
-                        lng: pos.coords.longitude,
-                        alt: pos.coords.altitude || 0,
-                        accuracy: pos.coords.accuracy
-                    });
-                    samplesEl.textContent = stabilizerSamples.length;
-                    
-                    const avgAcc = stabilizerSamples.reduce((a, b) => a + b.accuracy, 0) / stabilizerSamples.length;
-                    accuracyEl.textContent = `± ${avgAcc.toFixed(1)} m`;
+                    // Collect sample only if accuracy is reported
+                    if (pos.coords.accuracy) {
+                        stabilizerSamples.push({
+                            lat: pos.coords.latitude,
+                            lng: pos.coords.longitude,
+                            accuracy: pos.coords.accuracy
+                        });
+                        samplesEl.textContent = stabilizerSamples.length;
+
+                        const currentBest = Math.min(...stabilizerSamples.map(s => s.accuracy));
+                        accuracyEl.textContent = `± ${currentBest.toFixed(1)} m`;
+                    }
                 },
                 (err) => console.warn(err),
-                { enableHighAccuracy: true, maximumAge: 0 }
+                { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 }
             );
 
             stabilizerInterval = setInterval(() => {
@@ -1222,17 +1417,34 @@
                     modal.classList.remove('active');
 
                     if (stabilizerSamples.length > 0) {
-                        // Math mean of sampled coordinates
-                        const avgLat = stabilizerSamples.reduce((a, b) => a + b.lat, 0) / stabilizerSamples.length;
-                        const avgLng = stabilizerSamples.reduce((a, b) => a + b.lng, 0) / stabilizerSamples.length;
+                        // Advanced Geodesic Processing:
+                        // 1. Sort by accuracy and trim worst 20% outliers
+                        stabilizerSamples.sort((a, b) => a.accuracy - b.accuracy);
+                        const validCount = Math.max(1, Math.floor(stabilizerSamples.length * 0.8));
+                        const filteredSamples = stabilizerSamples.slice(0, validCount);
 
-                        // Vibration feedback
+                        // 2. Inverse-Variance Weighting Calculation (1 / variance^2)
+                        let totalWeight = 0;
+                        let weightedLat = 0;
+                        let weightedLng = 0;
+
+                        filteredSamples.forEach(s => {
+                            const weight = 1 / Math.pow(s.accuracy, 2);
+                            totalWeight += weight;
+                            weightedLat += s.lat * weight;
+                            weightedLng += s.lng * weight;
+                        });
+
+                        const finalLat = weightedLat / totalWeight;
+                        const finalLng = weightedLng / totalWeight;
+
                         if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
 
-                        addPoint(avgLat, avgLng);
-                        showToast(`Marco adicionado com alta precisão (${stabilizerSamples.length} amostras).`);
+                        addPoint(finalLat, finalLng);
+                        state.map.flyTo([finalLat, finalLng], 19);
+                        showToast(`Ponto de Alta Precisão Adicionado! (${filteredSamples.length} amostras filtradas)`);
                     } else {
-                        showToast("Falha ao obter sinal estável de GPS.");
+                        showToast("Sinal de GPS fraco. Tente em área mais aberta.");
                     }
                 }
             }, 1000);
@@ -1241,16 +1453,15 @@
                 clearInterval(stabilizerInterval);
                 navigator.geolocation.clearWatch(watchId);
                 modal.classList.remove('active');
-                showToast("Estabilização cancelada.");
+                showToast("Captura cancelada.");
             };
         }
 
-        /* --- 7. EVENT LISTENERS & UI CONTROLS --- */
+        /* --- 7. EVENT LISTENERS & MANUAL COORDS SYSTEM --- */
         document.addEventListener('DOMContentLoaded', async () => {
             await db.init();
             initMap();
 
-            // Restore saved points
             const savedPoints = await db.loadPoints();
             if (savedPoints.length > 0) {
                 state.points = savedPoints;
@@ -1260,8 +1471,68 @@
                 state.map.setView([lastP.lat, lastP.lng], 16);
             }
 
+            // Map Zoom Controls
+            document.getElementById('btn-zoom-in').addEventListener('click', () => state.map.zoomIn());
+            document.getElementById('btn-zoom-out').addEventListener('click', () => state.map.zoomOut());
+
             // Main Action Button
             document.getElementById('btn-add-point').addEventListener('click', startCanopyStabilizer);
+
+            // Manual Coordinates Modal Open / Close
+            const manualModal = document.getElementById('modal-manual-coords');
+            document.getElementById('btn-manual-coords').addEventListener('click', () => {
+                manualModal.classList.add('active');
+            });
+            document.getElementById('btn-close-manual-coords').addEventListener('click', () => {
+                manualModal.classList.remove('active');
+            });
+
+            // Tabs Switcher inside Manual Coords Modal
+            let currentTab = 'tab-geo';
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentTab = btn.getAttribute('data-tab');
+                    document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+                    document.getElementById(currentTab).style.display = 'block';
+                });
+            });
+
+            // Submit Manual Coordinates Button
+            document.getElementById('btn-submit-manual-coord').addEventListener('click', () => {
+                let lat = null, lng = null;
+
+                if (currentTab === 'tab-geo') {
+                    lat = parseFloat(document.getElementById('input-lat').value);
+                    lng = parseFloat(document.getElementById('input-lng').value);
+                } else if (currentTab === 'tab-dms') {
+                    const dmsLatStr = document.getElementById('input-dms-lat').value;
+                    const dmsLngStr = document.getElementById('input-dms-lng').value;
+                    lat = MathGeo.parseDMS(dmsLatStr);
+                    lng = MathGeo.parseDMS(dmsLngStr);
+                } else if (currentTab === 'tab-utm') {
+                    const zone = parseInt(document.getElementById('input-utm-zone').value);
+                    const hemi = document.getElementById('input-utm-hemisphere').value;
+                    const easting = parseFloat(document.getElementById('input-utm-easting').value);
+                    const northing = parseFloat(document.getElementById('input-utm-northing').value);
+
+                    if (zone && hemi && easting && northing) {
+                        const res = MathGeo.utmToLatLng(zone, hemi, easting, northing);
+                        lat = res.lat;
+                        lng = res.lng;
+                    }
+                }
+
+                if (lat !== null && lng !== null && !isNaN(lat) && !isNaN(lng)) {
+                    addPoint(lat, lng);
+                    state.map.flyTo([lat, lng], 18);
+                    manualModal.classList.remove('active');
+                    showToast("Coordenada adicionada manualmente com sucesso!");
+                } else {
+                    showToast("Formato de coordenada inválido. Verifique os valores.");
+                }
+            });
 
             // Undo / Redo
             document.getElementById('btn-undo').addEventListener('click', () => {
