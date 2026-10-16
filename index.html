@@ -94,6 +94,12 @@
             height: 100vh;
             z-index: 1;
             touch-action: none;
+            background-color: #0F172A; /* Fallback de fundo escuro para evitar fundo branco */
+        }
+
+        .leaflet-map-pane {
+            will-change: transform;
+            transition: transform 0.05s linear;
         }
 
         /* Fullscreen Layout Overlays */
@@ -651,7 +657,7 @@
             font-weight: 800;
             color: #0F172A;
             font-family: var(--font-mono);
-            transition: transform 0.1s linear;
+            transition: transform 0.05s linear;
         }
 
         .segment-label-container {
@@ -671,7 +677,7 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.5);
             white-space: nowrap;
             text-align: center;
-            transition: transform 0.1s linear;
+            transition: transform 0.05s linear;
         }
 
         /* Toast Notifications */
@@ -1056,7 +1062,7 @@
             </div>
 
             <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: 10px;">
-                Glow Medidas v1.3 • Topografia Rural Geodésica
+                Glow Medidas v1.4 • Topografia Rural Geodésica
             </div>
         </div>
     </div>
@@ -1130,7 +1136,7 @@
         /* --- 1. SERVICE WORKER REGISTER --- */
         if ('serviceWorker' in navigator) {
             const swCode = `
-                const CACHE_NAME = 'glow-medidas-v4';
+                const CACHE_NAME = 'glow-medidas-v5';
                 const ASSETS = [
                     './',
                     'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
@@ -1407,11 +1413,27 @@
                 maxZoom: 22
             }).setView([-15.7801, -47.9292], 4);
 
-            state.layers.satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 19 });
-            state.layers.streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
+            /* 
+               CORREÇÃO CRUCIAL DE ZOOM:
+               Definimos maxNativeZoom: 18 para garantir que as fotos de satélite da ESRI
+               sejam interpoladas em zoom de alta escala (19 a 22) SEM GERAR QUADROS EM BRANCO.
+            */
+            state.layers.satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                maxZoom: 22,
+                maxNativeZoom: 18
+            });
+
+            state.layers.streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 22,
+                maxNativeZoom: 19
+            });
+
             state.layers.hybrid = L.layerGroup([
                 state.layers.satellite,
-                L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-labels/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 19 })
+                L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-labels/{z}/{x}/{y}{r}.png', {
+                    maxZoom: 22,
+                    maxNativeZoom: 19
+                })
             ]);
 
             state.layers.satellite.addTo(state.map);
@@ -1423,14 +1445,14 @@
                 addPoint(e.latlng.lat, e.latlng.lng);
             });
 
-            // Init 2-Finger Touch Rotation Engine
+            // Motor de rotação fluido por gestos táteis com 2 dedos
             initTouchRotation();
 
-            // Start Live Location Tracker Pin
+            // Ativa o rastreador de localização pulsante
             startLocationTracker();
         }
 
-        /* --- 2-FINGER TOUCH ROTATION ENGINE (TWIST PINCH ROTATE 360°) --- */
+        /* --- MOTOR DE ROTAÇÃO TÁTIL (GESTO DE PINÇA/ROTAÇÃO 2 DEDOS) --- */
         function initTouchRotation() {
             const mapEl = document.getElementById('map');
             let initialTouchAngle = 0;
@@ -1473,14 +1495,14 @@
                 mapPane.style.transform = `rotate(${state.rotationAngle}deg)`;
                 mapPane.style.transformOrigin = 'center center';
             }
-            // Keep markers & text labels upright
+            // Mapeia contra-rotação dos marcadores e etiquetas para permanecerem na vertical
             document.querySelectorAll('.custom-marker, .segment-badge').forEach(el => {
                 el.style.transform = `rotate(${-state.rotationAngle}deg)`;
             });
             document.getElementById('compass-arrow').style.transform = `rotate(${state.rotationAngle}deg)`;
         }
 
-        /* --- LIVE EXACT GPS LOCATION MARKER (PULSING PIN) --- */
+        /* --- MARCADOR DE LOCALIZAÇÃO EXATA GPS (PIN PULSANTE) --- */
         function updateUserLocationMarker(lat, lng, accuracy) {
             state.userLocation = { lat, lng, accuracy };
 
@@ -1516,7 +1538,7 @@
                     (pos) => {
                         updateUserLocationMarker(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
                     },
-                    (err) => console.warn("GPS Tracker Warning: ", err),
+                    (err) => console.warn("Aviso do GPS: ", err),
                     { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 }
                 );
             }
@@ -1660,7 +1682,7 @@
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        /* --- 6. PROJECT MANAGEMENT LOGIC --- */
+        /* --- 6. GESTÃO DE PROJETOS --- */
         async function saveActiveProject() {
             const project = {
                 id: state.currentProjectId,
@@ -1767,7 +1789,7 @@
             showToast(`Novo projeto "${name}" iniciado!`);
         }
 
-        /* --- 7. EDIT / REPLACE POINT MODAL LOGIC --- */
+        /* --- 7. EDIÇÃO E SUBSTITUIÇÃO DE MARCOS --- */
         function openEditPointModal(index) {
             state.selectedPointIndexForEdit = index;
             document.getElementById('edit-point-title').textContent = `Substituir Marco #${index + 1}`;
@@ -1775,7 +1797,7 @@
             updateCoordsDisplay(state.points[index].lat, state.points[index].lng);
         }
 
-        /* --- 8. GPS STABILIZER ENGINE --- */
+        /* --- 8. FILTRO GPS DE PRECISÃO MÁXIMA --- */
         let stabilizerInterval = null;
         let stabilizerSamples = [];
 
@@ -1871,7 +1893,7 @@
             };
         }
 
-        /* --- 9. INITIALIZATION & EVENT LISTENERS --- */
+        /* --- 9. INICIALIZAÇÃO & EVENTOS DA INTERFACE --- */
         document.addEventListener('DOMContentLoaded', async () => {
             await db.init();
             initMap();
@@ -1883,17 +1905,17 @@
                 createNewProject("Medição Principal");
             }
 
-            // Map Zoom Controls
+            // Controle de Zoom pelos botões laterais
             document.getElementById('btn-zoom-in').addEventListener('click', () => state.map.zoomIn());
             document.getElementById('btn-zoom-out').addEventListener('click', () => state.map.zoomOut());
 
-            // Compass Reset to North 0°
+            // Reset de rotação para o Norte 0°
             document.getElementById('btn-reset-north').addEventListener('click', () => {
                 setMapRotation(0);
                 showToast("Mapa alinhado para o Norte (0°)");
             });
 
-            // Instant Recenter on User Location Pin (`btn-locate`)
+            // Centralizar na localização exata do usuário
             document.getElementById('btn-locate').addEventListener('click', () => {
                 showToast("Buscando sua localização exata...");
                 navigator.geolocation.getCurrentPosition(
@@ -1913,10 +1935,10 @@
                 );
             });
 
-            // Main Action Button (GPS)
+            // Botão Principal (+ Captura GPS Mata)
             document.getElementById('btn-add-point').addEventListener('click', () => startCanopyStabilizer(false));
 
-            // Projects Modal Controls
+            // Modais de Gestão de Projetos
             const projectsModal = document.getElementById('modal-projects');
             document.getElementById('btn-projects').addEventListener('click', () => {
                 renderProjectsList();
@@ -1934,7 +1956,7 @@
                 }
             });
 
-            // Edit Point Modal Controls
+            // Modais de Edição de Pontos
             const editModal = document.getElementById('modal-edit-point');
             document.getElementById('btn-close-edit-point').addEventListener('click', () => {
                 editModal.classList.remove('active');
@@ -1967,7 +1989,7 @@
                 }
             });
 
-            // Manual Coords Modal Controls
+            // Entrada Manual de Coordenadas
             document.getElementById('btn-manual-coords').addEventListener('click', () => {
                 state.selectedPointIndexForEdit = null;
                 document.getElementById('manual-coords-title').textContent = "Inserir Coordenada Manual";
@@ -1977,7 +1999,7 @@
                 manualModal.classList.remove('active');
             });
 
-            // Tabs Switcher inside Manual Coords Modal
+            // Alternador de Abas de Formatos de Coordenada
             let currentTab = 'tab-geo';
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -1989,7 +2011,7 @@
                 });
             });
 
-            // Submit Manual Coordinates Button
+            // Submeter Coordenada Manual
             document.getElementById('btn-submit-manual-coord').addEventListener('click', () => {
                 let lat = null, lng = null;
 
@@ -2029,7 +2051,7 @@
                 }
             });
 
-            // Undo / Redo
+            // Desfazer / Refazer
             document.getElementById('btn-undo').addEventListener('click', () => {
                 if (state.points.length === 0) return;
                 state.redoStack.push([...state.points]);
@@ -2048,7 +2070,7 @@
                 saveActiveProject();
             });
 
-            // Clear All
+            // Limpar Todos os Pontos
             document.getElementById('btn-clear').addEventListener('click', () => {
                 if (state.points.length === 0) return;
                 if (confirm("Deseja apagar todos os pontos da medição atual?")) {
@@ -2061,7 +2083,7 @@
                 }
             });
 
-            // Map Layer Toggle FAB
+            // Alternar Camadas de Mapa
             document.getElementById('btn-layer').addEventListener('click', () => {
                 if (state.activeLayer === 'satellite') {
                     state.map.removeLayer(state.layers.satellite);
@@ -2081,7 +2103,7 @@
                 }
             });
 
-            // Trail Mode Toggle FAB
+            // Modo Trilha Contínua
             const trailBtn = document.getElementById('btn-trail');
             trailBtn.addEventListener('click', () => {
                 state.isTrailMode = !state.isTrailMode;
@@ -2100,12 +2122,12 @@
                 }
             });
 
-            // Light/Dark Theme Toggle
+            // Tema Claro/Escuro
             document.getElementById('btn-theme').addEventListener('click', () => {
                 document.body.classList.toggle('light-theme');
             });
 
-            // Unit Selectors
+            // Seletores de Unidade
             document.getElementById('unit-distance').addEventListener('change', (e) => {
                 state.unitDist = e.target.value;
                 renderMapElements();
@@ -2119,7 +2141,7 @@
                 saveActiveProject();
             });
 
-            // Coordinates Bottom Sheet Toggle
+            // Painel Inferior de Coordenadas
             const coordsSheet = document.getElementById('coords-panel');
             document.getElementById('btn-coords-toggle').addEventListener('click', () => {
                 coordsSheet.classList.toggle('open');
@@ -2128,7 +2150,7 @@
                 coordsSheet.classList.remove('open');
             });
 
-            // Settings Modal
+            // Modal de Configurações
             const settingsModal = document.getElementById('modal-settings');
             document.getElementById('btn-settings').addEventListener('click', () => {
                 settingsModal.classList.add('active');
@@ -2137,7 +2159,7 @@
                 settingsModal.classList.remove('active');
             });
 
-            // Copy Coordinates Buttons
+            // Copiar Coordenadas
             document.querySelectorAll('.btn-copy').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const targetId = btn.getAttribute('data-target');
@@ -2148,7 +2170,7 @@
                 });
             });
 
-            // Backup JSON Export & Import
+            // Backup JSON (Exportar e Importar)
             document.getElementById('btn-export-json').addEventListener('click', async () => {
                 const projects = await db.getAllProjects();
                 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projects, null, 2));
