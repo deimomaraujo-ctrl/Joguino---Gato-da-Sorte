@@ -10,41 +10,13 @@
   <title>Glow Medidas - Topografia & Precisão Rural</title>
 
   <!-- Leaflet CSS & JS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
   <!-- Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-
-  <!-- Web Application Manifest Dynamic Data -->
-  <script id="pwa-manifest" type="application/json">
-  {
-    "name": "Glow Medidas - Topografia Rural",
-    "short_name": "GlowMedidas",
-    "start_url": "./",
-    "display": "standalone",
-    "background_color": "#0F172A",
-    "theme_color": "#0F172A",
-    "orientation": "portrait-primary",
-    "icons": [
-      {
-        "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%230F172A'/><path d='M256 64L64 448h384L256 64zm0 76l130 260H126L256 140z' fill='%2300E5FF'/></svg>",
-        "sizes": "512x512",
-        "type": "image/svg+xml"
-      }
-    ]
-  }
-  </script>
-  <script>
-    const manifestBlob = new Blob([document.getElementById('pwa-manifest').textContent], {type: 'application/json'});
-    const manifestURL = URL.createObjectURL(manifestBlob);
-    const link = document.createElement('link');
-    link.rel = 'manifest';
-    link.href = manifestURL;
-    document.head.appendChild(link);
-  </script>
 
   <style>
     :root {
@@ -102,7 +74,7 @@
       transition: transform 0.05s linear;
     }
 
-    /* Fullscreen Layout Overlays */
+    /* Top Bar Header */
     .top-bar {
       position: absolute;
       top: 12px;
@@ -171,7 +143,7 @@
       color: var(--text-main);
     }
 
-    /* FAB Action Column Right Side */
+    /* Controls Columns */
     .fab-column {
       position: absolute;
       right: 12px;
@@ -182,7 +154,6 @@
       gap: 8px;
     }
 
-    /* Controls Left Side */
     .left-controls-column {
       position: absolute;
       left: 12px;
@@ -231,7 +202,7 @@
       background: rgba(0, 229, 255, 0.15);
     }
 
-    /* Bottom Control Panel */
+    /* Bottom Control Bar */
     .bottom-bar {
       position: absolute;
       bottom: 20px;
@@ -295,7 +266,7 @@
       transform: scale(0.92);
     }
 
-    /* User Location Pulsing Pin */
+    /* User Location Pin */
     .user-location-pin {
       position: relative;
       width: 22px;
@@ -323,7 +294,7 @@
       80%, 100% { transform: scale(2.2); opacity: 0; }
     }
 
-    /* Modal Overlay System */
+    /* Modals System */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -392,7 +363,6 @@
       padding: 4px;
     }
 
-    /* Tab Controls in Modal Manual Coords */
     .tab-group {
       display: flex;
       background: rgba(0,0,0,0.25);
@@ -463,7 +433,7 @@
       margin-top: 8px;
     }
 
-    /* GPS Stabilizer Display */
+    /* GPS Ring Display */
     .stabilizer-ring-container {
       position: relative;
       width: 150px;
@@ -541,7 +511,7 @@
       margin-top: 2px;
     }
 
-    /* Coords Bottom Sheet Panel */
+    /* Bottom Sheet Panel */
     .bottom-sheet {
       position: fixed;
       bottom: 0;
@@ -638,7 +608,6 @@
       stroke-width: 2;
     }
 
-    /* Leaflet Map UI Overrides */
     .leaflet-control-attribution, .leaflet-control-zoom {
       display: none !important;
     }
@@ -680,7 +649,6 @@
       transition: transform 0.05s linear;
     }
 
-    /* Toast Notifications */
     .toast {
       position: fixed;
       top: 80px;
@@ -705,7 +673,6 @@
       transform: translateX(-50%) translateY(0);
     }
 
-    /* Project Management Item Styling */
     .project-item {
       background: rgba(0, 0, 0, 0.25);
       border: 1px solid var(--surface-border);
@@ -792,7 +759,7 @@
   <!-- Map Container -->
   <div id="map"></div>
 
-  <!-- Top Dashboard Header -->
+  <!-- Header -->
   <header class="top-bar">
     <div class="metric-card">
       <div class="metric-label">
@@ -817,7 +784,7 @@
     </div>
   </header>
 
-  <!-- Left Side Controls (Zoom & Compass North Reset) -->
+  <!-- Left Side Controls -->
   <div class="left-controls-column">
     <button id="btn-zoom-in" class="fab-btn" title="Aumentar Zoom (+)">
       <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -830,7 +797,7 @@
     </button>
   </div>
 
-  <!-- Right Side FAB Column -->
+  <!-- Right Side Controls -->
   <div class="fab-column">
     <button id="btn-projects" class="fab-btn" title="Meus Projetos">
       <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
@@ -858,7 +825,7 @@
     </button>
   </div>
 
-  <!-- Bottom Action Controls -->
+  <!-- Bottom Bar Controls -->
   <div class="bottom-bar">
     <button id="btn-manual-coords" class="btn-secondary-action" title="Digite Coordenadas Manualmente">
       <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
@@ -875,7 +842,7 @@
     </button>
   </div>
 
-  <!-- Modal: Dense Tree Canopy GPS Stabilizer Engine -->
+  <!-- Modal: GPS Stabilizer -->
   <div id="modal-stabilizer" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-header">
@@ -1043,10 +1010,10 @@
           <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
           Importar Backup JSON
         </button>
-        <input type="file" id="file-import" accept=".json" style="display:none;" />
+        <input type="file" id="file-import" accept=".json,application/json" style="display:none;" />
       </div>
       <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: 10px;">
-        Glow Medidas v1.5 • Topografia Rural Geodésica
+        Glow Medidas v1.6 • Topografia Rural Geodésica
       </div>
     </div>
   </div>
@@ -1106,90 +1073,72 @@
     </div>
   </div>
 
-  <!-- Toast Notification Overlay -->
-  <div id="toast" class="toast">Mensagem de Notificação</div>
+  <div id="toast" class="toast">Notificação</div>
 
-  <!-- MAIN APP SCRIPT -->
+  <!-- MAIN SCRIPT -->
   <script>
-    /* --- 1. SERVICE WORKER REGISTER --- */
-    if ('serviceWorker' in navigator) {
-      const swCode = `
-        const CACHE_NAME = 'glow-medidas-v6';
-        const ASSETS = [
-          './',
-          'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-          'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
-          'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap'
-        ];
-        self.addEventListener('install', e => {
-          e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
-          self.skipWaiting();
-        });
-        self.addEventListener('activate', e => {
-          e.waitUntil(caches.keys().then(keys => Promise.all(
-            keys.map(k => k !== CACHE_NAME ? caches.delete(k) : null)
-          )));
-          self.clients.claim();
-        });
-        self.addEventListener('fetch', e => {
-          e.respondWith(
-            caches.match(e.request).then(res => res || fetch(e.request).catch(() => caches.match('./')))
-          );
-        });
-      `;
-      const blob = new Blob([swCode], { type: 'application/javascript' });
-      navigator.serviceWorker.register(URL.createObjectURL(blob))
-        .catch(err => console.error("SW Reg Error:", err));
-    }
-
-    /* --- 2. MULTI-PROJECT INDEXEDDB ENGINE --- */
+    /* 1. STORAGE ENGINE (INDEXEDDB) */
     class StorageEngine {
       constructor() {
         this.dbName = 'GlowMedidasDB_v2';
         this.db = null;
       }
       async init() {
-        return new Promise((resolve, reject) => {
-          const req = indexedDB.open(this.dbName, 1);
-          req.onupgradeneeded = (e) => {
-            const db = e.target.result;
-            if (!db.objectStoreNames.contains('projects')) {
-              db.createObjectStore('projects', { keyPath: 'id' });
-            }
-          };
-          req.onsuccess = (e) => {
-            this.db = e.target.result;
-            resolve();
-          };
-          req.onerror = (e) => reject(e);
+        return new Promise((resolve) => {
+          try {
+            const req = indexedDB.open(this.dbName, 1);
+            req.onupgradeneeded = (e) => {
+              const db = e.target.result;
+              if (!db.objectStoreNames.contains('projects')) {
+                db.createObjectStore('projects', { keyPath: 'id' });
+              }
+            };
+            req.onsuccess = (e) => {
+              this.db = e.target.result;
+              resolve(true);
+            };
+            req.onerror = () => resolve(false);
+          } catch(e) {
+            resolve(false);
+          }
         });
       }
       async saveProject(project) {
         if (!this.db) return;
-        const tx = this.db.transaction('projects', 'readwrite');
-        const store = tx.objectStore('projects');
-        await store.put(project);
+        try {
+          const tx = this.db.transaction('projects', 'readwrite');
+          const store = tx.objectStore('projects');
+          await store.put(project);
+        } catch(e) {
+          console.warn(e);
+        }
       }
       async getAllProjects() {
         if (!this.db) return [];
         return new Promise((resolve) => {
-          const tx = this.db.transaction('projects', 'readonly');
-          const store = tx.objectStore('projects');
-          const req = store.getAll();
-          req.onsuccess = () => resolve(req.result || []);
-          req.onerror = () => resolve([]);
+          try {
+            const tx = this.db.transaction('projects', 'readonly');
+            const store = tx.objectStore('projects');
+            const req = store.getAll();
+            req.onsuccess = () => resolve(req.result || []);
+            req.onerror = () => resolve([]);
+          } catch(e) {
+            resolve([]);
+          }
         });
       }
       async deleteProject(id) {
         if (!this.db) return;
-        const tx = this.db.transaction('projects', 'readwrite');
-        const store = tx.objectStore('projects');
-        await store.delete(id);
+        try {
+          const tx = this.db.transaction('projects', 'readwrite');
+          const store = tx.objectStore('projects');
+          await store.delete(id);
+        } catch(e) {}
       }
     }
     const db = new StorageEngine();
 
-    /* --- 3. GEODESIC MATH & CONVERSION ALGORITHMS --- */
+    /* 2. MATH GEO ALGORITHMS */
     const MathGeo = {
       distance(lat1, lon1, lat2, lon2) {
         const R = 6378137;
@@ -1330,7 +1279,7 @@
       }
     };
 
-    /* --- 4. APP STATE MANAGEMENT --- */
+    /* 3. STATE */
     const state = {
       currentProjectId: 'proj_default',
       currentProjectName: 'Medição Principal',
@@ -1355,7 +1304,7 @@
       selectedPointIndexForEdit: null
     };
 
-    /* --- 5. MAP & INTERFACE CONTROLLER --- */
+    /* 4. MAP INIT & TOUCH ROTATION */
     function initMap() {
       state.map = L.map('map', {
         zoomControl: false,
@@ -1366,10 +1315,6 @@
         maxZoom: 22
       }).setView([-15.7801, -47.9292], 4);
 
-      /* CONFIGURAÇÃO DE ZOOM SEM BLOCOS EM BRANCO:
-         maxNativeZoom: 18 faz o Leaflet interpolar o zoom do nível 18 ao 22
-         sem tentar baixar imagens de satélite inexistentes.
-      */
       state.layers.satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         maxZoom: 22,
         maxNativeZoom: 18
@@ -1380,7 +1325,6 @@
         maxNativeZoom: 19
       });
 
-      // Camada Híbrida usando overlay seguro da CartoDB
       state.layers.hybrid = L.layerGroup([
         state.layers.satellite,
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{y}/{x}{r}.png', {
@@ -1399,14 +1343,14 @@
         addPoint(e.latlng.lat, e.latlng.lng);
       });
 
-      // Motor de rotação fluido por gestos táteis com 2 dedos
       initTouchRotation();
-
-      // Ativa o rastreador de localização pulsante
       startLocationTracker();
+      
+      setTimeout(() => {
+        state.map.invalidateSize();
+      }, 500);
     }
 
-    /* --- MOTOR DE ROTAÇÃO TÁTIL (GESTO DE PINÇA/ROTAÇÃO 2 DEDOS) --- */
     function initTouchRotation() {
       const mapEl = document.getElementById('map');
       let initialTouchAngle = 0;
@@ -1450,7 +1394,6 @@
         mapPane.style.transformOrigin = 'center center';
       }
 
-      // Contra-rotação de marcadores e etiquetas para ficarem sempre na vertical
       document.querySelectorAll('.custom-marker, .segment-badge').forEach(el => {
         el.style.transform = `rotate(${-state.rotationAngle}deg)`;
       });
@@ -1461,7 +1404,6 @@
       }
     }
 
-    /* --- MARCADOR DE LOCALIZAÇÃO EXATA GPS (PIN PULSANTE) --- */
     function updateUserLocationMarker(lat, lng, accuracy) {
       state.userLocation = { lat, lng, accuracy };
       if (!state.userMarker) {
@@ -1496,7 +1438,7 @@
           (pos) => {
             updateUserLocationMarker(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
           },
-          (err) => console.warn("Aviso do GPS: ", err),
+          (err) => console.warn("GPS Notice: ", err),
           { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 }
         );
       }
@@ -1523,7 +1465,7 @@
       updateMetrics();
       updateCoordsDisplay(lat, lng);
       saveActiveProject();
-      showToast(`Marco #${index + 1} atualizado com sucesso!`);
+      showToast(`Marco #${index + 1} atualizado!`);
     }
 
     function renderMapElements() {
@@ -1629,7 +1571,7 @@
       setTimeout(() => toast.classList.remove('show'), 3000);
     }
 
-    /* --- 6. GESTÃO DE PROJETOS --- */
+    /* 5. PROJECTS MANAGEMENT */
     async function saveActiveProject() {
       const project = {
         id: state.currentProjectId,
@@ -1706,7 +1648,7 @@
 
         item.querySelector('.delete-btn').addEventListener('click', async (e) => {
           e.stopPropagation();
-          if (confirm(`Deseja excluir permanentemente o projeto "${p.name}"?`)) {
+          if (confirm(`Excluir permanentemente "${p.name}"?`)) {
             await db.deleteProject(p.id);
             if (p.id === state.currentProjectId) {
               createNewProject("Novo Projeto");
@@ -1730,10 +1672,9 @@
       renderMapElements();
       updateMetrics();
       saveActiveProject();
-      showToast(`Novo projeto "${name}" iniciado!`);
+      showToast(`Projeto "${name}" criado.`);
     }
 
-    /* --- 7. EDIÇÃO E SUBSTITUIÇÃO DE MARCOS --- */
     function openEditPointModal(index) {
       state.selectedPointIndexForEdit = index;
       document.getElementById('edit-point-title').textContent = `Substituir Marco #${index + 1}`;
@@ -1741,13 +1682,13 @@
       updateCoordsDisplay(state.points[index].lat, state.points[index].lng);
     }
 
-    /* --- 8. FILTRO GPS DE PRECISÃO MÁXIMA --- */
+    /* 6. GPS CANOPY FILTER */
     let stabilizerInterval = null;
     let stabilizerSamples = [];
 
     function startCanopyStabilizer(isReplacement = false) {
       if (!navigator.geolocation) {
-        showToast("GPS indisponível no dispositivo.");
+        showToast("GPS não suportado.");
         return;
       }
 
@@ -1819,11 +1760,11 @@
               state.selectedPointIndexForEdit = null;
             } else {
               addPoint(finalLat, finalLng);
-              showToast(`Ponto de Alta Precisão Adicionado!`);
+              showToast(`Ponto Salvo com Sucesso!`);
             }
             state.map.flyTo([finalLat, finalLng], 19);
           } else {
-            showToast("Sinal de GPS fraco. Tente em área mais aberta.");
+            showToast("Sinal de GPS fraco.");
           }
         }
       }, 1000);
@@ -1832,19 +1773,14 @@
         clearInterval(stabilizerInterval);
         navigator.geolocation.clearWatch(watchId);
         modal.classList.remove('active');
-        showToast("Captura cancelada.");
+        showToast("Cancelado.");
       };
     }
 
-    /* --- 9. INICIALIZAÇÃO & EVENTOS DA INTERFACE --- */
+    /* 7. EVENT LISTENERS AND BINDINGS */
     document.addEventListener('DOMContentLoaded', async () => {
-      try {
-        await db.init();
-      } catch (e) {
-        console.error("IndexedDB Error:", e);
-      }
-
       initMap();
+      await db.init();
 
       const projects = await db.getAllProjects();
       if (projects.length > 0) {
@@ -1853,75 +1789,73 @@
         createNewProject("Medição Principal");
       }
 
-      // Controle de Zoom pelos botões laterais
-      document.getElementById('btn-zoom-in').addEventListener('click', () => state.map.zoomIn());
-      document.getElementById('btn-zoom-out').addEventListener('click', () => state.map.zoomOut());
+      // Zoom Controls
+      document.getElementById('btn-zoom-in').onclick = () => state.map.zoomIn();
+      document.getElementById('btn-zoom-out').onclick = () => state.map.zoomOut();
 
-      // Reset de rotação para o Norte 0°
-      document.getElementById('btn-reset-north').addEventListener('click', () => {
+      // Reset North
+      document.getElementById('btn-reset-north').onclick = () => {
         setMapRotation(0);
-        showToast("Mapa alinhado para o Norte (0°)");
-      });
+        showToast("Norte Alinhado (0°)");
+      };
 
-      // Centralizar na localização exata do usuário
-      document.getElementById('btn-locate').addEventListener('click', () => {
-        showToast("Buscando sua localização exata...");
+      // GPS Locate
+      document.getElementById('btn-locate').onclick = () => {
+        showToast("Buscando localização...");
         navigator.geolocation.getCurrentPosition(
           (pos) => {
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
             const acc = pos.coords.accuracy;
             updateUserLocationMarker(lat, lng, acc);
-            state.map.flyTo([lat, lng], 18, { animate: true, duration: 1.2 });
+            state.map.flyTo([lat, lng], 18, { animate: true, duration: 1 });
             updateCoordsDisplay(lat, lng);
-            showToast(`Localização encontrada (Precisão: ±${acc.toFixed(1)}m)`);
+            showToast(`Precisão GPS: ±${acc.toFixed(1)}m`);
           },
-          (err) => {
-            showToast("Não foi possível obter sinal do GPS. Ative a localização.");
-          },
+          () => showToast("Ative a localização/GPS do telemóvel."),
           { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
-      });
+      };
 
-      // Botão Principal (+ Captura GPS Mata)
-      document.getElementById('btn-add-point').addEventListener('click', () => startCanopyStabilizer(false));
+      // Add Point GPS
+      document.getElementById('btn-add-point').onclick = () => startCanopyStabilizer(false);
 
-      // Modais de Gestão de Projetos
+      // Projects
       const projectsModal = document.getElementById('modal-projects');
-      document.getElementById('btn-projects').addEventListener('click', () => {
+      document.getElementById('btn-projects').onclick = () => {
         renderProjectsList();
         projectsModal.classList.add('active');
-      });
-      document.getElementById('btn-close-projects').addEventListener('click', () => {
+      };
+      document.getElementById('btn-close-projects').onclick = () => {
         projectsModal.classList.remove('active');
-      });
-      document.getElementById('btn-new-project').addEventListener('click', () => {
-        const name = prompt("Digite o nome do novo projeto:", `Projeto ${new Date().toLocaleDateString('pt-BR')}`);
+      };
+      document.getElementById('btn-new-project').onclick = () => {
+        const name = prompt("Nome do Projeto:", `Projeto ${new Date().toLocaleDateString('pt-BR')}`);
         if (name && name.trim() !== '') {
           createNewProject(name.trim());
           projectsModal.classList.remove('active');
         }
-      });
+      };
 
-      // Modais de Edição de Pontos
+      // Edit Point Modal
       const editModal = document.getElementById('modal-edit-point');
-      document.getElementById('btn-close-edit-point').addEventListener('click', () => {
+      document.getElementById('btn-close-edit-point').onclick = () => {
         editModal.classList.remove('active');
         state.selectedPointIndexForEdit = null;
-      });
-      document.getElementById('btn-replace-gps').addEventListener('click', () => {
+      };
+      document.getElementById('btn-replace-gps').onclick = () => {
         editModal.classList.remove('active');
         startCanopyStabilizer(true);
-      });
+      };
 
       const manualModal = document.getElementById('modal-manual-coords');
-      document.getElementById('btn-replace-manual').addEventListener('click', () => {
+      document.getElementById('btn-replace-manual').onclick = () => {
         editModal.classList.remove('active');
         document.getElementById('manual-coords-title').textContent = `Substituir Marco #${state.selectedPointIndexForEdit + 1}`;
         manualModal.classList.add('active');
-      });
+      };
 
-      document.getElementById('btn-delete-single-point').addEventListener('click', () => {
+      document.getElementById('btn-delete-single-point').onclick = () => {
         if (state.selectedPointIndexForEdit !== null) {
           state.undoStack.push([...state.points]);
           state.redoStack = [];
@@ -1933,32 +1867,30 @@
           showToast("Marco removido.");
           state.selectedPointIndexForEdit = null;
         }
-      });
+      };
 
-      // Entrada Manual de Coordenadas
-      document.getElementById('btn-manual-coords').addEventListener('click', () => {
+      // Manual Coords
+      document.getElementById('btn-manual-coords').onclick = () => {
         state.selectedPointIndexForEdit = null;
         document.getElementById('manual-coords-title').textContent = "Inserir Coordenada Manual";
         manualModal.classList.add('active');
-      });
-      document.getElementById('btn-close-manual-coords').addEventListener('click', () => {
+      };
+      document.getElementById('btn-close-manual-coords').onclick = () => {
         manualModal.classList.remove('active');
-      });
+      };
 
-      // Alternador de Abas de Formatos de Coordenada
       let currentTab = 'tab-geo';
       document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.onclick = () => {
           document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           currentTab = btn.getAttribute('data-tab');
           document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
           document.getElementById(currentTab).style.display = 'block';
-        });
+        };
       });
 
-      // Submeter Coordenada Manual
-      document.getElementById('btn-submit-manual-coord').addEventListener('click', () => {
+      document.getElementById('btn-submit-manual-coord').onclick = () => {
         let lat = null, lng = null;
         if (currentTab === 'tab-geo') {
           lat = parseFloat(document.getElementById('input-lat').value);
@@ -1986,38 +1918,38 @@
             state.selectedPointIndexForEdit = null;
           } else {
             addPoint(lat, lng);
-            showToast("Coordenada adicionada manualmente com sucesso!");
+            showToast("Coordenada adicionada!");
           }
           state.map.flyTo([lat, lng], 18);
           manualModal.classList.remove('active');
         } else {
-          showToast("Formato de coordenada inválido. Verifique os valores.");
+          showToast("Formato de coordenada inválido.");
         }
-      });
+      };
 
-      // Desfazer / Refazer
-      document.getElementById('btn-undo').addEventListener('click', () => {
+      // Undo / Redo
+      document.getElementById('btn-undo').onclick = () => {
         if (state.points.length === 0) return;
         state.redoStack.push([...state.points]);
         state.points.pop();
         renderMapElements();
         updateMetrics();
         saveActiveProject();
-      });
+      };
 
-      document.getElementById('btn-redo').addEventListener('click', () => {
+      document.getElementById('btn-redo').onclick = () => {
         if (state.redoStack.length === 0) return;
         state.undoStack.push([...state.points]);
         state.points = state.redoStack.pop();
         renderMapElements();
         updateMetrics();
         saveActiveProject();
-      });
+      };
 
-      // Limpar Todos os Pontos
-      document.getElementById('btn-clear').addEventListener('click', () => {
+      // Clear
+      document.getElementById('btn-clear').onclick = () => {
         if (state.points.length === 0) return;
-        if (confirm("Deseja apagar todos os pontos da medição atual?")) {
+        if (confirm("Apagar todos os pontos da medição atual?")) {
           state.undoStack.push([...state.points]);
           state.points = [];
           renderMapElements();
@@ -2025,10 +1957,10 @@
           saveActiveProject();
           showToast("Todos os marcos foram limpos.");
         }
-      });
+      };
 
-      // Alternar Camadas de Mapa
-      document.getElementById('btn-layer').addEventListener('click', () => {
+      // Layers
+      document.getElementById('btn-layer').onclick = () => {
         if (state.activeLayer === 'satellite') {
           state.map.removeLayer(state.layers.satellite);
           state.layers.hybrid.addTo(state.map);
@@ -2045,11 +1977,11 @@
           state.activeLayer = 'satellite';
           showToast("Camada: Satélite");
         }
-      });
+      };
 
-      // Modo Trilha Contínua
+      // Trail Mode
       const trailBtn = document.getElementById('btn-trail');
-      trailBtn.addEventListener('click', () => {
+      trailBtn.onclick = () => {
         state.isTrailMode = !state.isTrailMode;
         if (state.isTrailMode) {
           trailBtn.classList.add('active');
@@ -2064,60 +1996,60 @@
           if (state.trailWatchId) navigator.geolocation.clearWatch(state.trailWatchId);
           showToast("Modo Trilha DESATIVADO.");
         }
-      });
+      };
 
-      // Tema Claro/Escuro
-      document.getElementById('btn-theme').addEventListener('click', () => {
+      // Theme Toggle
+      document.getElementById('btn-theme').onclick = () => {
         document.body.classList.toggle('light-theme');
-      });
+      };
 
-      // Seletores de Unidade
-      document.getElementById('unit-distance').addEventListener('change', (e) => {
+      // Unit Selectors
+      document.getElementById('unit-distance').onchange = (e) => {
         state.unitDist = e.target.value;
         renderMapElements();
         updateMetrics();
         saveActiveProject();
-      });
+      };
 
-      document.getElementById('unit-area').addEventListener('change', (e) => {
+      document.getElementById('unit-area').onchange = (e) => {
         state.unitArea = e.target.value;
         updateMetrics();
         saveActiveProject();
-      });
+      };
 
-      // Painel Inferior de Coordenadas
+      // Coords Panel
       const coordsSheet = document.getElementById('coords-panel');
-      document.getElementById('btn-coords-toggle').addEventListener('click', () => {
+      document.getElementById('btn-coords-toggle').onclick = () => {
         coordsSheet.classList.toggle('open');
-      });
-      document.getElementById('btn-close-coords').addEventListener('click', () => {
+      };
+      document.getElementById('btn-close-coords').onclick = () => {
         coordsSheet.classList.remove('open');
-      });
+      };
 
-      // Modal de Configurações
+      // Settings Modal
       const settingsModal = document.getElementById('modal-settings');
-      document.getElementById('btn-settings').addEventListener('click', () => {
+      document.getElementById('btn-settings').onclick = () => {
         settingsModal.classList.add('active');
-      });
-      document.getElementById('btn-close-settings').addEventListener('click', () => {
+      };
+      document.getElementById('btn-close-settings').onclick = () => {
         settingsModal.classList.remove('active');
-      });
+      };
 
-      // Copiar Coordenadas
+      // Copy Buttons
       document.querySelectorAll('.btn-copy').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.onclick = () => {
           const targetId = btn.getAttribute('data-target');
           const text = document.getElementById(targetId).textContent;
-          navigator.clipboard.writeText(text).then(() => {
-            showToast("Copiado para a área de transferência!");
-          }).catch(() => {
-            showToast("Não foi possível copiar.");
-          });
-        });
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => showToast("Copiado!")).catch(() => showToast("Erro ao copiar."));
+          } else {
+            showToast("Área de transferência não acessível.");
+          }
+        };
       });
 
-      // Backup JSON (Exportar e Importar)
-      document.getElementById('btn-export-json').addEventListener('click', async () => {
+      // Export JSON
+      document.getElementById('btn-export-json').onclick = async () => {
         const projects = await db.getAllProjects();
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projects, null, 2));
         const downloadAnchor = document.createElement('a');
@@ -2126,36 +2058,60 @@
         document.body.appendChild(downloadAnchor);
         downloadAnchor.click();
         downloadAnchor.remove();
-        showToast("Backup JSON exportado com sucesso.");
-      });
+        showToast("Backup JSON exportado!");
+      };
 
-      document.getElementById('btn-import-trigger').addEventListener('click', () => {
+      // Import JSON - UNIVERSAL & FLEXÍVEL
+      document.getElementById('btn-import-trigger').onclick = () => {
         document.getElementById('file-import').click();
-      });
+      };
 
-      document.getElementById('file-import').addEventListener('change', (e) => {
+      document.getElementById('file-import').onchange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
         reader.onload = async (event) => {
           try {
-            const importedData = JSON.parse(event.target.result);
+            let importedData = JSON.parse(event.target.result);
+            let projectsToImport = [];
+
+            // Suporta array de projetos ou projeto individual exportado anteriormente
             if (Array.isArray(importedData)) {
-              for (const proj of importedData) {
-                if (proj.id && proj.name) {
-                  await db.saveProject(proj);
-                }
+              projectsToImport = importedData;
+            } else if (typeof importedData === 'object' && importedData !== null) {
+              if (importedData.projects && Array.isArray(importedData.projects)) {
+                projectsToImport = importedData.projects;
+              } else if (importedData.id || importedData.points) {
+                projectsToImport = [importedData];
               }
-              await loadProject(importedData[0].id);
+            }
+
+            if (projectsToImport.length > 0) {
+              let count = 0;
+              for (const proj of projectsToImport) {
+                const projectObj = {
+                  id: proj.id || ('proj_' + Date.now() + '_' + Math.floor(Math.random() * 1000)),
+                  name: proj.name || proj.title || "Projeto Importado",
+                  points: proj.points || proj.coordinates || [],
+                  unitDist: proj.unitDist || 'm',
+                  unitArea: proj.unitArea || 'm2',
+                  updatedAt: proj.updatedAt || Date.now()
+                };
+                await db.saveProject(projectObj);
+                count++;
+              }
+              await loadProject(projectsToImport[0].id || state.currentProjectId);
               settingsModal.classList.remove('active');
-              showToast("Projetos importados com sucesso!");
+              showToast(`${count} projeto(s) importado(s) com sucesso!`);
+            } else {
+              showToast("Nenhum dado de projeto encontrado no ficheiro.");
             }
           } catch (err) {
-            showToast("Arquivo JSON inválido.");
+            showToast("Erro ao ler o ficheiro JSON de backup.");
           }
         };
         reader.readAsText(file);
-      });
+      };
     });
   </script>
 </body>
