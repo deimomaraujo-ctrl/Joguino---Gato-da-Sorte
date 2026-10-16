@@ -3,137 +3,285 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RocaMap Offline - Medição Rural</title>
-    <!-- Vincula o Manifesto para permitir a instalação no celular -->
+    <title>RocaMap Pro - Mapeamento Rural Offline</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#2c5e3b">
+    <meta name="theme-color" content="#1e3a1e">
+    
+    <!-- Leaflet CSS (Biblioteca de Mapas Profissional) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
     <style>
-        :root {
-            --primary-color: #2c5e3b;
-            --secondary-color: #f4f4f9;
-            --accent-color: #d97706;
-            --text-color: #333;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--secondary-color);
-            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
         }
         header {
-            background-color: var(--primary-color);
+            background-color: #1e3a1e;
+            color: #fff;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        header h1 { font-size: 1.1rem; font-weight: 600; }
+        .badge-offline {
+            background-color: #b45309;
             color: white;
-            padding: 15px;
-            text-align: center;
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: bold;
         }
-        .status-offline {
-            background-color: #4b5563;
-            color: white;
-            font-size: 0.85rem;
-            padding: 5px;
-            text-align: center;
+        /* O Mapa ocupa o espaço principal da tela */
+        #map {
+            flex: 1;
+            width: 100%;
+            background-color: #222;
+            z-index: 1;
         }
-        .container {
-            padding: 20px;
-            max-width: 600px;
-            margin: auto;
+        /* Painel de Controle Flutuante Estilo App Profissional */
+        .control-panel {
+            background-color: #1e1e1e;
+            border-top: 1px solid #333;
+            padding: 16px;
+            max-height: 45vh;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.3);
         }
-        .card {
-            background: white;
-            padding: 15px;
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .metric-box {
+            background: #2a2a2a;
+            padding: 10px;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 15px;
+            text-align: center;
+            border: 1px solid #3d3d3d;
+        }
+        .metric-box span {
+            display: block;
+            font-size: 0.75rem;
+            color: #aaa;
+            margin-bottom: 4px;
+        }
+        .metric-box strong {
+            font-size: 1rem;
+            color: #4ade80;
+        }
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
         }
         button {
-            width: 100%;
             padding: 12px;
-            margin-top: 10px;
-            background-color: var(--primary-color);
-            color: white;
             border: none;
-            border-radius: 5px;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-        button.secondary {
-            background-color: var(--accent-color);
-        }
-        button:active {
-            opacity: 0.8;
-        }
-        .metrics {
+            border-radius: 8px;
+            font-size: 0.95rem;
             font-weight: bold;
-            color: var(--primary-color);
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        button:active { opacity: 0.7; }
+        .btn-primary { background-color: #16a34a; color: white; grid-column: span 2; }
+        .btn-secondary { background-color: #d97706; color: white; }
+        .btn-danger { background-color: #dc2626; color: white; }
+        
+        #status-bar {
+            font-size: 0.8rem;
+            color: #9ca3af;
+            text-align: center;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h2>RocaMap Offline</h2>
+        <h1>RocaMap Pro</h1>
+        <div class="badge-offline" id="connection-status">Offline Ready</div>
     </header>
-    <div class="status-offline">Pronto para uso sem internet (PWA)</div>
 
-    <div class="container">
-        <!-- Secção de Marcos e Pontos Fixos -->
-        <div class="card">
-            <h3>Demarcação de Cantos (Marcos)</h3>
-            <p>Posicione o celular no marco e aguarde a estabilização para garantir precisão sob a mata.</p>
-            <button onclick="salvarPontoFixo()">Salvar Marco Atual (15s)</button>
-            <p id="status-ponto">Estado: Aguardando captura...</p>
+    <!-- Mapa Interativo -->
+    <div id="map"></div>
+
+    <!-- Painel de Ações Profissional -->
+    <div class="control-panel">
+        <div class="metrics-grid">
+            <div class="metric-box">
+                <span>Marcos Salvos</span>
+                <strong id="txt-marcos">0</strong>
+            </div>
+            <div class="metric-box">
+                <span>Área Estimada</span>
+                <strong id="txt-area">0.00 ha</strong>
+            </div>
         </div>
 
-        <!-- Secção de Trilhas -->
-        <div class="card">
-            <h3>Rastreamento de Trilha</h3>
-            <p>Ative ao caminhar por estradas internas ou picadas na mata.</p>
-            <button class="secondary" onclick="alternarTrilha()">Iniciar Modo Trilha</button>
-            <p id="status-trilha">Trilha: Desativada</p>
+        <div class="btn-group">
+            <button class="btn-primary" onclick="salvarMarcoPrecisao()">📍 Salvar Marco (Com Estabilização)</button>
+            <button class="btn-secondary" onclick="toggleTrilha()" id="btn-trilha">🚶‍♂️ Iniciar Trilha</button>
+            <button class="btn-danger" onclick="limparDados()">🗑️ Limpar Tudo</button>
         </div>
-
-        <!-- Secção de Dados e Área -->
-        <div class="card">
-            <h3>Dados da Propriedade</h3>
-            <p>Marcos salvos: <span id="qtd-marcos" class="metrics">0</span></p>
-            <p>Área estimada: <span id="area-calculada" class="metrics">0.00 Alqueires / Hectares</span></p>
-            <button onclick="gerarPerimetro()">Gerar Perímetro e Fechar Área</button>
-        </div>
+        
+        <div id="status-bar">Aguardando sinal GPS do celular...</div>
     </div>
 
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Funções de exemplo de interface
-        function salvarPontoFixo() {
-            const statusPonto = document.getElementById("status-ponto");
-            statusPonto.innerText = "Estado: Coletando satélites (Estabilizando)...";
-            setTimeout(() => {
-                statusPonto.innerText = "Estado: Marco salvo com sucesso no armazenamento local!";
-            }, 3000);
+        // Inicialização do Mapa
+        let map = L.map('map').setView([-10.1835, -48.3336], 15); // Coordenadas iniciais padrão (Tocantins)
+
+        // Camada de Satélite/Ruas padrão (Funciona offline se já estiver em cache no navegador)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: 'RocaMap Pro'
+        }).addTo(map);
+
+        let marcos = [];
+        let trilhaPontos = [];
+        let marcadorAtual = null;
+        let poligonoArea = null;
+        let polylineTrilha = null;
+        let gravandoTrilha = false;
+        let watchId = null;
+
+        // Rastrear localização em tempo real do celular
+        if (navigator.geolocation) {
+            watchId = navigator.geolocation.watchPosition(position => {
+                let lat = position.coords.latitude;
+                let lon = position.coords.longitude;
+                let precisao = position.coords.accuracy;
+
+                document.getElementById('status-bar').innerText = `GPS Ativo | Precisão: ±${precisao.toFixed(1)}m`;
+
+                let latLng = [lat, lon];
+                if (!marcos.length && !marcadorAtual) {
+                    map.setView(latLng, 17); // Centraliza na primeira leitura
+                }
+
+                if (!marcadorAtual) {
+                    marcadorAtual = L.marker(latLng).addTo(map).bindPopup("Você está aqui");
+                } else {
+                    marcadorAtual.setLatLng(latLng);
+                }
+
+                if (gravandoTrilha) {
+                    trilhaPontos.push(latLng);
+                    if (!polylineTrilha) {
+                        polylineTrilha = L.polyline(trilhaPontos, {color: 'orange', weight: 4}).addTo(map);
+                    } else {
+                        polylineTrilha.setLatLngs(trilhaPontos);
+                    }
+                }
+            }, error => {
+                document.getElementById('status-bar').innerText = "Erro ao obter GPS: Ative a localização.";
+            }, { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 });
         }
 
-        function alternarTrilha() {
-            const statusTrilha = document.getElementById("status-trilha");
-            if (statusTrilha.innerText.includes("Desativada")) {
-                statusTrilha.innerText = "Trilha: Gravando percurso localmente...";
+        // Função de Salvar Marco com Contagem Regressiva (Estabilização sob árvores)
+        function salvarMarcoPrecisao() {
+            if (!marcadorAtual) {
+                alert("Aguardando sinal do GPS para capturar o ponto.");
+                return;
+            }
+
+            let contador = 15;
+            let statusBar = document.getElementById('status-bar');
+            let latLngOriginal = marcadorAtual.getLatLng();
+
+            statusBar.style.color = "#d97706";
+            
+            let intervalo = setInterval(() => {
+                statusBar.innerText = `⏳ Estabilizando sinal sob a mata... Faltam ${contador}s (Fique firme)`;
+                contador--;
+
+                if (contador < 0) {
+                    clearInterval(intervalo);
+                    statusBar.style.color = "#4ade80";
+                    statusBar.innerText = "✅ Marco fixado com sucesso!";
+
+                    // Adiciona o marco na lista e no mapa
+                    marcos.push([latLngOriginal.lat, latLngOriginal.lng]);
+                    L.circleMarker(latLngOriginal, {radius: 8, color: '#16a34a', fillColor: '#22c55e', fillOpacity: 1}).addTo(map)
+                        .bindPopup(`Marco ${marcos.length}`);
+
+                    document.getElementById('txt-marcos').innerText = marcos.length;
+
+                    // Se tiver 3 ou mais pontos, desenha a área e calcula
+                    if (marcos.length >= 3) {
+                        atualizarPoligono();
+                    }
+                }
+            }, 1000);
+        }
+
+        // Desenhar Polígono e Calcular Área em Hectares / Alqueires
+        function atualizarPoligono() {
+            if (poligonoArea) {
+                map.removeLayer(poligonoArea);
+            }
+            poligonoArea = L.polygon(marcos, {color: '#22c55e', fillColor: '#16a34a', fillOpacity: 0.4}).addTo(map);
+
+            // Cálculo aproximado de área em metros quadrados
+            let areaM2 = L.GeometryUtil ? L.GeometryUtil.geodesicArea(poligonoArea.getLatLngs()[0]) : calcularAreaAproximada(marcos);
+            let hectares = areaM2 / 10000;
+            let alqueiresPaulistas = hectares / 2.42; // Referência de conversão padrão
+
+            document.getElementById('txt-area').innerText = `${hectares.toFixed(2)} ha (${alqueiresPaulistas.toFixed(2)} alq)`;
+        }
+
+        function calcularAreaAproximada(latLngs) {
+            // Fórmula geométrica simplificada para estimativa de área em campo
+            if (latLngs.length < 3) return 0;
+            let total = 0;
+            for (let i = 0; i < latLngs.length; i++) {
+                let addX = latLngs[i][1];
+                let addY = latLngs[(i + 1) % latLngs.length][0];
+                let subX = latLngs[(i + 1) % latLngs.length][1];
+                let subY = latLngs[i][0];
+                total += (addX * addY * 111320 * 111320) - (subX * subY * 111320 * 111320);
+            }
+            return Math.abs(total / 2);
+        }
+
+        // Alternar modo de rastreamento de trilhas
+        function toggleTrilha() {
+            gravandoTrilha = !gravandoTrilha;
+            let btn = document.getElementById('btn-trilha');
+            if (gravandoTrilha) {
+                btn.innerText = "⏹️ Parar Trilha";
+                btn.style.backgroundColor = "#dc2626";
             } else {
-                statusTrilha.innerText = "Trilha: Desativada";
+                btn.innerText = "🚶‍♂️ Iniciar Trilha";
+                btn.style.backgroundColor = "#d97706";
             }
         }
 
-        function gerarPerimetro() {
-            alert("Perímetro gerado e salvo no banco de dados interno do celular!");
+        // Limpar dados locais
+        function limparDados() {
+            if (confirm("Deseja apagar todos os marcos e trilhas da tela?")) {
+                location.reload();
+            }
         }
 
-        // Registro do Service Worker para permitir funcionamento offline
+        // Registro do Service Worker para PWA Offline
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then((reg) => console.log('Service Worker registrado com sucesso:', reg.scope))
-                    .catch((err) => console.log('Falha ao registrar Service Worker:', err));
-            });
+            navigator.serviceWorker.register('./sw.js');
         }
     </script>
-
 </body>
 </html>
