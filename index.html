@@ -1,591 +1,489 @@
-<!DOCTYPE html>
+   <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Glow Medidas - Topografia & Precisão Rural</title>
+    <meta name="description" content="Aplicação profissional de medição de terrenos, topografia rural e conversão de coordenadas com suporte 100% offline.">
     <meta name="theme-color" content="#0F172A">
-    <meta name="description" content="Glow Medidas - Aplicativo Profissional de Topografia e Medição Rural">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Glow Medidas - Topografia & Precisão Rural</title>
+    <meta name="apple-mobile-web-app-title" content="Glow Medidas">
+    
+    <!-- PWA Web App Manifest dinâmico gerado via JavaScript -->
+    <link rel="manifest" id="manifest-placeholder">
 
-    <!-- Leaflet CSS & JS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-
-    <!-- Typography -->
+    <!-- Stylesheets Externos (Leaflet + Fontes) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-
-    <!-- Web Application Manifest Dynamic Data -->
-    <script id="pwa-manifest" type="application/json">
-    {
-        "name": "Glow Medidas - Topografia Rural",
-        "short_name": "GlowMedidas",
-        "start_url": "./",
-        "display": "standalone",
-        "background_color": "#0F172A",
-        "theme_color": "#0F172A",
-        "orientation": "portrait-primary",
-        "icons": [
-            {
-                "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%230F172A'/><path d='M256 64L64 448h384L256 64zm0 76l130 260H126L256 140z' fill='%2300E5FF'/></svg>",
-                "sizes": "512x512",
-                "type": "image/svg+xml"
-            }
-        ]
-    }
-    </script>
-    <script>
-        const manifestBlob = new Blob([document.getElementById('pwa-manifest').textContent], {type: 'application/json'});
-        const manifestURL = URL.createObjectURL(manifestBlob);
-        const link = document.createElement('link');
-        link.rel = 'manifest';
-        link.href = manifestURL;
-        document.head.appendChild(link);
-    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 
     <style>
+        /* ==========================================
+           RESET & CORE DESIGN SYSTEM
+           ========================================== */
         :root {
-            --bg-dark: #0F172A;
-            --surface-dark: rgba(30, 41, 59, 0.88);
-            --surface-border: rgba(255, 255, 255, 0.15);
+            --bg-dark: #0B0F19;
+            --surface-dark: #1E293B;
+            --surface-card: rgba(30, 41, 59, 0.85);
+            --primary: #0EA5E9;
+            --primary-hover: #0284C7;
+            --accent: #10B981;
+            --accent-glow: rgba(16, 185, 129, 0.35);
+            --danger: #EF4444;
+            --warning: #F59E0B;
             --text-main: #F8FAFC;
             --text-muted: #94A3B8;
-            --accent-green: #00E676;
-            --accent-cyan: #00E5FF;
-            --accent-amber: #FFB300;
-            --accent-danger: #FF5252;
-            --radius-main: 16px;
+            --border: rgba(255, 255, 255, 0.12);
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+            --shadow-lg: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+            --shadow-glow: 0 0 15px rgba(14, 165, 233, 0.3);
+            --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
-            --shadow-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
-        }
-
-        body.light-theme {
-            --bg-dark: #F1F5F9;
-            --surface-dark: rgba(255, 255, 255, 0.92);
-            --surface-border: rgba(0, 0, 0, 0.15);
-            --text-main: #0F172A;
-            --text-muted: #64748B;
-            --accent-cyan: #0284C7;
-            --accent-green: #16A34A;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            -webkit-tap-highlight-color: transparent;
             user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        html, body {
+        body, html {
             width: 100%;
             height: 100%;
             overflow: hidden;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: var(--bg-dark);
+            font-family: var(--font-sans);
             color: var(--text-main);
         }
 
-        #map {
+        #app-container {
+            position: relative;
             width: 100vw;
             height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ==========================================
+           MAP CONTAINER & LEAFLET CUSTOM STYLES
+           ========================================== */
+        #map {
+            width: 100%;
+            height: 100%;
+            background-color: #0B0F19 !important; /* Evita fundo branco durante carregamento */
             z-index: 1;
             touch-action: none;
-            background-color: #0F172A; /* Fallback de fundo escuro para evitar fundo branco */
         }
 
+        .leaflet-container {
+            background: #0B0F19 !important;
+            font-family: var(--font-sans);
+        }
+
+        /* Rotação contínua da camada do mapa */
         .leaflet-map-pane {
-            will-change: transform;
-            transition: transform 0.05s linear;
+            transition: transform 0.05s ease-out;
         }
 
-        /* Fullscreen Layout Overlays */
-        .top-bar {
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            right: 12px;
-            z-index: 1000;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            pointer-events: none;
+        .leaflet-control-container .leaflet-routing-container,
+        .leaflet-control-attribution {
+            display: none !important; /* Esconde marcas d'água desnecessárias */
         }
 
-        .metric-card {
-            pointer-events: auto;
-            background: var(--surface-dark);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--surface-border);
-            border-radius: var(--radius-main);
-            padding: 10px 14px;
-            box-shadow: var(--shadow-glow);
+        /* Marcadores Customizados */
+        .custom-marker {
             display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .metric-label {
-            font-size: 0.68rem;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--text-muted);
-            font-weight: 600;
-            margin-bottom: 2px;
-            display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            color: #FFF;
+            font-size: 11px;
+            font-weight: 700;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5), var(--shadow-glow);
+            transition: transform 0.1s linear;
         }
 
-        .metric-value {
+        .custom-marker.selected {
+            border-color: var(--accent);
+            background: var(--accent);
+            transform: scale(1.2);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        /* Rótulos de Metragem nas Arestas */
+        .segment-badge {
+            background: rgba(15, 23, 42, 0.92);
+            border: 1px solid var(--primary);
+            color: #38BDF8;
+            padding: 2px 7px;
+            border-radius: 10px;
+            font-size: 10.5px;
             font-family: var(--font-mono);
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--accent-cyan);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .metric-value.area {
-            color: var(--accent-green);
-        }
-
-        .unit-select {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            font-size: 0.68rem;
             font-weight: 600;
-            cursor: pointer;
-            outline: none;
-            text-align: right;
-        }
-
-        .unit-select option {
-            background: var(--bg-dark);
-            color: var(--text-main);
-        }
-
-        /* FAB Action Column Right Side */
-        .fab-column {
-            position: absolute;
-            right: 12px;
-            top: 95px;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        /* Controls Left Side */
-        .left-controls-column {
-            position: absolute;
-            left: 12px;
-            top: 95px;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .fab-btn {
-            width: 44px;
-            height: 44px;
-            border-radius: 14px;
-            background: var(--surface-dark);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--surface-border);
-            color: var(--text-main);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: var(--shadow-glow);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .fab-btn:active {
-            transform: scale(0.92);
-            background: var(--surface-border);
-        }
-
-        .fab-btn svg {
-            width: 20px;
-            height: 20px;
-            fill: none;
-            stroke: currentColor;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        .fab-btn.active {
-            border-color: var(--accent-cyan);
-            color: var(--accent-cyan);
-            background: rgba(0, 229, 255, 0.15);
-        }
-
-        /* Bottom Control Panel */
-        .bottom-bar {
-            position: absolute;
-            bottom: 20px;
-            left: 12px;
-            right: 12px;
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
             pointer-events: none;
+            transition: transform 0.1s linear;
         }
 
-        .btn-add-marco {
-            pointer-events: auto;
-            flex: 1.5;
-            height: 56px;
-            background: linear-gradient(135deg, #00E5FF 0%, #00E676 100%);
-            border: none;
-            border-radius: 18px;
-            color: #0F172A;
-            font-size: 0.92rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            box-shadow: 0 10px 25px rgba(0, 229, 255, 0.4);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-add-marco:active {
-            transform: scale(0.96);
-        }
-
-        .btn-add-marco svg {
-            width: 22px;
-            height: 22px;
-            stroke: #0F172A;
-            stroke-width: 2.5;
-        }
-
-        .btn-secondary-action {
-            pointer-events: auto;
-            width: 52px;
-            height: 56px;
-            border-radius: 18px;
-            background: var(--surface-dark);
-            backdrop-filter: blur(16px);
-            border: 1px solid var(--surface-border);
-            color: var(--text-main);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: var(--shadow-glow);
-            cursor: pointer;
-        }
-
-        .btn-secondary-action:active {
-            transform: scale(0.92);
-        }
-
-        /* User Exact Location Pulsing Pin */
-        .user-location-pin {
+        /* PIN DE LOCALIZAÇÃO DO USUÁRIO ("FACADA") */
+        .user-location-wrapper {
             position: relative;
-            width: 22px;
-            height: 22px;
-            background: #00E5FF;
-            border: 3px solid #FFFFFF;
-            border-radius: 50%;
-            box-shadow: 0 0 15px rgba(0, 229, 255, 0.9);
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .user-location-pin::after {
-            content: '';
+        .user-location-pulse {
             position: absolute;
-            top: -8px;
-            left: -8px;
-            right: -8px;
-            bottom: -8px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
-            border: 2px solid #00E5FF;
-            animation: pulse-ring 1.8s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+            background: rgba(14, 165, 233, 0.25);
+            border: 1.5px solid rgba(14, 165, 233, 0.8);
+            animation: pulse-ring 2s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+            pointer-events: none;
         }
 
         @keyframes pulse-ring {
             0% { transform: scale(0.5); opacity: 1; }
-            80%, 100% { transform: scale(2.2); opacity: 0; }
+            100% { transform: scale(1.8); opacity: 0; }
         }
 
-        /* Modal Overlay System */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(15, 23, 42, 0.88);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            z-index: 2000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-            padding: 20px;
+        .user-location-needle {
+            position: relative;
+            width: 32px;
+            height: 32px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+            z-index: 2;
         }
 
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .modal-card {
-            background: var(--surface-dark);
-            border: 1px solid var(--surface-border);
-            border-radius: 24px;
-            padding: 24px;
-            width: 100%;
-            max-width: 460px;
-            box-shadow: var(--shadow-glow);
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            transform: translateY(20px);
-            transition: transform 0.3s ease;
-            max-height: 85vh;
-            overflow-y: auto;
-        }
-
-        .modal-overlay.active .modal-card {
-            transform: translateY(0);
-        }
-
-        .modal-header {
+        /* ==========================================
+           INTERFACE OVERLAYS & UI PANELS
+           ========================================== */
+        .top-bar {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            right: 16px;
+            z-index: 10;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 12px;
+            pointer-events: none;
         }
 
-        .modal-title {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: var(--text-main);
+        .glass-panel {
+            background: var(--surface-card);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            pointer-events: auto;
+        }
+
+        .brand-pill {
             display: flex;
             align-items: center;
             gap: 8px;
+            padding: 8px 14px;
         }
 
-        .modal-close {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: 4px;
+        .brand-pill svg {
+            color: var(--primary);
         }
 
-        /* Tab Controls in Modal Manual Coords */
-        .tab-group {
-            display: flex;
-            background: rgba(0,0,0,0.25);
-            padding: 4px;
-            border-radius: 12px;
-            border: 1px solid var(--surface-border);
-            gap: 4px;
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 8px 0;
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            font-size: 0.75rem;
-            font-weight: 600;
-            border-radius: 8px;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.2s;
-        }
-
-        .tab-btn.active {
-            background: var(--accent-cyan);
-            color: #0F172A;
-        }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .input-label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .input-field {
-            width: 100%;
-            padding: 12px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--surface-border);
-            border-radius: 10px;
-            color: var(--text-main);
-            font-family: var(--font-mono);
-            font-size: 0.9rem;
-            outline: none;
-        }
-
-        .input-field:focus {
-            border-color: var(--accent-cyan);
-        }
-
-        .btn-confirm {
-            width: 100%;
-            padding: 14px;
-            background: var(--accent-cyan);
-            border: none;
-            border-radius: 12px;
-            color: #0F172A;
+        .brand-title {
+            font-size: 15px;
             font-weight: 700;
-            font-size: 0.95rem;
-            cursor: pointer;
-            margin-top: 8px;
+            letter-spacing: -0.3px;
+            background: linear-gradient(135deg, #FFF 30%, #38BDF8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        /* GPS Stabilizer Display */
-        .stabilizer-ring-container {
-            position: relative;
-            width: 150px;
-            height: 150px;
-            margin: 0 auto;
+        .project-badge {
+            font-size: 11px;
+            background: rgba(14, 165, 233, 0.15);
+            color: var(--primary);
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+            max-width: 110px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .action-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            background: var(--surface-card);
+            color: var(--text-main);
             display: flex;
             align-items: center;
             justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
-        .stabilizer-svg {
-            width: 100%;
-            height: 100%;
-            transform: rotate(-90deg);
+        .btn-icon:active {
+            transform: scale(0.92);
+            background: rgba(51, 65, 85, 0.9);
         }
 
-        .stabilizer-circle-bg {
-            fill: none;
-            stroke: rgba(255, 255, 255, 0.08);
-            stroke-width: 8;
+        .btn-icon.active {
+            background: var(--primary);
+            color: #FFF;
+            border-color: var(--primary);
+            box-shadow: var(--shadow-glow);
         }
 
-        .stabilizer-circle-progress {
-            fill: none;
-            stroke: var(--accent-cyan);
-            stroke-width: 8;
-            stroke-linecap: round;
-            stroke-dasharray: 440;
-            stroke-dashoffset: 440;
-            transition: stroke-dashoffset 0.3s linear;
-        }
-
-        .stabilizer-timer-text {
+        /* BOTÃO DE RECENTRALIZAR GPS */
+        .btn-gps-recenter {
             position: absolute;
-            font-family: var(--font-mono);
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: var(--text-main);
-            text-align: center;
+            right: 16px;
+            bottom: 260px;
+            z-index: 10;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: var(--surface-card);
+            border: 1.5px solid var(--primary);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-lg), var(--shadow-glow);
+            cursor: pointer;
+            backdrop-filter: blur(8px);
         }
 
-        .stabilizer-timer-sub {
-            font-size: 0.7rem;
+        .btn-gps-recenter:active {
+            transform: scale(0.9);
+            background: var(--primary);
+            color: #fff;
+        }
+
+        /* BOTÃO RESET DE ROTAS / BÚSSOLA */
+        .compass-btn {
+            position: absolute;
+            right: 16px;
+            bottom: 206px;
+            z-index: 10;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: var(--surface-card);
+            border: 1px solid var(--border);
             color: var(--text-muted);
-            text-transform: uppercase;
-            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-lg);
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            transition: transform 0.2s ease;
         }
 
-        .stabilizer-stats {
+        .compass-btn svg {
+            transition: transform 0.1s ease-out;
+        }
+
+        /* ==========================================
+           CARDS & PAINEL DE MEDIÇÃO
+           ========================================== */
+        .metrics-card {
+            position: absolute;
+            top: 72px;
+            left: 16px;
+            right: 16px;
+            z-index: 10;
+            padding: 14px;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            background: rgba(0,0,0,0.25);
-            padding: 12px;
-            border-radius: 12px;
-            border: 1px solid var(--surface-border);
+            gap: 12px;
+            pointer-events: auto;
         }
 
-        .stat-box {
+        .metric-box {
             display: flex;
             flex-direction: column;
+            gap: 2px;
         }
 
-        .stat-lbl {
-            font-size: 0.65rem;
-            color: var(--text-muted);
+        .metric-label {
+            font-size: 10.5px;
             text-transform: uppercase;
-        }
-
-        .stat-val {
-            font-family: var(--font-mono);
-            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
             font-weight: 600;
-            color: var(--accent-amber);
-            margin-top: 2px;
         }
 
-        /* Coords Bottom Sheet Panel */
+        .metric-value-primary {
+            font-size: 18px;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            color: #FFF;
+        }
+
+        .metric-value-sub {
+            font-size: 11.5px;
+            color: var(--accent);
+            font-weight: 500;
+            font-family: var(--font-mono);
+        }
+
+        /* ==========================================
+           FLOATING ACTION TOOLBAR
+           ========================================== */
+        .bottom-toolbar {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px;
+            border-radius: 40px;
+            background: rgba(15, 23, 42, 0.92);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(16px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.6);
+        }
+
+        .btn-action-main {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 30px;
+            border: none;
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: #FFF;
+            font-weight: 600;
+            font-size: 13.5px;
+            cursor: pointer;
+            box-shadow: var(--shadow-glow);
+            transition: all 0.2s ease;
+        }
+
+        .btn-action-main:active {
+            transform: scale(0.95);
+        }
+
+        .btn-action-main.gps-stabilizing {
+            background: linear-gradient(135deg, var(--warning), #D97706);
+            animation: pulse-button 1.5s infinite;
+        }
+
+        @keyframes pulse-button {
+            0% { opacity: 1; }
+            50% { opacity: 0.75; }
+            100% { opacity: 1; }
+        }
+
+        /* ==========================================
+           SLIDING BOTTOM SHEET (DADOS DAS COORDENADAS)
+           ========================================== */
         .bottom-sheet {
-            position: fixed;
+            position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
+            z-index: 20;
             background: var(--surface-dark);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-top: 1px solid var(--surface-border);
             border-top-left-radius: 24px;
             border-top-right-radius: 24px;
-            padding: 20px;
-            z-index: 1500;
+            border-top: 1px solid var(--border);
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.7);
             transform: translateY(100%);
-            transition: transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
         }
 
         .bottom-sheet.open {
             transform: translateY(0);
         }
 
-        .sheet-handle {
-            width: 36px;
-            height: 4px;
-            background: var(--text-muted);
-            border-radius: 2px;
-            margin: 0 auto 16px auto;
-            opacity: 0.5;
-        }
-
-        .coords-grid {
+        .sheet-header {
+            padding: 12px 16px;
             display: flex;
             flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+        }
+
+        .sheet-drag-handle {
+            width: 36px;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .sheet-title-row {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sheet-title {
+            font-size: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sheet-body {
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .coord-grid {
+            display: grid;
+            grid-template-columns: 1fr;
             gap: 10px;
         }
 
-        .coord-item {
-            background: rgba(0, 0, 0, 0.25);
-            border: 1px solid var(--surface-border);
-            border-radius: 12px;
-            padding: 10px 14px;
+        .coord-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 10px 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -595,889 +493,1141 @@
             display: flex;
             flex-direction: column;
             gap: 2px;
-            overflow: hidden;
-            padding-right: 8px;
         }
 
         .coord-type {
-            font-size: 0.68rem;
-            font-weight: 600;
-            color: var(--accent-cyan);
+            font-size: 10px;
             text-transform: uppercase;
+            color: var(--primary);
+            font-weight: 700;
+            letter-spacing: 0.5px;
         }
 
         .coord-val {
             font-family: var(--font-mono);
-            font-size: 0.85rem;
-            color: var(--text-main);
-            word-break: break-all;
+            font-size: 12.5px;
+            color: #FFF;
         }
 
         .btn-copy {
-            background: rgba(255, 255, 255, 0.08);
+            background: transparent;
             border: none;
-            border-radius: 8px;
-            color: var(--text-main);
-            padding: 8px;
+            color: var(--text-muted);
+            padding: 6px;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            border-radius: 6px;
         }
 
         .btn-copy:active {
-            background: var(--accent-cyan);
-            color: #0F172A;
+            color: var(--primary);
+            background: rgba(255,255,255,0.05);
         }
 
-        .btn-copy svg {
-            width: 16px;
-            height: 16px;
-            fill: none;
-            stroke: currentColor;
-            stroke-width: 2;
-        }
-
-        /* Leaflet Map UI Overrides */
-        .leaflet-control-attribution, .leaflet-control-zoom {
-            display: none !important;
-        }
-
-        .custom-marker {
+        /* ==========================================
+           MODAIS & POPUPS
+           ========================================== */
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 30;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 24px;
-            height: 24px;
-            background: #00E5FF;
-            border: 3px solid #FFFFFF;
-            border-radius: 50%;
-            box-shadow: 0 0 12px rgba(0, 229, 255, 0.8);
-            font-size: 10px;
-            font-weight: 800;
-            color: #0F172A;
-            font-family: var(--font-mono);
-            transition: transform 0.05s linear;
+            padding: 16px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
         }
 
-        .segment-label-container {
-            background: transparent;
-            border: none;
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
         }
 
-        .segment-badge {
-            background: rgba(15, 23, 42, 0.9);
-            border: 1px solid var(--accent-cyan);
-            color: #FFFFFF;
-            padding: 2px 6px;
-            border-radius: 6px;
-            font-size: 0.68rem;
-            font-family: var(--font-mono);
+        .modal-card {
+            width: 100%;
+            max-width: 440px;
+            background: var(--surface-dark);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 17px;
             font-weight: 700;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-            white-space: nowrap;
-            text-align: center;
-            transition: transform 0.05s linear;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 10px 12px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: #FFF;
+            font-family: var(--font-sans);
+            font-size: 13.5px;
+            outline: none;
+        }
+
+        .form-input:focus, .form-select:focus {
+            border-color: var(--primary);
+        }
+
+        .tab-group {
+            display: flex;
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: var(--radius-sm);
+            padding: 3px;
+            gap: 2px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .tab-btn.active {
+            background: var(--surface-dark);
+            color: var(--primary);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+
+        .btn-sec {
+            padding: 10px 16px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-main);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-prim {
+            padding: 10px 16px;
+            border-radius: var(--radius-md);
+            border: none;
+            background: var(--primary);
+            color: #FFF;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .project-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
         }
 
         /* Toast Notifications */
         .toast {
-            position: fixed;
-            top: 80px;
+            position: absolute;
+            top: 20px;
             left: 50%;
-            transform: translateX(-50%) translateY(-20px);
-            background: var(--surface-dark);
-            border: 1px solid var(--accent-cyan);
-            color: var(--text-main);
+            transform: translateX(-50%) translateY(-100px);
+            z-index: 100;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--primary);
+            color: #FFF;
             padding: 10px 20px;
             border-radius: 30px;
-            font-size: 0.85rem;
+            font-size: 13px;
             font-weight: 500;
-            z-index: 3000;
-            opacity: 0;
+            box-shadow: var(--shadow-lg);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             pointer-events: none;
-            transition: all 0.3s ease;
-            box-shadow: var(--shadow-glow);
-        }
-
-        .toast.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-
-        /* Project Management Item Styling */
-        .project-item {
-            background: rgba(0, 0, 0, 0.25);
-            border: 1px solid var(--surface-border);
-            border-radius: 14px;
-            padding: 12px 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .project-item.active {
-            border-color: var(--accent-cyan);
-            background: rgba(0, 229, 255, 0.08);
-        }
-
-        .project-info {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .project-title {
-            font-weight: 700;
-            font-size: 0.95rem;
-            color: var(--text-main);
-        }
-
-        .project-sub {
-            font-size: 0.72rem;
-            color: var(--text-muted);
-        }
-
-        .project-actions {
-            display: flex;
-            gap: 6px;
-        }
-
-        .btn-small-action {
-            padding: 6px 12px;
-            border-radius: 8px;
-            border: 1px solid var(--surface-border);
-            background: rgba(255,255,255,0.08);
-            color: var(--text-main);
-            font-size: 0.75rem;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .btn-small-action.delete {
-            border-color: var(--accent-danger);
-            color: var(--accent-danger);
-        }
-
-        .settings-btn-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .btn-action-full {
-            width: 100%;
-            padding: 14px;
-            border-radius: 14px;
-            border: 1px solid var(--surface-border);
-            background: rgba(255,255,255,0.05);
-            color: var(--text-main);
-            font-weight: 600;
-            font-size: 0.85rem;
-            cursor: pointer;
             display: flex;
             align-items: center;
-            justify-content: center;
             gap: 8px;
         }
 
-        .btn-action-full:active {
-            background: rgba(255,255,255,0.15);
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Esconder input de arquivo */
+        #import-file-input {
+            display: none;
         }
     </style>
 </head>
 <body>
 
-    <!-- Map Container -->
-    <div id="map"></div>
+    <div id="app-container">
+        <!-- MAP CONTAINER -->
+        <div id="map"></div>
 
-    <!-- Top Dashboard Header -->
-    <header class="top-bar">
-        <div class="metric-card">
-            <div class="metric-label">
-                <span>Distância Total</span>
-                <select id="unit-distance" class="unit-select">
-                    <option value="m">Metros (m)</option>
-                    <option value="km">Quilômetros (km)</option>
-                </select>
-            </div>
-            <div id="display-distance" class="metric-value">0.00 m</div>
-        </div>
-        <div class="metric-card">
-            <div class="metric-label">
-                <span>Área Total</span>
-                <select id="unit-area" class="unit-select">
-                    <option value="m2">m²</option>
-                    <option value="ha">Hectares (ha)</option>
-                    <option value="alq">Alqueires (SP)</option>
-                </select>
-            </div>
-            <div id="display-area" class="metric-value area">0.00 m²</div>
-        </div>
-    </header>
-
-    <!-- Left Side Controls (Zoom & Compass North Reset) -->
-    <div class="left-controls-column">
-        <button id="btn-zoom-in" class="fab-btn" title="Aumentar Zoom (+)">
-            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-        </button>
-        <button id="btn-zoom-out" class="fab-btn" title="Diminuir Zoom (-)">
-            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-        </button>
-        <button id="btn-reset-north" class="fab-btn" title="Alinhar Norte (0°)">
-            <svg id="compass-arrow" viewBox="0 0 24 24" style="transition: transform 0.1s linear;"><polygon points="12 2 19 21 12 17 5 21 12 2" fill="var(--accent-cyan)"></polygon></svg>
-        </button>
-    </div>
-
-    <!-- Right Side FAB Column -->
-    <div class="fab-column">
-        <button id="btn-projects" class="fab-btn" title="Meus Projetos">
-            <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-        </button>
-        <button id="btn-locate" class="fab-btn" title="Minha Localização Exata">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3m0 14v3M2 12h3m14 0h3"></path></svg>
-        </button>
-        <button id="btn-layer" class="fab-btn" title="Alternar Mapa">
-            <svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
-        </button>
-        <button id="btn-undo" class="fab-btn" title="Desfazer">
-            <svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"></path><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"></path></svg>
-        </button>
-        <button id="btn-redo" class="fab-btn" title="Refazer">
-            <svg viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"></path><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5v0A5.5 5.5 0 0 0 9.5 20H13"></path></svg>
-        </button>
-        <button id="btn-trail" class="fab-btn" title="Modo Trilha">
-            <svg viewBox="0 0 24 24"><path d="M13 4v16M17 8l-4-4-4 4M17 16l-4 4-4-4"></path></svg>
-        </button>
-        <button id="btn-theme" class="fab-btn" title="Modo Claro/Escuro">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path></svg>
-        </button>
-        <button id="btn-settings" class="fab-btn" title="Configurações e Exportação">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-        </button>
-    </div>
-
-    <!-- Bottom Action Controls -->
-    <div class="bottom-bar">
-        <button id="btn-manual-coords" class="btn-secondary-action" title="Digite Coordenadas Manualmente">
-            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-        </button>
-
-        <button id="btn-add-point" class="btn-add-marco">
-            <svg viewBox="0 0 24 24" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            <span>CAPTURA GPS (MATA)</span>
-        </button>
-
-        <button id="btn-coords-toggle" class="btn-secondary-action" title="Ver Coordenadas Detalhadas">
-            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20M2 12h20"></path></svg>
-        </button>
-
-        <button id="btn-clear" class="btn-secondary-action" title="Limpar Tudo">
-            <svg viewBox="0 0 24 24" width="22" height="22" stroke="#FF5252" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-        </button>
-    </div>
-
-    <!-- Modal: Dense Tree Canopy GPS Stabilizer Engine -->
-    <div id="modal-stabilizer" class="modal-overlay">
-        <div class="modal-card">
-            <div class="modal-header">
-                <div class="modal-title">
-                    <svg viewBox="0 0 24 24" width="22" height="22" stroke="var(--accent-cyan)" stroke-width="2" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                    Filtro de Precisão Máxima GPS
+        <!-- TOP BAR UI -->
+        <div class="top-bar">
+            <div class="glass-panel brand-pill">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 2 7 12 12 22 7 12 2"/></svg>
+                <div>
+                    <div class="brand-title">Glow Medidas</div>
+                    <div class="project-badge" id="current-project-name">Sem Título</div>
                 </div>
-                <button class="modal-close" id="btn-cancel-stabilizer">
-                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </div>
+
+            <div class="action-group">
+                <button class="btn-icon" id="btn-projects" title="Projetos & Backups">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                </button>
+                <button class="btn-icon" id="btn-layers" title="Trocar Camada do Mapa">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 12"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                </button>
+                <button class="btn-icon" id="btn-manual-add" title="Inserir Coordenada Manual">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 </button>
             </div>
-            
-            <p style="font-size: 0.78rem; color: var(--text-muted); text-align: center;">
-                Aguarde o cancelamento de ruídos geodésicos por Variância Inversa.
-            </p>
+        </div>
 
-            <div class="stabilizer-ring-container">
-                <svg class="stabilizer-svg">
-                    <circle class="stabilizer-circle-bg" cx="75" cy="75" r="65"></circle>
-                    <circle id="stabilizer-progress" class="stabilizer-circle-progress" cx="75" cy="75" r="65"></circle>
-                </svg>
-                <div class="stabilizer-timer-text">
-                    <span id="stabilizer-countdown">15</span>s
-                    <div class="stabilizer-timer-sub">Processando...</div>
-                </div>
+        <!-- PAINEL DE MÉTRICAS -->
+        <div class="glass-panel metrics-card">
+            <div class="metric-box">
+                <span class="metric-label">Área Total</span>
+                <span class="metric-value-primary" id="val-area-m2">0.00 m²</span>
+                <span class="metric-value-sub" id="val-area-ha">0.0000 ha | 0.00 Alq</span>
             </div>
-
-            <div class="stabilizer-stats">
-                <div class="stat-box">
-                    <span class="stat-lbl">Amostras Válidas</span>
-                    <span id="stat-samples" class="stat-val">0</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-lbl">Precisão Calculada</span>
-                    <span id="stat-accuracy" class="stat-val">± 0.0 m</span>
-                </div>
+            <div class="metric-box">
+                <span class="metric-label">Perímetro / Distância</span>
+                <span class="metric-value-primary" id="val-dist-m">0.00 m</span>
+                <span class="metric-value-sub" id="val-dist-km">0.000 km</span>
             </div>
         </div>
-    </div>
 
-    <!-- Modal: Projects Manager -->
-    <div id="modal-projects" class="modal-overlay">
-        <div class="modal-card">
-            <div class="modal-header">
-                <div class="modal-title">Gestão de Projetos</div>
-                <button class="modal-close" id="btn-close-projects">
-                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
-            </div>
+        <!-- RECENTRALIZAR GPS (BOTÃO "FLY TO" GPS) -->
+        <button class="btn-gps-recenter" id="btn-recenter-gps" title="Centralizar na Minha Posição GPS">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/></svg>
+        </button>
 
-            <button id="btn-new-project" class="btn-confirm" style="margin-top: 0;">+ CRIAR NOVO PROJETO DO ZERO</button>
+        <!-- BÚSSOLA & RESET DE ROTAÇÃO -->
+        <button class="compass-btn" id="btn-reset-rotation" title="Resetar Rotação (Norte para Cima)">
+            <svg id="compass-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 19 21 12 17 5 21 12 2"/></svg>
+        </button>
 
-            <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-top: 8px;">
-                Projetos Salvos
-            </div>
-
-            <div id="projects-list"></div>
-        </div>
-    </div>
-
-    <!-- Modal: Replace/Edit Point -->
-    <div id="modal-edit-point" class="modal-overlay">
-        <div class="modal-card">
-            <div class="modal-header">
-                <div class="modal-title" id="edit-point-title">Substituir Marco #1</div>
-                <button class="modal-close" id="btn-close-edit-point">
-                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
-            </div>
-
-            <p style="font-size: 0.8rem; color: var(--text-muted);">
-                Escolha a forma como deseja atualizar este ponto:
-            </p>
-
-            <button id="btn-replace-gps" class="btn-action-full">
-                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3m0 14v3M2 12h3m14 0h3"></path></svg>
-                Substituir por Captura GPS no Local
+        <!-- BARRA FLUTUANTE DE AÇÕES -->
+        <div class="bottom-toolbar">
+            <button class="btn-icon" id="btn-undo" title="Desfazer Último Ponto">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
             </button>
 
-            <button id="btn-replace-manual" class="btn-action-full">
-                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                Substituir por Coordenadas Manuais
+            <button class="btn-action-main" id="btn-add-gps">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span id="gps-btn-text">Capturar GPS</span>
             </button>
 
-            <button id="btn-delete-single-point" class="btn-action-full" style="border-color: var(--accent-danger); color: var(--accent-danger);">
-                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                Excluir Apenas este Marco
+            <button class="btn-icon" id="btn-clear" title="Limpar Tudo">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+            <button class="btn-icon" id="btn-open-details" title="Painel de Coordenadas">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
             </button>
         </div>
-    </div>
 
-    <!-- Modal: Manual Coords Input -->
-    <div id="modal-manual-coords" class="modal-overlay">
-        <div class="modal-card">
-            <div class="modal-header">
-                <div class="modal-title" id="manual-coords-title">Inserir Coordenada Manual</div>
-                <button class="modal-close" id="btn-close-manual-coords">
-                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
-            </div>
-
-            <div class="tab-group">
-                <button class="tab-btn active" data-tab="tab-geo">GEO Decimais</button>
-                <button class="tab-btn" data-tab="tab-dms">DMS (Graus)</button>
-                <button class="tab-btn" data-tab="tab-utm">UTM</button>
-            </div>
-
-            <!-- Tab: GEO Decimais -->
-            <div id="tab-geo" class="tab-content">
-                <div class="input-group" style="margin-bottom: 10px;">
-                    <label class="input-label">Latitude (Ex: -23.550520)</label>
-                    <input type="number" step="any" id="input-lat" class="input-field" placeholder="-23.550520">
-                </div>
-                <div class="input-group">
-                    <label class="input-label">Longitude (Ex: -46.633308)</label>
-                    <input type="number" step="any" id="input-lng" class="input-field" placeholder="-46.633308">
-                </div>
-            </div>
-
-            <!-- Tab: DMS -->
-            <div id="tab-dms" class="tab-content" style="display: none;">
-                <div class="input-group" style="margin-bottom: 10px;">
-                    <label class="input-label">Latitude DMS</label>
-                    <input type="text" id="input-dms-lat" class="input-field" placeholder="23°33'01.8&quot;S">
-                </div>
-                <div class="input-group">
-                    <label class="input-label">Longitude DMS</label>
-                    <input type="text" id="input-dms-lng" class="input-field" placeholder="46°37'59.9&quot;W">
-                </div>
-            </div>
-
-            <!-- Tab: UTM -->
-            <div id="tab-utm" class="tab-content" style="display: none;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
-                    <div class="input-group">
-                        <label class="input-label">Zona (Ex: 23)</label>
-                        <input type="number" id="input-utm-zone" class="input-field" placeholder="23">
+        <!-- PAINEL DESLIZANTE DE DETALHES DE COORDENADAS -->
+        <div class="bottom-sheet" id="bottom-sheet">
+            <div class="sheet-header" id="sheet-header">
+                <div class="sheet-drag-handle"></div>
+                <div class="sheet-title-row">
+                    <div class="sheet-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <span id="selected-point-title">Selecione um ponto no mapa</span>
                     </div>
-                    <div class="input-group">
-                        <label class="input-label">Hemisfério</label>
-                        <select id="input-utm-hemisphere" class="input-field">
-                            <option value="S">Sul (S)</option>
-                            <option value="N">Norte (N)</option>
-                        </select>
+                    <button class="btn-icon" style="width:28px; height:28px;" id="btn-close-sheet">✕</button>
+                </div>
+            </div>
+            <div class="sheet-body" id="sheet-content">
+                <div style="text-align:center; padding: 20px; color: var(--text-muted); font-size: 13px;">
+                    Toque em um ponto do polígono ou adicione um novo para visualizar todas as suas coordenadas calculadas (GEO, DMS, UTM, MGRS, Plus Code).
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: PROJETOS E IMPORTAÇÃO/EXPORTAÇÃO DE BACKUP -->
+        <div class="modal-overlay" id="modal-projects">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <div class="modal-title">Projetos & Backups</div>
+                    <button class="btn-icon" style="width:28px; height:28px;" onclick="closeModal('modal-projects')">✕</button>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Nome do Projeto Atual</label>
+                    <div style="display:flex; gap:8px;">
+                        <input type="text" id="project-name-input" class="form-input" placeholder="Ex: Gleba Santa Luzia - Lote 4">
+                        <button class="btn-prim" id="btn-save-project-name">Salvar</button>
                     </div>
                 </div>
-                <div class="input-group" style="margin-bottom: 10px;">
-                    <label class="input-label">Este (Easting X em m)</label>
-                    <input type="number" step="any" id="input-utm-easting" class="input-field" placeholder="333200">
+
+                <div class="btn-row" style="justify-content: stretch;">
+                    <button class="btn-sec" style="flex:1;" id="btn-new-project">+ Novo Projeto</button>
+                    <button class="btn-sec" style="flex:1;" id="btn-export-backup">📤 Exportar Backup</button>
+                    <button class="btn-sec" style="flex:1;" id="btn-trigger-import">📥 Importar Backup</button>
                 </div>
-                <div class="input-group">
-                    <label class="input-label">Norte (Northing Y em m)</label>
-                    <input type="number" step="any" id="input-utm-northing" class="input-field" placeholder="7394800">
+
+                <div style="font-size: 12px; color: var(--text-muted); font-weight: 600; margin-top: 4px;">Projetos Salvos</div>
+                <div id="project-list" style="display:flex; flex-direction:column; gap:8px; max-height:200px; overflow-y:auto;">
+                    <!-- Lista dinâmica de projetos -->
                 </div>
             </div>
-
-            <button id="btn-submit-manual-coord" class="btn-confirm">SALVAR MARCO</button>
         </div>
+
+        <!-- MODAL: ENTRADA MANUAL DE COORDENADAS -->
+        <div class="modal-overlay" id="modal-manual-coord">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <div class="modal-title" id="manual-modal-title">Adicionar Coordenada Manual</div>
+                    <button class="btn-icon" style="width:28px; height:28px;" onclick="closeModal('modal-manual-coord')">✕</button>
+                </div>
+
+                <div class="tab-group">
+                    <button class="tab-btn active" id="tab-btn-geo" onclick="switchCoordTab('geo')">GEO (Decimais)</button>
+                    <button class="tab-btn" id="tab-btn-dms" onclick="switchCoordTab('dms')">DMS (GMS)</button>
+                    <button class="tab-btn" id="tab-btn-utm" onclick="switchCoordTab('utm')">UTM</button>
+                </div>
+
+                <!-- FORM GEO -->
+                <div id="form-coord-geo" class="form-coord-tab">
+                    <div class="form-group" style="margin-bottom:10px;">
+                        <label class="form-label">Latitude (ex: -23.550520)</label>
+                        <input type="number" step="any" id="input-lat-geo" class="form-input" placeholder="-23.550520">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Longitude (ex: -46.633308)</label>
+                        <input type="number" step="any" id="input-lng-geo" class="form-input" placeholder="-46.633308">
+                    </div>
+                </div>
+
+                <!-- FORM DMS -->
+                <div id="form-coord-dms" class="form-coord-tab" style="display:none;">
+                    <div style="font-size:11px; color:var(--primary); font-weight:600;">LATITUDE</div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:6px; margin-bottom:10px;">
+                        <input type="number" id="dms-lat-d" class="form-input" placeholder="Graus">
+                        <input type="number" id="dms-lat-m" class="form-input" placeholder="Min">
+                        <input type="number" step="any" id="dms-lat-s" class="form-input" placeholder="Seg">
+                        <select id="dms-lat-card" class="form-select"><option value="S">S</option><option value="N">N</option></select>
+                    </div>
+                    <div style="font-size:11px; color:var(--primary); font-weight:600;">LONGITUDE</div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:6px;">
+                        <input type="number" id="dms-lng-d" class="form-input" placeholder="Graus">
+                        <input type="number" id="dms-lng-m" class="form-input" placeholder="Min">
+                        <input type="number" step="any" id="dms-lng-s" class="form-input" placeholder="Seg">
+                        <select id="dms-lng-card" class="form-select"><option value="W">W/O</option><option value="E">E</option></select>
+                    </div>
+                </div>
+
+                <!-- FORM UTM -->
+                <div id="form-coord-utm" class="form-coord-tab" style="display:none;">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:10px;">
+                        <div class="form-group">
+                            <label class="form-label">Zona UTM (Ex: 23)</label>
+                            <input type="number" id="utm-zone" class="form-input" placeholder="22, 23, 24...">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Hemisfério</label>
+                            <select id="utm-hemi" class="form-select"><option value="S">Sul (S)</option><option value="N">Norte (N)</option></select>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom:10px;">
+                        <label class="form-label">Easting (X - 6 dígitos m)</label>
+                        <input type="number" step="any" id="utm-easting" class="form-input" placeholder="333123">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Northing (Y - 7 dígitos m)</label>
+                        <input type="number" step="any" id="utm-northing" class="form-input" placeholder="7394123">
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn-sec" onclick="closeModal('modal-manual-coord')">Cancelar</button>
+                    <button class="btn-prim" id="btn-submit-manual-coord">Adicionar Ponto</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: CAMADAS DE MAPA -->
+        <div class="modal-overlay" id="modal-layers">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <div class="modal-title">Camadas de Mapa</div>
+                    <button class="btn-icon" style="width:28px; height:28px;" onclick="closeModal('modal-layers')">✕</button>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <button class="btn-sec" style="text-align:left; display:flex; justify-content:space-between; align-items:center;" onclick="setMapLayer('google-sat')">
+                        <span>🛰️ Google Satélite HD (Mais Recente no Brasil)</span>
+                        <span id="check-google-sat" style="color:var(--accent);">✓</span>
+                    </button>
+                    <button class="btn-sec" style="text-align:left; display:flex; justify-content:space-between; align-items:center;" onclick="setMapLayer('google-hybrid')">
+                        <span>🗺️ Google Híbrido (Satélite + Estradas/Nomes)</span>
+                        <span id="check-google-hybrid" style="display:none; color:var(--accent);">✓</span>
+                    </button>
+                    <button class="btn-sec" style="text-align:left; display:flex; justify-content:space-between; align-items:center;" onclick="setMapLayer('esri-sat')">
+                        <span>🌍 ESRI World Imagery</span>
+                        <span id="check-esri-sat" style="display:none; color:var(--accent);">✓</span>
+                    </button>
+                    <button class="btn-sec" style="text-align:left; display:flex; justify-content:space-between; align-items:center;" onclick="setMapLayer('osm-streets')">
+                        <span>🏙️ OpenStreetMap (Ruas & Vetores)</span>
+                        <span id="check-osm-streets" style="display:none; color:var(--accent);">✓</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOAST NOTIFICATION CONTAINER -->
+        <div class="toast" id="toast"></div>
+
+        <!-- INPUT DE ARQUIVO DE BACKUP (OCULTO) -->
+        <input type="file" id="import-file-input" accept="*/*">
     </div>
 
-    <!-- Modal: Settings & Export Archiving -->
-    <div id="modal-settings" class="modal-overlay">
-        <div class="modal-card">
-            <div class="modal-header">
-                <div class="modal-title">Configurações & Backup</div>
-                <button class="modal-close" id="btn-close-settings">
-                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
-            </div>
+    <!-- Scripts da Aplicação -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-            <div class="settings-btn-grid">
-                <button id="btn-export-json" class="btn-action-full">
-                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    Exportar Backup JSON
-                </button>
-                <button id="btn-import-trigger" class="btn-action-full">
-                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                    Importar Backup JSON
-                </button>
-                <input type="file" id="file-import" accept=".json" style="display:none;" />
-            </div>
-
-            <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: 10px;">
-                Glow Medidas v1.4 • Topografia Rural Geodésica
-            </div>
-        </div>
-    </div>
-
-    <!-- Bottom Sheet: Coordinated Data Panel -->
-    <div id="coords-panel" class="bottom-sheet">
-        <div class="sheet-handle"></div>
-        <div class="modal-header" style="margin-bottom: 16px;">
-            <div class="modal-title">Painel de Dados Coordenados</div>
-            <button class="modal-close" id="btn-close-coords">
-                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
-        </div>
-
-        <div class="coords-grid">
-            <div class="coord-item">
-                <div class="coord-info">
-                    <span class="coord-type">Geográficas Decimais (GEO)</span>
-                    <span id="coord-geo" class="coord-val">0.000000, 0.000000</span>
-                </div>
-                <button class="btn-copy" data-target="coord-geo"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
-            </div>
-
-            <div class="coord-item">
-                <div class="coord-info">
-                    <span class="coord-type">Graus Minutos Segundos (DMS)</span>
-                    <span id="coord-dms" class="coord-val">00°00'00.0"N 00°00'00.0"W</span>
-                </div>
-                <button class="btn-copy" data-target="coord-dms"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
-            </div>
-
-            <div class="coord-item">
-                <div class="coord-info">
-                    <span class="coord-type">UTM (WGS 84)</span>
-                    <span id="coord-utm" class="coord-val">--</span>
-                </div>
-                <button class="btn-copy" data-target="coord-utm"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
-            </div>
-
-            <div class="coord-item">
-                <div class="coord-info">
-                    <span class="coord-type">MGRS</span>
-                    <span id="coord-mgrs" class="coord-val">--</span>
-                </div>
-                <button class="btn-copy" data-target="coord-mgrs"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
-            </div>
-
-            <div class="coord-item">
-                <div class="coord-info">
-                    <span class="coord-type">Geohash</span>
-                    <span id="coord-geohash" class="coord-val">--</span>
-                </div>
-                <button class="btn-copy" data-target="coord-geohash"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
-            </div>
-
-            <div class="coord-item">
-                <div class="coord-info">
-                    <span class="coord-type">Plus Code (OLC)</span>
-                    <span id="coord-pluscode" class="coord-val">--</span>
-                </div>
-                <button class="btn-copy" data-target="coord-pluscode"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast Notification Overlay -->
-    <div id="toast" class="toast">Mensagem de Notificação</div>
-
-    <!-- MAIN APP SCRIPT -->
     <script>
-        /* --- 1. SERVICE WORKER REGISTER --- */
-        if ('serviceWorker' in navigator) {
-            const swCode = `
-                const CACHE_NAME = 'glow-medidas-v5';
-                const ASSETS = [
-                    './',
-                    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-                    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
-                    'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap'
-                ];
-                self.addEventListener('install', e => {
-                    e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
-                    self.skipWaiting();
-                });
-                self.addEventListener('activate', e => {
-                    e.waitUntil(caches.keys().then(keys => Promise.all(
-                        keys.map(k => k !== CACHE_NAME ? caches.delete(k) : null)
-                    )));
-                    self.clients.claim();
-                });
-                self.addEventListener('fetch', e => {
-                    e.respondWith(
-                        caches.match(e.request).then(res => res || fetch(e.request).catch(() => caches.match('./')))
-                    );
-                });
-            `;
-            const blob = new Blob([swCode], { type: 'application/javascript' });
-            navigator.serviceWorker.register(URL.createObjectURL(blob))
-                .catch(err => console.error("SW Reg Error:", err));
-        }
-
-        /* --- 2. MULTI-PROJECT INDEXEDDB ENGINE --- */
-        class StorageEngine {
-            constructor() {
-                this.dbName = 'GlowMedidasDB_v2';
-                this.db = null;
-            }
-
-            async init() {
-                return new Promise((resolve, reject) => {
-                    const req = indexedDB.open(this.dbName, 1);
-                    req.onupgradeneeded = (e) => {
-                        const db = e.target.result;
-                        if (!db.objectStoreNames.contains('projects')) {
-                            db.createObjectStore('projects', { keyPath: 'id' });
-                        }
-                    };
-                    req.onsuccess = (e) => {
-                        this.db = e.target.result;
-                        resolve();
-                    };
-                    req.onerror = (e) => reject(e);
-                });
-            }
-
-            async saveProject(project) {
-                const tx = this.db.transaction('projects', 'readwrite');
-                const store = tx.objectStore('projects');
-                await store.put(project);
-            }
-
-            async getAllProjects() {
-                return new Promise((resolve) => {
-                    const tx = this.db.transaction('projects', 'readonly');
-                    const store = tx.objectStore('projects');
-                    const req = store.getAll();
-                    req.onsuccess = () => resolve(req.result || []);
-                });
-            }
-
-            async deleteProject(id) {
-                const tx = this.db.transaction('projects', 'readwrite');
-                const store = tx.objectStore('projects');
-                await store.delete(id);
-            }
-        }
-
-        const db = new StorageEngine();
-
-        /* --- 3. GEODESIC MATH & CONVERSION ALGORITHMS --- */
-        const MathGeo = {
-            distance(lat1, lon1, lat2, lon2) {
-                const R = 6378137;
-                const dLat = (lat2 - lat1) * Math.PI / 180;
-                const dLon = (lon2 - lon1) * Math.PI / 180;
-                const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                          Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                          Math.sin(dLon / 2) * Math.sin(dLon / 2);
-                return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            },
-
-            area(latlngs) {
-                if (latlngs.length < 3) return 0;
-                const R = 6378137;
-                let area = 0;
-                const len = latlngs.length;
-                for (let i = 0; i < len; i++) {
-                    const p1 = latlngs[i];
-                    const p2 = latlngs[(i + 1) % len];
-                    const radLat1 = p1.lat * Math.PI / 180;
-                    const radLat2 = p2.lat * Math.PI / 180;
-                    const radLng1 = p1.lng * Math.PI / 180;
-                    const radLng2 = p2.lng * Math.PI / 180;
-                    area += (radLng2 - radLng1) * (2 + Math.sin(radLat1) + Math.sin(radLat2));
-                }
-                return Math.abs(area * R * R / 2.0);
-            },
-
-            toDMS(deg, isLat) {
-                const absolute = Math.abs(deg);
-                const d = Math.floor(absolute);
-                const minutesNotTruncated = (absolute - d) * 60;
-                const m = Math.floor(minutesNotTruncated);
-                const s = ((minutesNotTruncated - m) * 60).toFixed(2);
-                const direction = deg >= 0 ? (isLat ? "N" : "E") : (isLat ? "S" : "W");
-                return `${d}°${m}'${s}"${direction}`;
-            },
-
-            parseDMS(dmsStr) {
-                const regex = /(\d+)\s*°\s*(\d+)\s*'\s*([\d.]+)\s*"?\s*([NSEWnsew])/;
-                const match = dmsStr.match(regex);
-                if (!match) return null;
-                const deg = parseFloat(match[1]);
-                const min = parseFloat(match[2]);
-                const sec = parseFloat(match[3]);
-                const dir = match[4].toUpperCase();
-                let dec = deg + (min / 60) + (sec / 3600);
-                if (dir === 'S' || dir === 'W') dec = -dec;
-                return dec;
-            },
-
-            toUTM(lat, lon) {
-                const zone = Math.floor((lon + 180) / 6) + 1;
-                const letter = lat >= 0 ? 'N' : 'S';
-                const rad = Math.PI / 180;
-                const k0 = 0.9996;
-                const a = 6378137;
-                const e = 0.081819191;
-                const lon0 = (zone * 6 - 183) * rad;
-                const latRad = lat * rad;
-                const lonRad = lon * rad;
-                const N = a / Math.sqrt(1 - Math.pow(e * Math.sin(latRad), 2));
-                const T = Math.pow(Math.tan(latRad), 2);
-                const C = (Math.pow(e, 2) / (1 - Math.pow(e, 2))) * Math.pow(Math.cos(latRad), 2);
-                const A = (lonRad - lon0) * Math.cos(latRad);
-                const M = a * ((1 - Math.pow(e,2)/4 - 3*Math.pow(e,4)/64) * latRad - (3*Math.pow(e,2)/8 + 3*Math.pow(e,4)/32) * Math.sin(2*latRad) + (15*Math.pow(e,4)/256) * Math.sin(4*latRad));
-                const easting = (k0 * N * (A + (1-T+C)*Math.pow(A,3)/6 + (5-18*T+Math.pow(T,2)+72*C)*Math.pow(A,5)/120) + 500000).toFixed(1);
-                let northing = (k0 * (M + N * Math.tan(latRad) * (Math.pow(A,2)/2 + (5-T+9*C+4*Math.pow(C,2))*Math.pow(A,4)/24 + (61-58*T+Math.pow(T,2))*Math.pow(A,6)/720))).toFixed(1);
-                if (lat < 0) northing = (parseFloat(northing) + 10000000).toFixed(1);
-                return `${zone}${letter} E:${easting} m N:${northing} m`;
-            },
-
-            utmToLatLng(zone, hemisphere, easting, northing) {
-                const k0 = 0.9996;
-                const a = 6378137;
-                const e = 0.081819191;
-                const e1sq = 0.006739497;
-                let x = easting - 500000;
-                let y = northing;
-                if (hemisphere === 'S') y -= 10000000;
-
-                const lon0 = ((zone - 1) * 6 - 180 + 3) * Math.PI / 180;
-                const M = y / k0;
-                const mu = M / (a * (1 - Math.pow(e, 2) / 4 - 3 * Math.pow(e, 4) / 64 - 5 * Math.pow(e, 6) / 256));
-                const e1 = (1 - Math.sqrt(1 - Math.pow(e, 2))) / (1 + Math.sqrt(1 - Math.pow(e, 2)));
-                const phi1Rad = mu + (3 * e1 / 2 - 27 * Math.pow(e1, 3) / 32) * Math.sin(2 * mu) + (21 * Math.pow(e1, 2) / 16 - 55 * Math.pow(e1, 4) / 32) * Math.sin(4 * mu);
-
-                const N1 = a / Math.sqrt(1 - Math.pow(e * Math.sin(phi1Rad), 2));
-                const T1 = Math.pow(Math.tan(phi1Rad), 2);
-                const C1 = e1sq * Math.pow(Math.cos(phi1Rad), 2);
-                const R1 = a * (1 - Math.pow(e, 2)) / Math.pow(1 - Math.pow(e * Math.sin(phi1Rad), 2), 1.5);
-                const D = x / (N1 * k0);
-
-                let lat = phi1Rad - (N1 * Math.tan(phi1Rad) / R1) * (Math.pow(D, 2) / 2 - (5 + 3 * T1 + 10 * C1 - 4 * Math.pow(C1, 2) - 9 * e1sq) * Math.pow(D, 4) / 24 + (61 + 90 * T1 + 298 * C1 + 45 * Math.pow(T1, 2) - 252 * e1sq) * Math.pow(D, 6) / 720);
-                let lon = lon0 + (D - (1 + 2 * T1 + C1) * Math.pow(D, 3) / 6 + (5 - 2 * C1 + 28 * T1 - 3 * Math.pow(C1, 2) + 8 * e1sq + 24 * Math.pow(T1, 2)) * Math.pow(D, 5) / 120) / Math.cos(phi1Rad);
-
-                return { lat: lat * 180 / Math.PI, lng: lon * 180 / Math.PI };
-            },
-
-            toMGRS(lat, lon) {
-                const utm = this.toUTM(lat, lon);
-                const parts = utm.split(' ');
-                const zone = parts[0];
-                const e = Math.floor(parseFloat(parts[1].replace('E:', '')) / 100);
-                const n = Math.floor(parseFloat(parts[3].replace('N:', '')) / 100);
-                return `${zone} ${e} ${n}`;
-            },
-
-            toGeohash(lat, lon, precision = 9) {
-                const BITS = [16, 8, 4, 2, 1];
-                const BASE32 = "0123456789bcdefghjkmnpqrstuvwxyz";
-                let isEven = true;
-                let latMin = -90, latMax = 90;
-                let lonMin = -180, lonMax = 180;
-                let bit = 0, ch = 0;
-                let geohash = "";
-
-                while (geohash.length < precision) {
-                    if (isEven) {
-                        const lonMid = (lonMin + lonMax) / 2;
-                        if (lon >= lonMid) {
-                            ch |= BITS[bit];
-                            lonMin = lonMid;
-                        } else lonMax = lonMid;
-                    } else {
-                        const latMid = (latMin + latMax) / 2;
-                        if (lat >= latMid) {
-                            ch |= BITS[bit];
-                            latMin = latMid;
-                        } else latMax = latMid;
-                    }
-                    isEven = !isEven;
-                    if (bit < 4) bit++;
-                    else {
-                        geohash += BASE32[ch];
-                        bit = 0;
-                        ch = 0;
-                    }
-                }
-                return geohash;
-            },
-
-            toPlusCode(lat, lon) {
-                const CODE_ALPHABET = "23456789CFGHJMPQRVWX";
-                let adjustedLat = Math.min(Math.max(lat + 90, 0), 180);
-                let adjustedLon = Math.min(Math.max(lon + 180, 0), 360);
-                let code = "";
-                let latDigit = Math.floor(adjustedLat / 8);
-                let lonDigit = Math.floor(adjustedLon / 8);
-                code += CODE_ALPHABET[latDigit] + CODE_ALPHABET[lonDigit];
-                adjustedLat = (adjustedLat % 8) * 20;
-                adjustedLon = (adjustedLon % 8) * 20;
-                latDigit = Math.floor(adjustedLat);
-                lonDigit = Math.floor(adjustedLon);
-                code += CODE_ALPHABET[latDigit] + CODE_ALPHABET[lonDigit] + "+";
-                adjustedLat = (adjustedLat % 1) * 20;
-                adjustedLon = (adjustedLon % 1) * 20;
-                latDigit = Math.floor(adjustedLat);
-                lonDigit = Math.floor(adjustedLon);
-                code += CODE_ALPHABET[latDigit] + CODE_ALPHABET[lonDigit];
-                return code;
-            }
-        };
-
-        /* --- 4. APP STATE MANAGEMENT --- */
+        /* ==========================================================================
+           1. ESTADO GLOBAL & CONFIGURAÇÕES INICIAIS
+           ========================================================================== */
         const state = {
-            currentProjectId: 'proj_default',
-            currentProjectName: 'Medição Principal',
-            points: [],
-            undoStack: [],
-            redoStack: [],
-            isTrailMode: false,
-            trailWatchId: null,
+            projects: [],
+            currentProject: {
+                id: 'proj_' + Date.now(),
+                name: 'Gleba Principal',
+                points: [],
+                createdAt: new Date().toISOString()
+            },
+            selectedPointIndex: null,
+            editingPointIndex: null,
             userLocation: null,
-            userMarker: null,
+            userLocationMarker: null,
             userAccuracyCircle: null,
-            map: null,
-            layers: {},
-            activeLayer: 'satellite',
-            markers: [],
-            segmentLabels: [],
-            polyline: null,
-            polygon: null,
-            unitDist: 'm',
-            unitArea: 'm2',
+            mapLayers: {},
+            currentLayerKey: 'google-sat',
             rotationAngle: 0,
-            selectedPointIndexForEdit: null
+            isStabilizingGPS: false,
+            db: null
         };
 
-        /* --- 5. MAP & INTERFACE CONTROLLER --- */
+        // Elementos DOM principais
+        const dom = {
+            map: document.getElementById('map'),
+            valAreaM2: document.getElementById('val-area-m2'),
+            valAreaHa: document.getElementById('val-area-ha'),
+            valDistM: document.getElementById('val-dist-m'),
+            valDistKm: document.getElementById('val-dist-km'),
+            currentProjectName: document.getElementById('current-project-name'),
+            bottomSheet: document.getElementById('bottom-sheet'),
+            sheetContent: document.getElementById('sheet-content'),
+            selectedPointTitle: document.getElementById('selected-point-title'),
+            toast: document.getElementById('toast'),
+            compassIcon: document.getElementById('compass-icon'),
+            gpsBtnText: document.getElementById('gps-btn-text'),
+            btnAddGps: document.getElementById('btn-add-gps'),
+            importFileInput: document.getElementById('import-file-input')
+        };
+
+        /* ==========================================================================
+           2. INICIALIZAÇÃO DO BANCO DE DADOS INDEXEDDB E PWA OFFLINE
+           ========================================================================== */
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('GlowMedidasDB_v2', 2);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('projects')) {
+                        db.createObjectStore('projects', { keyPath: 'id' });
+                    }
+                };
+                request.onsuccess = (e) => {
+                    state.db = e.target.result;
+                    loadSavedProjects().then(resolve);
+                };
+                request.onerror = (e) => {
+                    console.error("Erro ao abrir IndexedDB", e);
+                    resolve();
+                };
+            });
+        }
+
+        function saveCurrentProjectToDB() {
+            if (!state.db) return;
+            const tx = state.db.transaction('projects', 'readwrite');
+            const store = tx.objectStore('projects');
+            store.put(state.currentProject);
+        }
+
+        function loadSavedProjects() {
+            return new Promise((resolve) => {
+                if (!state.db) return resolve();
+                const tx = state.db.transaction('projects', 'readonly');
+                const store = tx.objectStore('projects');
+                const req = store.getAll();
+                req.onsuccess = () => {
+                    state.projects = req.result || [];
+                    if (state.projects.length > 0) {
+                        state.currentProject = state.projects[state.projects.length - 1];
+                    } else {
+                        saveCurrentProjectToDB();
+                    }
+                    updateUIProjectName();
+                    renderProjectListUI();
+                    resolve();
+                };
+            });
+        }
+
+        // Geração do Service Worker e PWA Manifest Blob Dinâmico
+        function initPWA() {
+            const manifestData = {
+                name: "Glow Medidas - Topografia & Precisão",
+                short_name: "GlowMedidas",
+                start_url: "./",
+                display: "standalone",
+                background_color: "#0B0F19",
+                theme_color: "#0F172A",
+                icons: [{
+                    src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230EA5E9'><polygon points='12 2 2 7 12 12 22 7 12 2'/></svg>",
+                    sizes: "192x192 512x512",
+                    type: "image/svg+xml"
+                }]
+            };
+            const manifestBlob = new Blob([JSON.stringify(manifestData)], { type: 'application/json' });
+            document.getElementById('manifest-placeholder').href = URL.createObjectURL(manifestBlob);
+
+            if ('serviceWorker' in navigator) {
+                const swCode = `
+                    const CACHE_NAME = 'glow-medidas-v3';
+                    self.addEventListener('install', e => e.waitUntil(self.skipWaiting()));
+                    self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+                    self.addEventListener('fetch', e => {
+                        e.respondWith(
+                            fetch(e.request).catch(() => caches.match(e.request))
+                        );
+                    });
+                `;
+                const swBlob = new Blob([swCode], { type: 'application/javascript' });
+                navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
+            }
+        }
+
+        /* ==========================================================================
+           3. INICIALIZAÇÃO DO MAPA LEAFLET E CAMADAS HD
+           ========================================================================== */
+        let map;
+        let polylineLayer, polygonLayer, markersGroup, segmentBadgesGroup;
+
         function initMap() {
-            state.map = L.map('map', {
+            // Instância do mapa com zoom estritamente travado no máximo 20 (impede tela branca)
+            map = L.map('map', {
                 zoomControl: false,
                 attributionControl: false,
-                scrollWheelZoom: true,
-                touchZoom: true,
-                doubleClickZoom: true,
-                maxZoom: 22
-            }).setView([-15.7801, -47.9292], 4);
+                maxZoom: 20,
+                minZoom: 3,
+                zoomSnap: 0.5
+            }).setView([-15.7801, -47.9292], 4); // Visão geral do Brasil por padrão
 
-            /* 
-               CORREÇÃO CRUCIAL DE ZOOM:
-               Definimos maxNativeZoom: 18 para garantir que as fotos de satélite da ESRI
-               sejam interpoladas em zoom de alta escala (19 a 22) SEM GERAR QUADROS EM BRANCO.
-            */
-            state.layers.satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                maxZoom: 22,
-                maxNativeZoom: 18
-            });
-
-            state.layers.streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 22,
-                maxNativeZoom: 19
-            });
-
-            state.layers.hybrid = L.layerGroup([
-                state.layers.satellite,
-                L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-labels/{z}/{x}/{y}{r}.png', {
-                    maxZoom: 22,
+            // Definição das Camadas do Mapa (Com Google Satélite HD para Brasil como padrão)
+            state.mapLayers = {
+                'google-sat': L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+                    maxZoom: 20,
+                    maxNativeZoom: 20,
+                    subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+                }),
+                'google-hybrid': L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+                    maxZoom: 20,
+                    maxNativeZoom: 20,
+                    subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+                }),
+                'esri-sat': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    maxZoom: 20,
+                    maxNativeZoom: 18
+                }),
+                'osm-streets': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 20,
                     maxNativeZoom: 19
                 })
-            ]);
+            };
 
-            state.layers.satellite.addTo(state.map);
+            // Ativa camada padrão (Google Satélite HD)
+            state.mapLayers['google-sat'].addTo(map);
 
-            state.polyline = L.polyline([], { color: '#00E5FF', weight: 3, dashArray: '5, 10' }).addTo(state.map);
-            state.polygon = L.polygon([], { color: '#00E676', weight: 2, fillColor: '#00E676', fillOpacity: 0.25 }).addTo(state.map);
+            // Camadas vetoriais
+            polygonLayer = L.polygon([], {
+                color: '#0EA5E9',
+                weight: 2.5,
+                fillColor: '#0EA5E9',
+                fillOpacity: 0.25
+            }).addTo(map);
 
-            state.map.on('click', (e) => {
+            polylineLayer = L.polyline([], {
+                color: '#38BDF8',
+                weight: 3,
+                dashArray: '6, 6'
+            }).addTo(map);
+
+            markersGroup = L.layerGroup().addTo(map);
+            segmentBadgesGroup = L.layerGroup().addTo(map);
+
+            // Evento de clique no mapa para adicionar ponto
+            map.on('click', (e) => {
                 addPoint(e.latlng.lat, e.latlng.lng);
             });
 
-            // Motor de rotação fluido por gestos táteis com 2 dedos
+            // Inicializa sistema de controle por gestos de toque (Pinça/Rotação com 2 dedos)
             initTouchRotation();
 
-            // Ativa o rastreador de localização pulsante
-            startLocationTracker();
+            // Inicia monitoramento contínuo de posição GPS
+            startGPSWatch();
         }
 
-        /* --- MOTOR DE ROTAÇÃO TÁTIL (GESTO DE PINÇA/ROTAÇÃO 2 DEDOS) --- */
-        function initTouchRotation() {
-            const mapEl = document.getElementById('map');
-            let initialTouchAngle = 0;
-            let initialMapAngle = 0;
-            let isRotating = false;
+        function setMapLayer(layerKey) {
+            if (!state.mapLayers[layerKey]) return;
+            map.removeLayer(state.mapLayers[state.currentLayerKey]);
+            state.mapLayers[layerKey].addTo(map);
+            state.currentLayerKey = layerKey;
 
-            function getTouchAngle(touches) {
-                const dx = touches[1].clientX - touches[0].clientX;
-                const dy = touches[1].clientY - touches[0].clientY;
-                return Math.atan2(dy, dx) * (180 / Math.PI);
+            // Atualiza marcas de check no modal UI
+            ['google-sat', 'google-hybrid', 'esri-sat', 'osm-streets'].forEach(k => {
+                const el = document.getElementById(`check-${k}`);
+                if (el) el.style.display = (k === layerKey) ? 'inline' : 'none';
+            });
+            closeModal('modal-layers');
+            showToast("Camada de mapa alterada");
+        }
+
+        /* ==========================================================================
+           4. MONITORAÇÃO DO GPS & PIN DE LOCALIZAÇÃO DO USUÁRIO ("FACADA")
+           ========================================================================== */
+        function startGPSWatch() {
+            if (!navigator.geolocation) return;
+
+            navigator.geolocation.watchPosition(
+                (pos) => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    const accuracy = pos.coords.accuracy;
+
+                    state.userLocation = { lat, lng, accuracy };
+                    updateUserLocationMarker(lat, lng, accuracy);
+                },
+                (err) => { console.warn("Erro ao ler GPS:", err.message); },
+                { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
+            );
+        }
+
+        function updateUserLocationMarker(lat, lng, accuracy) {
+            // Criação do Ícone de Agulha ("Facada") de alta precisão
+            const needleIcon = L.divIcon({
+                className: 'user-location-wrapper',
+                html: `
+                    <div class="user-location-pulse"></div>
+                    <svg class="user-location-needle" viewBox="0 0 36 36" fill="none">
+                        <!-- Sombra da ponta -->
+                        <path d="M18 34L11 20C11 20 14 22 18 22C22 22 25 20 25 20L18 34Z" fill="rgba(0,0,0,0.3)"/>
+                        <!-- Corpo da agulha de precisão (Facada) -->
+                        <path d="M18 34L12 18C10 14 13 8 18 8C23 8 26 14 24 18L18 34Z" fill="#0EA5E9" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"/>
+                        <!-- Centro da mira -->
+                        <circle cx="18" cy="15" r="3" fill="#FFF"/>
+                        <circle cx="18" cy="15" r="1.5" fill="#0EA5E9"/>
+                    </svg>
+                `,
+                iconSize: [36, 36],
+                iconAnchor: [18, 34] // A ponta exata da agulha é o ponto de ancoragem na coordenada real
+            });
+
+            if (!state.userLocationMarker) {
+                state.userLocationMarker = L.marker([lat, lng], { icon: needleIcon, zIndexOffset: 1000 }).addTo(map);
+                state.userAccuracyCircle = L.circle([lat, lng], {
+                    radius: accuracy,
+                    color: '#0EA5E9',
+                    weight: 1,
+                    fillColor: '#0EA5E9',
+                    fillOpacity: 0.1,
+                    interactive: false
+                }).addTo(map);
+            } else {
+                state.userLocationMarker.setLatLng([lat, lng]);
+                state.userAccuracyCircle.setLatLng([lat, lng]);
+                state.userAccuracyCircle.setRadius(accuracy);
             }
+        }
+
+        // Centralizar o mapa na posição atual do usuário (Botão GPS)
+        function recenterToUserLocation() {
+            if (!state.userLocation) {
+                showToast("Aguardando sinal GPS...");
+                return;
+            }
+            map.flyTo([state.userLocation.lat, state.userLocation.lng], 18, {
+                animate: true,
+                duration: 1.2
+            });
+            showToast("Mapa centralizado na sua posição GPS");
+        }
+
+        /* ==========================================================================
+           5. ESTABILIZADOR GPS DE ALTA PRECISÃO (FILTRO PARA COBERTURA VEGETAL)
+           ========================================================================== */
+        function captureStabilizedGPS() {
+            if (state.isStabilizingGPS) return;
+            if (!navigator.geolocation) {
+                showToast("GPS não suportado neste dispositivo.");
+                return;
+            }
+
+            state.isStabilizingGPS = true;
+            dom.btnAddGps.classList.add('gps-stabilizing');
+            
+            const samples = [];
+            let secondsLeft = 15;
+            dom.gpsBtnText.innerText = `Calibrando (${secondsLeft}s)...`;
+
+            const countdownInterval = setInterval(() => {
+                secondsLeft--;
+                if (secondsLeft > 0) {
+                    dom.gpsBtnText.innerText = `Calibrando (${secondsLeft}s)...`;
+                }
+            }, 1000);
+
+            const watchId = navigator.geolocation.watchPosition((pos) => {
+                samples.push({
+                    lat: pos.coords.latitude,
+                    lng: pos.coords.longitude,
+                    accuracy: pos.coords.accuracy
+                });
+            }, () => {}, { enableHighAccuracy: true, maximumAge: 0 });
+
+            // Após 15 segundos, processa média ponderada pela variância inversa
+            setTimeout(() => {
+                clearInterval(countdownInterval);
+                navigator.geolocation.clearWatch(watchId);
+                state.isStabilizingGPS = false;
+                dom.btnAddGps.classList.remove('gps-stabilizing');
+                dom.gpsBtnText.innerText = "Capturar GPS";
+
+                if (samples.length === 0) {
+                    showToast("Falha ao obter dados do GPS.");
+                    return;
+                }
+
+                // 1. Ordena amostras por precisão e descarta os 20% piores outliers
+                samples.sort((a, b) => a.accuracy - b.accuracy);
+                const validCount = Math.max(1, Math.floor(samples.length * 0.8));
+                const filteredSamples = samples.slice(0, validCount);
+
+                // 2. Calcula Média Ponderada (Inverse-Variance Weighting: w_i = 1 / accuracy^2)
+                let totalWeight = 0;
+                let weightedLatSum = 0;
+                let weightedLngSum = 0;
+
+                filteredSamples.forEach(s => {
+                    const weight = 1 / (Math.pow(s.accuracy, 2) || 1);
+                    totalWeight += weight;
+                    weightedLatSum += s.lat * weight;
+                    weightedLngSum += s.lng * weight;
+                });
+
+                const finalLat = weightedLatSum / totalWeight;
+                const finalLng = weightedLngSum / totalWeight;
+
+                if (state.editingPointIndex !== null) {
+                    replacePoint(state.editingPointIndex, finalLat, finalLng);
+                    state.editingPointIndex = null;
+                    showToast("Ponto substituído via GPS com Alta Precisão!");
+                } else {
+                    addPoint(finalLat, finalLng);
+                    showToast(`Ponto GPS fixado! (${filteredSamples.length} amostras filtradas)`);
+                }
+            }, 15000);
+        }
+
+        /* ==========================================================================
+           6. GERENCIAMENTO DE PONTOS, CÁLCULO DE ÁREA & DISTÂNCIA (GEO/UTM)
+           ========================================================================== */
+        function addPoint(lat, lng) {
+            state.currentProject.points.push({ lat, lng });
+            saveCurrentProjectToDB();
+            renderMapElements();
+        }
+
+        function replacePoint(index, lat, lng) {
+            if (index >= 0 && index < state.currentProject.points.length) {
+                state.currentProject.points[index] = { lat, lng };
+                saveCurrentProjectToDB();
+                renderMapElements();
+            }
+        }
+
+        function removePoint(index) {
+            state.currentProject.points.splice(index, 1);
+            saveCurrentProjectToDB();
+            renderMapElements();
+            closeBottomSheet();
+        }
+
+        function undoLastPoint() {
+            if (state.currentProject.points.length === 0) return;
+            state.currentProject.points.pop();
+            saveCurrentProjectToDB();
+            renderMapElements();
+            showToast("Último ponto removido");
+        }
+
+        function clearAllPoints() {
+            if (state.currentProject.points.length === 0) return;
+            if (confirm("Deseja realmente apagar todos os pontos deste projeto?")) {
+                state.currentProject.points = [];
+                saveCurrentProjectToDB();
+                renderMapElements();
+                closeBottomSheet();
+                showToast("Projeto limpo");
+            }
+        }
+
+        /* ==========================================================================
+           7. RENDERIZAÇÃO VETORIAL E RÓTULOS DE METRAGEM NAS ARESTAS
+           ========================================================================== */
+        function renderMapElements() {
+            markersGroup.clearLayers();
+            segmentBadgesGroup.clearLayers();
+
+            const pts = state.currentProject.points;
+            const latLngs = pts.map(p => [p.lat, p.lng]);
+
+            if (pts.length >= 3) {
+                polygonLayer.setLatLngs(latLngs);
+                polylineLayer.setLatLngs([]);
+            } else if (pts.length === 2) {
+                polygonLayer.setLatLngs([]);
+                polylineLayer.setLatLngs(latLngs);
+            } else {
+                polygonLayer.setLatLngs([]);
+                polylineLayer.setLatLngs([]);
+            }
+
+            // Renderizar Marcadores e Metragens das Arestas
+            pts.forEach((pt, idx) => {
+                const isSelected = (idx === state.selectedPointIndex);
+                const markerIcon = L.divIcon({
+                    className: `custom-marker ${isSelected ? 'selected' : ''}`,
+                    html: `<span>P${idx + 1}</span>`,
+                    iconSize: [28, 28],
+                    iconAnchor: [14, 14]
+                });
+
+                const m = L.marker([pt.lat, pt.lng], { icon: markerIcon }).addTo(markersGroup);
+                m.on('click', (e) => {
+                    L.DomEvent.stopPropagation(e);
+                    selectPoint(idx);
+                });
+
+                // Cálculo de distância de segmento (Aresta atual -> Próximo Ponto)
+                if (pts.length >= 2) {
+                    let nextIdx = idx + 1;
+                    if (nextIdx === pts.length && pts.length >= 3) {
+                        nextIdx = 0; // Fechamento do Polígono
+                    }
+
+                    if (nextIdx < pts.length) {
+                        const nextPt = pts[nextIdx];
+                        const distMeters = computeHaversineDistance(pt.lat, pt.lng, nextPt.lat, nextPt.lng);
+                        const midLat = (pt.lat + nextPt.lat) / 2;
+                        const midLng = (pt.lng + nextPt.lng) / 2;
+
+                        const badgeIcon = L.divIcon({
+                            className: 'segment-badge',
+                            html: `<span>${distMeters >= 1000 ? (distMeters / 1000).toFixed(3) + ' km' : distMeters.toFixed(2) + ' m'}</span>`,
+                            iconAnchor: [30, 10]
+                        });
+
+                        L.marker([midLat, midLng], { icon: badgeIcon, interactive: false }).addTo(segmentBadgesGroup);
+                    }
+                }
+            });
+
+            // Aplica contra-rotação dinâmica nos marcadores para mantê-los sempre em pé
+            applyCounterRotation();
+
+            // Calcular Métricas Totais
+            calculateMetrics();
+        }
+
+        /* ==========================================================================
+           8. MATEMÁTICA GEODÉSICA: SHAPES, HAVERSINE E ALQUEIRES
+           ========================================================================== */
+        function computeHaversineDistance(lat1, lon1, lat2, lon2) {
+            const R = 6378137; // Raio da Terra em metros (WGS84)
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        function calculateMetrics() {
+            const pts = state.currentProject.points;
+            if (pts.length === 0) {
+                dom.valAreaM2.innerText = "0.00 m²";
+                dom.valAreaHa.innerText = "0.0000 ha | 0.00 Alq";
+                dom.valDistM.innerText = "0.00 m";
+                dom.valDistKm.innerText = "0.000 km";
+                return;
+            }
+
+            // Perímetro Total ou Distância da Linha
+            let totalDist = 0;
+            for (let i = 0; i < pts.length - 1; i++) {
+                totalDist += computeHaversineDistance(pts[i].lat, pts[i].lng, pts[i + 1].lat, pts[i + 1].lng);
+            }
+            if (pts.length >= 3) {
+                // Adiciona fechamento do polígono
+                totalDist += computeHaversineDistance(pts[pts.length - 1].lat, pts[pts.length - 1].lng, pts[0].lat, pts[0].lng);
+            }
+
+            dom.valDistM.innerText = `${totalDist.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m`;
+            dom.valDistKm.innerText = `${(totalDist / 1000).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} km`;
+
+            // Cálculo da Área em Esfera (Spherical Shoelace)
+            if (pts.length >= 3) {
+                const R = 6378137;
+                let area = 0;
+                for (let i = 0; i < pts.length; i++) {
+                    const j = (i + 1) % pts.length;
+                    const p1 = pts[i];
+                    const p2 = pts[j];
+                    area += ((p2.lng - p1.lng) * Math.PI / 180) * (2 + Math.sin(p1.lat * Math.PI / 180) + Math.sin(p2.lat * Math.PI / 180));
+                }
+                area = Math.abs(area * R * R / 2);
+
+                const hectares = area / 10000;
+                const alqueireSP = area / 24200; // 1 Alqueire Paulista = 24.200 m²
+
+                dom.valAreaM2.innerText = `${area.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²`;
+                dom.valAreaHa.innerText = `${hectares.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })} ha | ${alqueireSP.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Alq SP`;
+            } else {
+                dom.valAreaM2.innerText = "0.00 m²";
+                dom.valAreaHa.innerText = "0.0000 ha | 0.00 Alq";
+            }
+        }
+
+        /* ==========================================================================
+           9. CONVERSÕES DE COORDENADAS (GEO, DMS, UTM, MGRS, PLUS CODE)
+           ========================================================================== */
+        function convertGeoToDMS(lat, lng) {
+            function toDMS(val, isLat) {
+                const abs = Math.abs(val);
+                const deg = Math.floor(abs);
+                const minFull = (abs - deg) * 60;
+                const min = Math.floor(minFull);
+                const sec = ((minFull - min) * 60).toFixed(2);
+                let card = isLat ? (val >= 0 ? 'N' : 'S') : (val >= 0 ? 'E' : 'W');
+                return `${deg}° ${min}' ${sec}" ${card}`;
+            }
+            return { latDMS: toDMS(lat, true), lngDMS: toDMS(lng, false) };
+        }
+
+        function convertGeoToUTM(lat, lng) {
+            const zone = Math.floor((lng + 180) / 6) + 1;
+            const hemi = lat >= 0 ? 'N' : 'S';
+            
+            // Aproximação WGS84 Simplificada para projeção Transversa de Mercator
+            const latRad = lat * Math.PI / 180;
+            const lngRad = lng * Math.PI / 180;
+            const centralMeridian = ((zone - 1) * 6 - 180 + 3) * Math.PI / 180;
+
+            const k0 = 0.9996;
+            const a = 6378137;
+            const e2 = 0.00669438;
+
+            const N = a / Math.sqrt(1 - e2 * Math.sin(latRad) * Math.sin(latRad));
+            const T = Math.tan(latRad) * Math.tan(latRad);
+            const C = (e2 / (1 - e2)) * Math.cos(latRad) * Math.cos(latRad);
+            const A = (lngRad - centralMeridian) * Math.cos(latRad);
+
+            const M = a * ((1 - e2/4 - 3*e2*e2/64) * latRad - (3*e2/8 + 3*e2*e2/32) * Math.sin(2*latRad) + (15*e2*e2/256) * Math.sin(4*latRad));
+
+            let easting = k0 * N * (A + (1-T+C)*Math.pow(A,3)/6 + (5-18*T+T*T)*Math.pow(A,5)/120) + 500000;
+            let northing = k0 * (M + N * Math.tan(latRad) * (A*A/2 + (5-T+9*C+4*C*C)*Math.pow(A,4)/24));
+            
+            if (lat < 0) northing += 10000000;
+
+            return {
+                zone: `${zone} ${hemi}`,
+                easting: easting.toFixed(2),
+                northing: northing.toFixed(2)
+            };
+        }
+
+        function convertUTMToGeo(zone, hemi, easting, northing) {
+            const k0 = 0.9996;
+            const a = 6378137;
+            const e2 = 0.00669438;
+            const e1 = (1 - Math.sqrt(1 - e2)) / (1 + Math.sqrt(1 - e2));
+
+            let x = easting - 500000;
+            let y = northing;
+            if (hemi === 'S') y -= 10000000;
+
+            const M = y / k0;
+            const mu = M / (a * (1 - e2/4 - 3*e2*e2/64));
+
+            const phi1Rad = mu + (3*e1/2 - 27*Math.pow(e1,3)/32)*Math.sin(2*mu) + (21*e1*e1/16)*Math.sin(4*mu);
+            const N1 = a / Math.sqrt(1 - e2 * Math.sin(phi1Rad) * Math.sin(phi1Rad));
+            const T1 = Math.tan(phi1Rad) * Math.tan(phi1Rad);
+            const C1 = (e2 / (1 - e2)) * Math.cos(phi1Rad) * Math.cos(phi1Rad);
+            const R1 = a * (1 - e2) / Math.pow(1 - e2 * Math.sin(phi1Rad) * Math.sin(phi1Rad), 1.5);
+            const D = x / (N1 * k0);
+
+            let lat = phi1Rad - (N1 * Math.tan(phi1Rad) / R1) * (D*D/2 - (5 + 3*T1 + 10*C1 - 4*C1*C1)*Math.pow(D,4)/24);
+            let lng = ((zone - 1) * 6 - 180 + 3) * Math.PI / 180 + (D - (1 + 2*T1 + C1)*Math.pow(D,3)/6) / Math.cos(phi1Rad);
+
+            return { lat: lat * 180 / Math.PI, lng: lng * 180 / Math.PI };
+        }
+
+        /* ==========================================================================
+           10. INTERFACE DE USUÁRIO: PAINEL DE COORDENADAS & SELEÇÃO DE PONTOS
+           ========================================================================== */
+        function selectPoint(index) {
+            state.selectedPointIndex = index;
+            renderMapElements();
+
+            const pt = state.currentProject.points[index];
+            const dms = convertGeoToDMS(pt.lat, pt.lng);
+            const utm = convertGeoToUTM(pt.lat, pt.lng);
+
+            dom.selectedPointTitle.innerText = `Ponto P${index + 1}`;
+            dom.sheetContent.innerHTML = `
+                <div class="coord-grid">
+                    <div class="coord-card">
+                        <div class="coord-info">
+                            <span class="coord-type">GEO (Decimais)</span>
+                            <span class="coord-val">${pt.lat.toFixed(6)}, ${pt.lng.toFixed(6)}</span>
+                        </div>
+                        <button class="btn-copy" onclick="copyToClipboard('${pt.lat.toFixed(6)}, ${pt.lng.toFixed(6)}')">📋</button>
+                    </div>
+
+                    <div class="coord-card">
+                        <div class="coord-info">
+                            <span class="coord-type">DMS (Graus, Min, Seg)</span>
+                            <span class="coord-val">${dms.latDMS}<br>${dms.lngDMS}</span>
+                        </div>
+                        <button class="btn-copy" onclick="copyToClipboard('${dms.latDMS} ${dms.lngDMS}')">📋</button>
+                    </div>
+
+                    <div class="coord-card">
+                        <div class="coord-info">
+                            <span class="coord-type">UTM (WGS84)</span>
+                            <span class="coord-val">Z: ${utm.zone} | E: ${utm.easting} | N: ${utm.northing}</span>
+                        </div>
+                        <button class="btn-copy" onclick="copyToClipboard('UTM ${utm.zone} E:${utm.easting} N:${utm.northing}')">📋</button>
+                    </div>
+                </div>
+
+                <div class="btn-row" style="margin-top:12px;">
+                    <button class="btn-sec" style="flex:1; color:var(--danger); border-color:var(--danger);" onclick="removePoint(${index})">Excluir Ponto</button>
+                    <button class="btn-prim" style="flex:1;" onclick="openEditPointModal(${index})">Editar / Substituir</button>
+                </div>
+            `;
+
+            dom.bottomSheet.classList.add('open');
+        }
+
+        function closeBottomSheet() {
+            dom.bottomSheet.classList.remove('open');
+            state.selectedPointIndex = null;
+            renderMapElements();
+        }
+
+        /* ==========================================================================
+           11. SUAVIZAÇÃO DA ROTAÇÃO COM 2 DEDOS & BÚSSOLA
+           ========================================================================== */
+        function initTouchRotation() {
+            let initialAngle = 0;
+            let currentAngle = 0;
+            let isRotating = false;
+            let initialDistance = 0;
+
+            const mapEl = dom.map;
 
             mapEl.addEventListener('touchstart', (e) => {
                 if (e.touches.length === 2) {
                     isRotating = true;
-                    initialTouchAngle = getTouchAngle(e.touches);
-                    initialMapAngle = state.rotationAngle;
+                    const t1 = e.touches[0];
+                    const t2 = e.touches[1];
+                    initialAngle = Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX) * 180 / Math.PI;
+                    initialDistance = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
                 }
             }, { passive: true });
 
             mapEl.addEventListener('touchmove', (e) => {
                 if (isRotating && e.touches.length === 2) {
-                    const currentAngle = getTouchAngle(e.touches);
-                    const deltaAngle = currentAngle - initialTouchAngle;
-                    setMapRotation(initialMapAngle + deltaAngle);
+                    const t1 = e.touches[0];
+                    const t2 = e.touches[1];
+
+                    const currentDistance = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+                    const distChange = Math.abs(currentDistance - initialDistance);
+
+                    // Evita pulos de rotação durante um gesto focado em zoom (pinça)
+                    if (distChange > 35) return;
+
+                    const angle = Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX) * 180 / Math.PI;
+                    const delta = angle - initialAngle;
+
+                    // Zona morta (dead-band): ignora tremores menores que 2.0 graus
+                    if (Math.abs(delta) > 2.0) {
+                        currentAngle = state.rotationAngle + delta * 0.45; // Suavizador Low-pass
+                        applyRotation(currentAngle);
+                        initialAngle = angle;
+                    }
                 }
             }, { passive: true });
 
@@ -1488,729 +1638,362 @@
             });
         }
 
-        function setMapRotation(deg) {
-            state.rotationAngle = (deg % 360 + 360) % 360;
-            const mapPane = document.querySelector('#map .leaflet-map-pane');
-            if (mapPane) {
-                mapPane.style.transform = `rotate(${state.rotationAngle}deg)`;
-                mapPane.style.transformOrigin = 'center center';
+        function applyRotation(deg) {
+            state.rotationAngle = deg;
+            const pane = document.querySelector('.leaflet-map-pane');
+            if (pane) {
+                pane.style.transform = `rotate(${deg}deg)`;
             }
-            // Mapeia contra-rotação dos marcadores e etiquetas para permanecerem na vertical
-            document.querySelectorAll('.custom-marker, .segment-badge').forEach(el => {
+            dom.compassIcon.style.transform = `rotate(${-deg}deg)`;
+            applyCounterRotation();
+        }
+
+        function resetRotation() {
+            applyRotation(0);
+            showToast("Orientações resetadas ao Norte (0°)");
+        }
+
+        function applyCounterRotation() {
+            // Contra-rotaciona os números dos marcadores e as metragens para não ficarem de ponta-cabeça
+            const elements = document.querySelectorAll('.custom-marker, .segment-badge');
+            elements.forEach(el => {
                 el.style.transform = `rotate(${-state.rotationAngle}deg)`;
             });
-            document.getElementById('compass-arrow').style.transform = `rotate(${state.rotationAngle}deg)`;
         }
 
-        /* --- MARCADOR DE LOCALIZAÇÃO EXATA GPS (PIN PULSANTE) --- */
-        function updateUserLocationMarker(lat, lng, accuracy) {
-            state.userLocation = { lat, lng, accuracy };
-
-            if (!state.userMarker) {
-                const locationIcon = L.divIcon({
-                    className: '',
-                    html: '<div class="user-location-pin"></div>',
-                    iconSize: [22, 22],
-                    iconAnchor: [11, 11]
-                });
-                state.userMarker = L.marker([lat, lng], { icon: locationIcon, zIndexOffset: 1000 }).addTo(state.map);
-            } else {
-                state.userMarker.setLatLng([lat, lng]);
-            }
-
-            if (!state.userAccuracyCircle) {
-                state.userAccuracyCircle = L.circle([lat, lng], {
-                    radius: accuracy || 10,
-                    color: '#00E5FF',
-                    weight: 1,
-                    fillColor: '#00E5FF',
-                    fillOpacity: 0.15
-                }).addTo(state.map);
-            } else {
-                state.userAccuracyCircle.setLatLng([lat, lng]);
-                if (accuracy) state.userAccuracyCircle.setRadius(accuracy);
-            }
-        }
-
-        function startLocationTracker() {
-            if (navigator.geolocation) {
-                navigator.geolocation.watchPosition(
-                    (pos) => {
-                        updateUserLocationMarker(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
-                    },
-                    (err) => console.warn("Aviso do GPS: ", err),
-                    { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 }
-                );
-            }
-        }
-
-        function addPoint(lat, lng, saveUndo = true) {
-            if (saveUndo) {
-                state.undoStack.push([...state.points]);
-                state.redoStack = [];
-            }
-
-            const point = { lat, lng, timestamp: Date.now() };
-            state.points.push(point);
-            renderMapElements();
-            updateMetrics();
-            updateCoordsDisplay(lat, lng);
-            saveActiveProject();
-        }
-
-        function replacePoint(index, lat, lng) {
-            state.undoStack.push([...state.points]);
-            state.redoStack = [];
-
-            state.points[index] = { lat, lng, timestamp: Date.now() };
-            renderMapElements();
-            updateMetrics();
-            updateCoordsDisplay(lat, lng);
-            saveActiveProject();
-            showToast(`Marco #${index + 1} atualizado com sucesso!`);
-        }
-
-        function renderMapElements() {
-            state.markers.forEach(m => state.map.removeLayer(m));
-            state.markers = [];
-            state.segmentLabels.forEach(l => state.map.removeLayer(l));
-            state.segmentLabels = [];
-
-            const latlngs = state.points.map(p => [p.lat, p.lng]);
-
-            state.points.forEach((p, idx) => {
-                const customIcon = L.divIcon({
-                    className: '',
-                    html: `<div class="custom-marker" style="transform: rotate(${-state.rotationAngle}deg);">${idx + 1}</div>`,
-                    iconSize: [24, 24],
-                    iconAnchor: [12, 12]
-                });
-                const marker = L.marker([p.lat, p.lng], { icon: customIcon }).addTo(state.map);
-                
-                marker.on('click', (e) => {
-                    L.DomEvent.stopPropagation(e);
-                    openEditPointModal(idx);
-                });
-
-                state.markers.push(marker);
-            });
-
-            for (let i = 0; i < state.points.length - 1; i++) {
-                renderSegmentLabel(state.points[i], state.points[i + 1]);
-            }
-            if (state.points.length >= 3) {
-                renderSegmentLabel(state.points[state.points.length - 1], state.points[0]);
-            }
-
-            state.polyline.setLatLngs(latlngs);
-
-            if (latlngs.length >= 3) {
-                state.polygon.setLatLngs(latlngs);
-            } else {
-                state.polygon.setLatLngs([]);
-            }
-        }
-
-        function renderSegmentLabel(p1, p2) {
-            const dist = MathGeo.distance(p1.lat, p1.lng, p2.lat, p2.lng);
-            const midLat = (p1.lat + p2.lat) / 2;
-            const midLng = (p1.lng + p2.lng) / 2;
-
-            const text = state.unitDist === 'km' 
-                ? `${(dist / 1000).toFixed(3)} km` 
-                : `${dist.toFixed(1)} m`;
-
-            const labelIcon = L.divIcon({
-                className: 'segment-label-container',
-                html: `<div class="segment-badge" style="transform: rotate(${-state.rotationAngle}deg);">${text}</div>`,
-                iconSize: [80, 20],
-                iconAnchor: [40, 10]
-            });
-
-            const labelMarker = L.marker([midLat, midLng], { icon: labelIcon, interactive: false }).addTo(state.map);
-            state.segmentLabels.push(labelMarker);
-        }
-
-        function updateMetrics() {
-            let totalDist = 0;
-            for (let i = 0; i < state.points.length - 1; i++) {
-                totalDist += MathGeo.distance(
-                    state.points[i].lat, state.points[i].lng,
-                    state.points[i+1].lat, state.points[i+1].lng
-                );
-            }
-
-            if (state.points.length >= 3) {
-                totalDist += MathGeo.distance(
-                    state.points[state.points.length - 1].lat, state.points[state.points.length - 1].lng,
-                    state.points[0].lat, state.points[0].lng
-                );
-            }
-
-            const areaM2 = MathGeo.area(state.points);
-
-            const distDisplay = document.getElementById('display-distance');
-            if (state.unitDist === 'km') {
-                distDisplay.textContent = `${(totalDist / 1000).toFixed(3)} km`;
-            } else {
-                distDisplay.textContent = `${totalDist.toFixed(2)} m`;
-            }
-
-            const areaDisplay = document.getElementById('display-area');
-            if (state.unitArea === 'ha') {
-                areaDisplay.textContent = `${(areaM2 / 10000).toFixed(4)} ha`;
-            } else if (state.unitArea === 'alq') {
-                areaDisplay.textContent = `${(areaM2 / 24200).toFixed(4)} alq`;
-            } else {
-                areaDisplay.textContent = `${areaM2.toFixed(2)} m²`;
-            }
-        }
-
-        function updateCoordsDisplay(lat, lng) {
-            document.getElementById('coord-geo').textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-            document.getElementById('coord-dms').textContent = `${MathGeo.toDMS(lat, true)} ${MathGeo.toDMS(lng, false)}`;
-            document.getElementById('coord-utm').textContent = MathGeo.toUTM(lat, lng);
-            document.getElementById('coord-mgrs').textContent = MathGeo.toMGRS(lat, lng);
-            document.getElementById('coord-geohash').textContent = MathGeo.toGeohash(lat, lng);
-            document.getElementById('coord-pluscode').textContent = MathGeo.toPlusCode(lat, lng);
-        }
-
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            toast.textContent = msg;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        }
-
-        /* --- 6. GESTÃO DE PROJETOS --- */
-        async function saveActiveProject() {
-            const project = {
-                id: state.currentProjectId,
-                name: state.currentProjectName,
-                points: state.points,
-                unitDist: state.unitDist,
-                unitArea: state.unitArea,
-                updatedAt: Date.now()
-            };
-            await db.saveProject(project);
-        }
-
-        async function loadProject(id) {
-            const projects = await db.getAllProjects();
-            const proj = projects.find(p => p.id === id);
-            if (proj) {
-                state.currentProjectId = proj.id;
-                state.currentProjectName = proj.name;
-                state.points = proj.points || [];
-                state.unitDist = proj.unitDist || 'm';
-                state.unitArea = proj.unitArea || 'm2';
-                state.undoStack = [];
-                state.redoStack = [];
-
-                document.getElementById('unit-distance').value = state.unitDist;
-                document.getElementById('unit-area').value = state.unitArea;
-
-                renderMapElements();
-                updateMetrics();
-
-                if (state.points.length > 0) {
-                    const lastP = state.points[state.points.length - 1];
-                    state.map.setView([lastP.lat, lastP.lng], 17);
-                }
-
-                showToast(`Projeto "${proj.name}" carregado.`);
-                renderProjectsList();
-            }
-        }
-
-        async function renderProjectsList() {
-            const listEl = document.getElementById('projects-list');
+        /* ==========================================================================
+           12. GERENCIADOR DE PROJETOS, SALVAMENTO & IMPORTAÇÃO RESISTENTE A BACKUPS
+           ========================================================================== */
+        function renderProjectListUI() {
+            const listEl = document.getElementById('project-list');
             listEl.innerHTML = '';
-            const projects = await db.getAllProjects();
 
-            if (projects.length === 0) {
-                listEl.innerHTML = '<div style="font-size:0.8rem; color:var(--text-muted); text-align:center; padding:10px;">Nenhum projeto salvo.</div>';
-                return;
-            }
-
-            projects.forEach(p => {
+            state.projects.forEach(p => {
+                const isCurrent = p.id === state.currentProject.id;
                 const item = document.createElement('div');
-                item.className = `project-item ${p.id === state.currentProjectId ? 'active' : ''}`;
-                
-                const dateStr = new Date(p.updatedAt).toLocaleDateString('pt-BR');
-                const pointCount = p.points ? p.points.length : 0;
-
+                item.className = 'project-item';
                 item.innerHTML = `
-                    <div class="project-info">
-                        <span class="project-title">${p.name}</span>
-                        <span class="project-sub">${pointCount} marcos • ${dateStr}</span>
+                    <div style="display:flex; flex-direction:column;">
+                        <span style="font-size:13px; font-weight:600; color:${isCurrent ? 'var(--primary)' : '#FFF'};">${p.name}</span>
+                        <span style="font-size:11px; color:var(--text-muted);">${p.points.length} pontos • ${new Date(p.createdAt || Date.now()).toLocaleDateString('pt-BR')}</span>
                     </div>
-                    <div class="project-actions">
-                        ${p.id !== state.currentProjectId ? `<button class="btn-small-action load-btn">Abrir</button>` : `<span style="font-size:0.7rem; color:var(--accent-cyan); font-weight:700;">ATIVO</span>`}
-                        <button class="btn-small-action delete delete-btn">Excluir</button>
+                    <div style="display:flex; gap:6px;">
+                        <button class="btn-sec" style="padding:4px 8px; font-size:11px;" onclick="loadProject('${p.id}')">${isCurrent ? 'Ativo' : 'Abrir'}</button>
+                        ${state.projects.length > 1 ? `<button class="btn-sec" style="padding:4px 8px; font-size:11px; color:var(--danger);" onclick="deleteProject('${p.id}')">✕</button>` : ''}
                     </div>
                 `;
-
-                const loadBtn = item.querySelector('.load-btn');
-                if (loadBtn) {
-                    loadBtn.addEventListener('click', () => {
-                        loadProject(p.id);
-                        document.getElementById('modal-projects').classList.remove('active');
-                    });
-                }
-
-                item.querySelector('.delete-btn').addEventListener('click', async (e) => {
-                    e.stopPropagation();
-                    if (confirm(`Deseja excluir permanentemente o projeto "${p.name}"?`)) {
-                        await db.deleteProject(p.id);
-                        if (p.id === state.currentProjectId) {
-                            createNewProject("Novo Projeto");
-                        } else {
-                            renderProjectsList();
-                        }
-                    }
-                });
-
                 listEl.appendChild(item);
             });
         }
 
-        function createNewProject(name) {
-            const newId = 'proj_' + Date.now();
-            state.currentProjectId = newId;
-            state.currentProjectName = name;
-            state.points = [];
-            state.undoStack = [];
-            state.redoStack = [];
+        function updateUIProjectName() {
+            dom.currentProjectName.innerText = state.currentProject.name;
+            document.getElementById('project-name-input').value = state.currentProject.name;
+        }
 
+        function createNewProject() {
+            const newProj = {
+                id: 'proj_' + Date.now(),
+                name: 'Novo Projeto ' + (state.projects.length + 1),
+                points: [],
+                createdAt: new Date().toISOString()
+            };
+            state.projects.push(newProj);
+            state.currentProject = newProj;
+            saveCurrentProjectToDB();
+            updateUIProjectName();
+            renderProjectListUI();
             renderMapElements();
-            updateMetrics();
-            saveActiveProject();
-            showToast(`Novo projeto "${name}" iniciado!`);
+            closeModal('modal-projects');
+            showToast("Novo projeto iniciado!");
         }
 
-        /* --- 7. EDIÇÃO E SUBSTITUIÇÃO DE MARCOS --- */
+        function loadProject(id) {
+            const found = state.projects.find(p => p.id === id);
+            if (found) {
+                state.currentProject = found;
+                updateUIProjectName();
+                renderProjectListUI();
+                renderMapElements();
+                closeModal('modal-projects');
+                showToast(`Projeto "${found.name}" carregado`);
+                if (found.points.length > 0) {
+                    map.fitBounds(found.points.map(p => [p.lat, p.lng]), { padding: [50, 50] });
+                }
+            }
+        }
+
+        function deleteProject(id) {
+            if (confirm("Deseja apagar este projeto permanentemente?")) {
+                state.projects = state.projects.filter(p => p.id !== id);
+                if (state.db) {
+                    const tx = state.db.transaction('projects', 'readwrite');
+                    tx.objectStore('projects').delete(id);
+                }
+                if (state.currentProject.id === id) {
+                    state.currentProject = state.projects[0] || createNewProject();
+                }
+                updateUIProjectName();
+                renderProjectListUI();
+                renderMapElements();
+            }
+        }
+
+        // EXPORTAÇÃO DE BACKUP COMPLETO (JSON)
+        function exportBackup() {
+            const backupData = {
+                appName: "Glow Medidas",
+                version: "2.0",
+                exportedAt: new Date().toISOString(),
+                projects: state.projects
+            };
+            const jsonStr = JSON.stringify(backupData, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `GlowMedidas_Backup_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast("Backup exportado com sucesso!");
+        }
+
+        // IMPORTAÇÃO TOLERANTE A QUALQUER FORMATO DE BACKUP (INCLUINDO BACKUPS ANTIGOS "GLOBO MEDIDAS")
+        function handleImportFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const content = JSON.parse(e.target.result);
+                    let importedProjects = [];
+
+                    // 1. Caso o JSON seja um Backup completo { projects: [...] }
+                    if (content.projects && Array.isArray(content.projects)) {
+                        importedProjects = content.projects;
+                    } 
+                    // 2. Caso seja um Array direto de projetos [ {...}, {...} ]
+                    else if (Array.isArray(content)) {
+                        importedProjects = content;
+                    } 
+                    // 3. Caso seja um único projeto isolado { id, name, points }
+                    else if (content.points || content.name || content.latlngs) {
+                        importedProjects = [content];
+                    }
+                    // 4. Caso o objeto contenha outra chave envelopada (ex: Globo Medidas legado)
+                    else {
+                        for (let key in content) {
+                            if (Array.isArray(content[key])) {
+                                importedProjects = content[key];
+                                break;
+                            }
+                        }
+                    }
+
+                    if (importedProjects.length === 0) {
+                        throw new Error("Nenhum formato de projeto válido encontrado no arquivo.");
+                    }
+
+                    // Padronização e Limpeza dos Projetos Importados
+                    let countAdded = 0;
+                    importedProjects.forEach(rawProj => {
+                        const cleanPoints = [];
+                        const rawPts = rawProj.points || rawProj.latlngs || rawProj.coordenadas || [];
+
+                        rawPts.forEach(pt => {
+                            let lat = pt.lat ?? pt.latitude ?? pt[0];
+                            let lng = pt.lng ?? pt.longitude ?? pt.lon ?? pt[1];
+                            if (typeof lat === 'number' && typeof lng === 'number') {
+                                cleanPoints.push({ lat, lng });
+                            }
+                        });
+
+                        const validProject = {
+                            id: rawProj.id || ('proj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4)),
+                            name: rawProj.name || rawProj.nome || ('Projeto Importado ' + (state.projects.length + 1)),
+                            points: cleanPoints,
+                            createdAt: rawProj.createdAt || new Date().toISOString()
+                        };
+
+                        state.projects.push(validProject);
+                        if (state.db) {
+                            const tx = state.db.transaction('projects', 'readwrite');
+                            tx.objectStore('projects').put(validProject);
+                        }
+                        countAdded++;
+                    });
+
+                    // Define o último projeto importado como o projeto ativo
+                    state.currentProject = state.projects[state.projects.length - 1];
+                    updateUIProjectName();
+                    renderProjectListUI();
+                    renderMapElements();
+                    closeModal('modal-projects');
+
+                    if (state.currentProject.points.length > 0) {
+                        map.fitBounds(state.currentProject.points.map(p => [p.lat, p.lng]), { padding: [50, 50] });
+                    }
+
+                    showToast(`${countAdded} projeto(s) restaurado(s) com sucesso!`);
+                } catch (err) {
+                    alert("Erro ao ler o arquivo de backup: " + err.message);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // Limpa o seletor para permitir re-importar o mesmo arquivo se desejado
+        }
+
+        /* ==========================================================================
+           13. ENTRADA MANUAL DE COORDENADAS (GEO, DMS, UTM)
+           ========================================================================== */
+        let activeCoordTab = 'geo';
+
+        function switchCoordTab(tab) {
+            activeCoordTab = tab;
+            ['geo', 'dms', 'utm'].forEach(t => {
+                document.getElementById(`form-coord-${t}`).style.display = (t === tab) ? 'block' : 'none';
+                document.getElementById(`tab-btn-${t}`).classList.toggle('active', t === tab);
+            });
+        }
+
         function openEditPointModal(index) {
-            state.selectedPointIndexForEdit = index;
-            document.getElementById('edit-point-title').textContent = `Substituir Marco #${index + 1}`;
-            document.getElementById('modal-edit-point').classList.add('active');
-            updateCoordsDisplay(state.points[index].lat, state.points[index].lng);
+            state.editingPointIndex = index;
+            const pt = state.currentProject.points[index];
+            document.getElementById('manual-modal-title').innerText = `Substituir Ponto P${index + 1}`;
+            document.getElementById('input-lat-geo').value = pt.lat;
+            document.getElementById('input-lng-geo').value = pt.lng;
+            openModal('modal-manual-coord');
         }
 
-        /* --- 8. FILTRO GPS DE PRECISÃO MÁXIMA --- */
-        let stabilizerInterval = null;
-        let stabilizerSamples = [];
+        function submitManualCoordinate() {
+            let lat = null, lng = null;
 
-        function startCanopyStabilizer(isReplacement = false) {
-            if (!navigator.geolocation) {
-                showToast("GPS indisponível no dispositivo.");
+            if (activeCoordTab === 'geo') {
+                lat = parseFloat(document.getElementById('input-lat-geo').value);
+                lng = parseFloat(document.getElementById('input-lng-geo').value);
+            } else if (activeCoordTab === 'dms') {
+                const latD = parseFloat(document.getElementById('dms-lat-d').value) || 0;
+                const latM = parseFloat(document.getElementById('dms-lat-m').value) || 0;
+                const latS = parseFloat(document.getElementById('dms-lat-s').value) || 0;
+                const latCard = document.getElementById('dms-lat-card').value;
+
+                const lngD = parseFloat(document.getElementById('dms-lng-d').value) || 0;
+                const lngM = parseFloat(document.getElementById('dms-lng-m').value) || 0;
+                const lngS = parseFloat(document.getElementById('dms-lng-s').value) || 0;
+                const lngCard = document.getElementById('dms-lng-card').value;
+
+                lat = latD + (latM / 60) + (latS / 3600);
+                if (latCard === 'S') lat = -lat;
+
+                lng = lngD + (lngM / 60) + (lngS / 3600);
+                if (lngCard === 'W') lng = -lng;
+            } else if (activeCoordTab === 'utm') {
+                const zone = parseInt(document.getElementById('utm-zone').value);
+                const hemi = document.getElementById('utm-hemi').value;
+                const easting = parseFloat(document.getElementById('utm-easting').value);
+                const northing = parseFloat(document.getElementById('utm-northing').value);
+
+                if (zone && easting && northing) {
+                    const geo = convertUTMToGeo(zone, hemi, easting, northing);
+                    lat = geo.lat;
+                    lng = geo.lng;
+                }
+            }
+
+            if (isNaN(lat) || isNaN(lng) || lat === null || lng === null) {
+                showToast("Por favor, preencha as coordenadas corretamente.");
                 return;
             }
 
-            const modal = document.getElementById('modal-stabilizer');
-            const countdownEl = document.getElementById('stabilizer-countdown');
-            const progressCircle = document.getElementById('stabilizer-progress');
-            const samplesEl = document.getElementById('stat-samples');
-            const accuracyEl = document.getElementById('stat-accuracy');
-
-            stabilizerSamples = [];
-            let timeLeft = 15;
-            countdownEl.textContent = timeLeft;
-            samplesEl.textContent = '0';
-            accuracyEl.textContent = '± 0.0 m';
-            progressCircle.style.strokeDashoffset = '440';
-
-            modal.classList.add('active');
-
-            const watchId = navigator.geolocation.watchPosition(
-                (pos) => {
-                    if (pos.coords.accuracy) {
-                        stabilizerSamples.push({
-                            lat: pos.coords.latitude,
-                            lng: pos.coords.longitude,
-                            accuracy: pos.coords.accuracy
-                        });
-                        samplesEl.textContent = stabilizerSamples.length;
-                        const currentBest = Math.min(...stabilizerSamples.map(s => s.accuracy));
-                        accuracyEl.textContent = `± ${currentBest.toFixed(1)} m`;
-                    }
-                },
-                (err) => console.warn(err),
-                { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 }
-            );
-
-            stabilizerInterval = setInterval(() => {
-                timeLeft--;
-                countdownEl.textContent = timeLeft;
-                const offset = 440 - ((15 - timeLeft) / 15) * 440;
-                progressCircle.style.strokeDashoffset = offset;
-
-                if (timeLeft <= 0) {
-                    clearInterval(stabilizerInterval);
-                    navigator.geolocation.clearWatch(watchId);
-                    modal.classList.remove('active');
-
-                    if (stabilizerSamples.length > 0) {
-                        stabilizerSamples.sort((a, b) => a.accuracy - b.accuracy);
-                        const validCount = Math.max(1, Math.floor(stabilizerSamples.length * 0.8));
-                        const filteredSamples = stabilizerSamples.slice(0, validCount);
-
-                        let totalWeight = 0;
-                        let weightedLat = 0;
-                        let weightedLng = 0;
-
-                        filteredSamples.forEach(s => {
-                            const weight = 1 / Math.pow(s.accuracy, 2);
-                            totalWeight += weight;
-                            weightedLat += s.lat * weight;
-                            weightedLng += s.lng * weight;
-                        });
-
-                        const finalLat = weightedLat / totalWeight;
-                        const finalLng = weightedLng / totalWeight;
-
-                        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-
-                        if (isReplacement && state.selectedPointIndexForEdit !== null) {
-                            replacePoint(state.selectedPointIndexForEdit, finalLat, finalLng);
-                            state.selectedPointIndexForEdit = null;
-                        } else {
-                            addPoint(finalLat, finalLng);
-                            showToast(`Ponto de Alta Precisão Adicionado!`);
-                        }
-                        state.map.flyTo([finalLat, finalLng], 19);
-                    } else {
-                        showToast("Sinal de GPS fraco. Tente em área mais aberta.");
-                    }
-                }
-            }, 1000);
-
-            document.getElementById('btn-cancel-stabilizer').onclick = () => {
-                clearInterval(stabilizerInterval);
-                navigator.geolocation.clearWatch(watchId);
-                modal.classList.remove('active');
-                showToast("Captura cancelada.");
-            };
-        }
-
-        /* --- 9. INICIALIZAÇÃO & EVENTOS DA INTERFACE --- */
-        document.addEventListener('DOMContentLoaded', async () => {
-            await db.init();
-            initMap();
-
-            const projects = await db.getAllProjects();
-            if (projects.length > 0) {
-                await loadProject(projects[0].id);
+            if (state.editingPointIndex !== null) {
+                replacePoint(state.editingPointIndex, lat, lng);
+                state.editingPointIndex = null;
+                showToast("Ponto substituído!");
             } else {
-                createNewProject("Medição Principal");
+                addPoint(lat, lng);
+                showToast("Coordenada adicionada!");
             }
 
-            // Controle de Zoom pelos botões laterais
-            document.getElementById('btn-zoom-in').addEventListener('click', () => state.map.zoomIn());
-            document.getElementById('btn-zoom-out').addEventListener('click', () => state.map.zoomOut());
+            closeModal('modal-manual-coord');
+            map.flyTo([lat, lng], 17);
+        }
 
-            // Reset de rotação para o Norte 0°
-            document.getElementById('btn-reset-north').addEventListener('click', () => {
-                setMapRotation(0);
-                showToast("Mapa alinhado para o Norte (0°)");
+        /* ==========================================================================
+           14. AUXILIARES DE UI, MODAIS & UTILITÁRIOS
+           ========================================================================== */
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        function showToast(msg) {
+            dom.toast.innerText = msg;
+            dom.toast.classList.add('show');
+            setTimeout(() => dom.toast.classList.remove('show'), 3000);
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast("Copiado para a área de transferência!");
+            }).catch(() => {
+                showToast("Erro ao copiar.");
+            });
+        }
+
+        /* ==========================================================================
+           15. BINDING DE EVENTOS & ARRANQUE DA APLICAÇÃO
+           ========================================================================== */
+        window.addEventListener('DOMContentLoaded', async () => {
+            initPWA();
+            initMap();
+            await initDB();
+            renderMapElements();
+
+            // Event Listeners dos Botões Topo
+            document.getElementById('btn-projects').addEventListener('click', () => { renderProjectListUI(); openModal('modal-projects'); });
+            document.getElementById('btn-layers').addEventListener('click', () => openModal('modal-layers'));
+            document.getElementById('btn-manual-add').addEventListener('click', () => { state.editingPointIndex = null; openModal('modal-manual-coord'); });
+
+            // Recentralizar GPS e Reset Bússola
+            document.getElementById('btn-recenter-gps').addEventListener('click', recenterToUserLocation);
+            document.getElementById('btn-reset-rotation').addEventListener('click', resetRotation);
+
+            // Barra Flutuante
+            document.getElementById('btn-undo').addEventListener('click', undoLastPoint);
+            dom.btnAddGps.addEventListener('click', captureStabilizedGPS);
+            document.getElementById('btn-clear').addEventListener('click', clearAllPoints);
+            document.getElementById('btn-open-details').addEventListener('click', () => {
+                if (state.currentProject.points.length > 0) selectPoint(0);
+                else showToast("Adicione ao menos um ponto no mapa");
             });
 
-            // Centralizar na localização exata do usuário
-            document.getElementById('btn-locate').addEventListener('click', () => {
-                showToast("Buscando sua localização exata...");
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        const lat = pos.coords.latitude;
-                        const lng = pos.coords.longitude;
-                        const acc = pos.coords.accuracy;
-                        updateUserLocationMarker(lat, lng, acc);
-                        state.map.flyTo([lat, lng], 18, { animate: true, duration: 1.2 });
-                        updateCoordsDisplay(lat, lng);
-                        showToast(`Localização encontrada (Precisão: ±${acc.toFixed(1)}m)`);
-                    },
-                    (err) => {
-                        showToast("Não foi possível obter sinal do GPS. Ative a localização.");
-                    },
-                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                );
-            });
-
-            // Botão Principal (+ Captura GPS Mata)
-            document.getElementById('btn-add-point').addEventListener('click', () => startCanopyStabilizer(false));
-
-            // Modais de Gestão de Projetos
-            const projectsModal = document.getElementById('modal-projects');
-            document.getElementById('btn-projects').addEventListener('click', () => {
-                renderProjectsList();
-                projectsModal.classList.add('active');
-            });
-            document.getElementById('btn-close-projects').addEventListener('click', () => {
-                projectsModal.classList.remove('active');
-            });
-
-            document.getElementById('btn-new-project').addEventListener('click', () => {
-                const name = prompt("Digite o nome do novo projeto:", `Projeto ${new Date().toLocaleDateString('pt-BR')}`);
-                if (name && name.trim() !== '') {
-                    createNewProject(name.trim());
-                    projectsModal.classList.remove('active');
+            // Modal Projetos
+            document.getElementById('btn-save-project-name').addEventListener('click', () => {
+                const name = document.getElementById('project-name-input').value.trim();
+                if (name) {
+                    state.currentProject.name = name;
+                    saveCurrentProjectToDB();
+                    updateUIProjectName();
+                    renderProjectListUI();
+                    showToast("Nome do projeto salvo");
                 }
             });
+            document.getElementById('btn-new-project').addEventListener('click', createNewProject);
+            document.getElementById('btn-export-backup').addEventListener('click', exportBackup);
+            
+            // Disparar Seleção de Arquivo de Backup
+            document.getElementById('btn-trigger-import').addEventListener('click', () => dom.importFileInput.click());
+            dom.importFileInput.addEventListener('change', handleImportFile);
 
-            // Modais de Edição de Pontos
-            const editModal = document.getElementById('modal-edit-point');
-            document.getElementById('btn-close-edit-point').addEventListener('click', () => {
-                editModal.classList.remove('active');
-                state.selectedPointIndexForEdit = null;
-            });
+            // Modal Entrada Manual
+            document.getElementById('btn-submit-manual-coord').addEventListener('click', submitManualCoordinate);
 
-            document.getElementById('btn-replace-gps').addEventListener('click', () => {
-                editModal.classList.remove('active');
-                startCanopyStabilizer(true);
-            });
-
-            const manualModal = document.getElementById('modal-manual-coords');
-            document.getElementById('btn-replace-manual').addEventListener('click', () => {
-                editModal.classList.remove('active');
-                document.getElementById('manual-coords-title').textContent = `Substituir Marco #${state.selectedPointIndexForEdit + 1}`;
-                manualModal.classList.add('active');
-            });
-
-            document.getElementById('btn-delete-single-point').addEventListener('click', () => {
-                if (state.selectedPointIndexForEdit !== null) {
-                    state.undoStack.push([...state.points]);
-                    state.redoStack = [];
-                    state.points.splice(state.selectedPointIndexForEdit, 1);
-                    renderMapElements();
-                    updateMetrics();
-                    saveActiveProject();
-                    editModal.classList.remove('active');
-                    showToast("Marco removido.");
-                    state.selectedPointIndexForEdit = null;
-                }
-            });
-
-            // Entrada Manual de Coordenadas
-            document.getElementById('btn-manual-coords').addEventListener('click', () => {
-                state.selectedPointIndexForEdit = null;
-                document.getElementById('manual-coords-title').textContent = "Inserir Coordenada Manual";
-                manualModal.classList.add('active');
-            });
-            document.getElementById('btn-close-manual-coords').addEventListener('click', () => {
-                manualModal.classList.remove('active');
-            });
-
-            // Alternador de Abas de Formatos de Coordenada
-            let currentTab = 'tab-geo';
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    currentTab = btn.getAttribute('data-tab');
-                    document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
-                    document.getElementById(currentTab).style.display = 'block';
-                });
-            });
-
-            // Submeter Coordenada Manual
-            document.getElementById('btn-submit-manual-coord').addEventListener('click', () => {
-                let lat = null, lng = null;
-
-                if (currentTab === 'tab-geo') {
-                    lat = parseFloat(document.getElementById('input-lat').value);
-                    lng = parseFloat(document.getElementById('input-lng').value);
-                } else if (currentTab === 'tab-dms') {
-                    const dmsLatStr = document.getElementById('input-dms-lat').value;
-                    const dmsLngStr = document.getElementById('input-dms-lng').value;
-                    lat = MathGeo.parseDMS(dmsLatStr);
-                    lng = MathGeo.parseDMS(dmsLngStr);
-                } else if (currentTab === 'tab-utm') {
-                    const zone = parseInt(document.getElementById('input-utm-zone').value);
-                    const hemi = document.getElementById('input-utm-hemisphere').value;
-                    const easting = parseFloat(document.getElementById('input-utm-easting').value);
-                    const northing = parseFloat(document.getElementById('input-utm-northing').value);
-
-                    if (zone && hemi && easting && northing) {
-                        const res = MathGeo.utmToLatLng(zone, hemi, easting, northing);
-                        lat = res.lat;
-                        lng = res.lng;
-                    }
-                }
-
-                if (lat !== null && lng !== null && !isNaN(lat) && !isNaN(lng)) {
-                    if (state.selectedPointIndexForEdit !== null) {
-                        replacePoint(state.selectedPointIndexForEdit, lat, lng);
-                        state.selectedPointIndexForEdit = null;
-                    } else {
-                        addPoint(lat, lng);
-                        showToast("Coordenada adicionada manualmente com sucesso!");
-                    }
-                    state.map.flyTo([lat, lng], 18);
-                    manualModal.classList.remove('active');
-                } else {
-                    showToast("Formato de coordenada inválido. Verifique os valores.");
-                }
-            });
-
-            // Desfazer / Refazer
-            document.getElementById('btn-undo').addEventListener('click', () => {
-                if (state.points.length === 0) return;
-                state.redoStack.push([...state.points]);
-                state.points.pop();
-                renderMapElements();
-                updateMetrics();
-                saveActiveProject();
-            });
-
-            document.getElementById('btn-redo').addEventListener('click', () => {
-                if (state.redoStack.length === 0) return;
-                state.undoStack.push([...state.points]);
-                state.points = state.redoStack.pop();
-                renderMapElements();
-                updateMetrics();
-                saveActiveProject();
-            });
-
-            // Limpar Todos os Pontos
-            document.getElementById('btn-clear').addEventListener('click', () => {
-                if (state.points.length === 0) return;
-                if (confirm("Deseja apagar todos os pontos da medição atual?")) {
-                    state.undoStack.push([...state.points]);
-                    state.points = [];
-                    renderMapElements();
-                    updateMetrics();
-                    saveActiveProject();
-                    showToast("Todos os marcos foram limpos.");
-                }
-            });
-
-            // Alternar Camadas de Mapa
-            document.getElementById('btn-layer').addEventListener('click', () => {
-                if (state.activeLayer === 'satellite') {
-                    state.map.removeLayer(state.layers.satellite);
-                    state.layers.hybrid.addTo(state.map);
-                    state.activeLayer = 'hybrid';
-                    showToast("Camada: Híbrido");
-                } else if (state.activeLayer === 'hybrid') {
-                    state.map.removeLayer(state.layers.hybrid);
-                    state.layers.streets.addTo(state.map);
-                    state.activeLayer = 'streets';
-                    showToast("Camada: Ruas");
-                } else {
-                    state.map.removeLayer(state.layers.streets);
-                    state.layers.satellite.addTo(state.map);
-                    state.activeLayer = 'satellite';
-                    showToast("Camada: Satélite");
-                }
-            });
-
-            // Modo Trilha Contínua
-            const trailBtn = document.getElementById('btn-trail');
-            trailBtn.addEventListener('click', () => {
-                state.isTrailMode = !state.isTrailMode;
-                if (state.isTrailMode) {
-                    trailBtn.classList.add('active');
-                    showToast("Modo Trilha ATIVADO.");
-                    state.trailWatchId = navigator.geolocation.watchPosition(
-                        pos => addPoint(pos.coords.latitude, pos.coords.longitude),
-                        err => console.warn(err),
-                        { enableHighAccuracy: true, distanceFilter: 3 }
-                    );
-                } else {
-                    trailBtn.classList.remove('active');
-                    if (state.trailWatchId) navigator.geolocation.clearWatch(state.trailWatchId);
-                    showToast("Modo Trilha DESATIVADO.");
-                }
-            });
-
-            // Tema Claro/Escuro
-            document.getElementById('btn-theme').addEventListener('click', () => {
-                document.body.classList.toggle('light-theme');
-            });
-
-            // Seletores de Unidade
-            document.getElementById('unit-distance').addEventListener('change', (e) => {
-                state.unitDist = e.target.value;
-                renderMapElements();
-                updateMetrics();
-                saveActiveProject();
-            });
-
-            document.getElementById('unit-area').addEventListener('change', (e) => {
-                state.unitArea = e.target.value;
-                updateMetrics();
-                saveActiveProject();
-            });
-
-            // Painel Inferior de Coordenadas
-            const coordsSheet = document.getElementById('coords-panel');
-            document.getElementById('btn-coords-toggle').addEventListener('click', () => {
-                coordsSheet.classList.toggle('open');
-            });
-            document.getElementById('btn-close-coords').addEventListener('click', () => {
-                coordsSheet.classList.remove('open');
-            });
-
-            // Modal de Configurações
-            const settingsModal = document.getElementById('modal-settings');
-            document.getElementById('btn-settings').addEventListener('click', () => {
-                settingsModal.classList.add('active');
-            });
-            document.getElementById('btn-close-settings').addEventListener('click', () => {
-                settingsModal.classList.remove('active');
-            });
-
-            // Copiar Coordenadas
-            document.querySelectorAll('.btn-copy').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const targetId = btn.getAttribute('data-target');
-                    const text = document.getElementById(targetId).textContent;
-                    navigator.clipboard.writeText(text).then(() => {
-                        showToast("Copiado para a área de transferência!");
-                    });
-                });
-            });
-
-            // Backup JSON (Exportar e Importar)
-            document.getElementById('btn-export-json').addEventListener('click', async () => {
-                const projects = await db.getAllProjects();
-                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projects, null, 2));
-                const downloadAnchor = document.createElement('a');
-                downloadAnchor.setAttribute("href", dataStr);
-                downloadAnchor.setAttribute("download", `GlowMedidas_Backup_${new Date().toISOString().slice(0,10)}.json`);
-                document.body.appendChild(downloadAnchor);
-                downloadAnchor.click();
-                downloadAnchor.remove();
-                showToast("Backup JSON exportado com sucesso.");
-            });
-
-            document.getElementById('btn-import-trigger').addEventListener('click', () => {
-                document.getElementById('file-import').click();
-            });
-
-            document.getElementById('file-import').addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = async (event) => {
-                    try {
-                        const importedData = JSON.parse(event.target.result);
-                        if (Array.isArray(importedData)) {
-                            for (const proj of importedData) {
-                                if (proj.id && proj.name) {
-                                    await db.saveProject(proj);
-                                }
-                            }
-                            await loadProject(importedData[0].id);
-                            settingsModal.classList.remove('active');
-                            showToast("Projetos importados com sucesso!");
-                        }
-                    } catch (err) {
-                        showToast("Arquivo JSON inválido.");
-                    }
-                };
-                reader.readAsText(file);
+            // Painel Deslizante
+            document.getElementById('btn-close-sheet').addEventListener('click', closeBottomSheet);
+            document.getElementById('sheet-header').addEventListener('click', (e) => {
+                if (e.target.tagName !== 'BUTTON') dom.bottomSheet.classList.toggle('open');
             });
         });
     </script>
 </body>
-</html>
+</html>     
