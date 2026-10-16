@@ -93,6 +93,7 @@
             width: 100vw;
             height: 100vh;
             z-index: 1;
+            touch-action: none;
         }
 
         /* Fullscreen Layout Overlays */
@@ -286,6 +287,34 @@
 
         .btn-secondary-action:active {
             transform: scale(0.92);
+        }
+
+        /* User Exact Location Pulsing Pin */
+        .user-location-pin {
+            position: relative;
+            width: 22px;
+            height: 22px;
+            background: #00E5FF;
+            border: 3px solid #FFFFFF;
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.9);
+        }
+
+        .user-location-pin::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            right: -8px;
+            bottom: -8px;
+            border-radius: 50%;
+            border: 2px solid #00E5FF;
+            animation: pulse-ring 1.8s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.5); opacity: 1; }
+            80%, 100% { transform: scale(2.2); opacity: 0; }
         }
 
         /* Modal Overlay System */
@@ -625,7 +654,6 @@
             transition: transform 0.1s linear;
         }
 
-        /* Segment Metrage Labels on Lines */
         .segment-label-container {
             background: transparent;
             border: none;
@@ -783,7 +811,7 @@
         </div>
     </header>
 
-    <!-- Left Side Controls (Zoom & Rotation) -->
+    <!-- Left Side Controls (Zoom & Compass North Reset) -->
     <div class="left-controls-column">
         <button id="btn-zoom-in" class="fab-btn" title="Aumentar Zoom (+)">
             <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -791,14 +819,8 @@
         <button id="btn-zoom-out" class="fab-btn" title="Diminuir Zoom (-)">
             <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
         </button>
-        <button id="btn-rotate-ccw" class="fab-btn" title="Girar 15° Anti-Horário">
-            <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
-        </button>
-        <button id="btn-rotate-cw" class="fab-btn" title="Girar 15° Horário">
-            <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path></svg>
-        </button>
-        <button id="btn-reset-north" class="fab-btn" title="Resetar para o Norte (0°)">
-            <svg id="compass-arrow" viewBox="0 0 24 24" style="transition: transform 0.2s;"><polygon points="12 2 19 21 12 17 5 21 12 2" fill="var(--accent-cyan)"></polygon></svg>
+        <button id="btn-reset-north" class="fab-btn" title="Alinhar Norte (0°)">
+            <svg id="compass-arrow" viewBox="0 0 24 24" style="transition: transform 0.1s linear;"><polygon points="12 2 19 21 12 17 5 21 12 2" fill="var(--accent-cyan)"></polygon></svg>
         </button>
     </div>
 
@@ -807,7 +829,7 @@
         <button id="btn-projects" class="fab-btn" title="Meus Projetos">
             <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
         </button>
-        <button id="btn-locate" class="fab-btn" title="Minha Localização">
+        <button id="btn-locate" class="fab-btn" title="Minha Localização Exata">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3m0 14v3M2 12h3m14 0h3"></path></svg>
         </button>
         <button id="btn-layer" class="fab-btn" title="Alternar Mapa">
@@ -907,9 +929,7 @@
                 Projetos Salvos
             </div>
 
-            <div id="projects-list">
-                <!-- Projects rendered dynamically -->
-            </div>
+            <div id="projects-list"></div>
         </div>
     </div>
 
@@ -1036,7 +1056,7 @@
             </div>
 
             <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: 10px;">
-                Glow Medidas v1.2 • Topografia Rural Geodésica
+                Glow Medidas v1.3 • Topografia Rural Geodésica
             </div>
         </div>
     </div>
@@ -1110,7 +1130,7 @@
         /* --- 1. SERVICE WORKER REGISTER --- */
         if ('serviceWorker' in navigator) {
             const swCode = `
-                const CACHE_NAME = 'glow-medidas-v3';
+                const CACHE_NAME = 'glow-medidas-v4';
                 const ASSETS = [
                     './',
                     'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
@@ -1361,6 +1381,8 @@
             isTrailMode: false,
             trailWatchId: null,
             userLocation: null,
+            userMarker: null,
+            userAccuracyCircle: null,
             map: null,
             layers: {},
             activeLayer: 'satellite',
@@ -1401,19 +1423,47 @@
                 addPoint(e.latlng.lat, e.latlng.lng);
             });
 
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        const lat = pos.coords.latitude;
-                        const lng = pos.coords.longitude;
-                        state.userLocation = { lat, lng };
-                        state.map.setView([lat, lng], 17);
-                        updateCoordsDisplay(lat, lng);
-                    },
-                    (err) => console.warn("GPS Initial Position Warning: ", err),
-                    { enableHighAccuracy: true }
-                );
+            // Init 2-Finger Touch Rotation Engine
+            initTouchRotation();
+
+            // Start Live Location Tracker Pin
+            startLocationTracker();
+        }
+
+        /* --- 2-FINGER TOUCH ROTATION ENGINE (TWIST PINCH ROTATE 360°) --- */
+        function initTouchRotation() {
+            const mapEl = document.getElementById('map');
+            let initialTouchAngle = 0;
+            let initialMapAngle = 0;
+            let isRotating = false;
+
+            function getTouchAngle(touches) {
+                const dx = touches[1].clientX - touches[0].clientX;
+                const dy = touches[1].clientY - touches[0].clientY;
+                return Math.atan2(dy, dx) * (180 / Math.PI);
             }
+
+            mapEl.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    isRotating = true;
+                    initialTouchAngle = getTouchAngle(e.touches);
+                    initialMapAngle = state.rotationAngle;
+                }
+            }, { passive: true });
+
+            mapEl.addEventListener('touchmove', (e) => {
+                if (isRotating && e.touches.length === 2) {
+                    const currentAngle = getTouchAngle(e.touches);
+                    const deltaAngle = currentAngle - initialTouchAngle;
+                    setMapRotation(initialMapAngle + deltaAngle);
+                }
+            }, { passive: true });
+
+            mapEl.addEventListener('touchend', (e) => {
+                if (e.touches.length < 2) {
+                    isRotating = false;
+                }
+            });
         }
 
         function setMapRotation(deg) {
@@ -1423,11 +1473,53 @@
                 mapPane.style.transform = `rotate(${state.rotationAngle}deg)`;
                 mapPane.style.transformOrigin = 'center center';
             }
-            // Counter-rotate markers and labels so they remain upright
+            // Keep markers & text labels upright
             document.querySelectorAll('.custom-marker, .segment-badge').forEach(el => {
                 el.style.transform = `rotate(${-state.rotationAngle}deg)`;
             });
             document.getElementById('compass-arrow').style.transform = `rotate(${state.rotationAngle}deg)`;
+        }
+
+        /* --- LIVE EXACT GPS LOCATION MARKER (PULSING PIN) --- */
+        function updateUserLocationMarker(lat, lng, accuracy) {
+            state.userLocation = { lat, lng, accuracy };
+
+            if (!state.userMarker) {
+                const locationIcon = L.divIcon({
+                    className: '',
+                    html: '<div class="user-location-pin"></div>',
+                    iconSize: [22, 22],
+                    iconAnchor: [11, 11]
+                });
+                state.userMarker = L.marker([lat, lng], { icon: locationIcon, zIndexOffset: 1000 }).addTo(state.map);
+            } else {
+                state.userMarker.setLatLng([lat, lng]);
+            }
+
+            if (!state.userAccuracyCircle) {
+                state.userAccuracyCircle = L.circle([lat, lng], {
+                    radius: accuracy || 10,
+                    color: '#00E5FF',
+                    weight: 1,
+                    fillColor: '#00E5FF',
+                    fillOpacity: 0.15
+                }).addTo(state.map);
+            } else {
+                state.userAccuracyCircle.setLatLng([lat, lng]);
+                if (accuracy) state.userAccuracyCircle.setRadius(accuracy);
+            }
+        }
+
+        function startLocationTracker() {
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition(
+                    (pos) => {
+                        updateUserLocationMarker(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
+                    },
+                    (err) => console.warn("GPS Tracker Warning: ", err),
+                    { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 }
+                );
+            }
         }
 
         function addPoint(lat, lng, saveUndo = true) {
@@ -1457,7 +1549,6 @@
         }
 
         function renderMapElements() {
-            // Remove existing markers & segment labels
             state.markers.forEach(m => state.map.removeLayer(m));
             state.markers = [];
             state.segmentLabels.forEach(l => state.map.removeLayer(l));
@@ -1465,7 +1556,6 @@
 
             const latlngs = state.points.map(p => [p.lat, p.lng]);
 
-            // Render Vertex Markers
             state.points.forEach((p, idx) => {
                 const customIcon = L.divIcon({
                     className: '',
@@ -1475,7 +1565,6 @@
                 });
                 const marker = L.marker([p.lat, p.lng], { icon: customIcon }).addTo(state.map);
                 
-                // Clicking marker opens replace/edit modal
                 marker.on('click', (e) => {
                     L.DomEvent.stopPropagation(e);
                     openEditPointModal(idx);
@@ -1484,11 +1573,9 @@
                 state.markers.push(marker);
             });
 
-            // Render Segment Metrage Labels on Lines
             for (let i = 0; i < state.points.length - 1; i++) {
                 renderSegmentLabel(state.points[i], state.points[i + 1]);
             }
-            // Closed polygon segment label
             if (state.points.length >= 3) {
                 renderSegmentLabel(state.points[state.points.length - 1], state.points[0]);
             }
@@ -1789,7 +1876,6 @@
             await db.init();
             initMap();
 
-            // Load existing projects or create initial project
             const projects = await db.getAllProjects();
             if (projects.length > 0) {
                 await loadProject(projects[0].id);
@@ -1801,10 +1887,31 @@
             document.getElementById('btn-zoom-in').addEventListener('click', () => state.map.zoomIn());
             document.getElementById('btn-zoom-out').addEventListener('click', () => state.map.zoomOut());
 
-            // 360 Rotation Controls
-            document.getElementById('btn-rotate-ccw').addEventListener('click', () => setMapRotation(state.rotationAngle - 15));
-            document.getElementById('btn-rotate-cw').addEventListener('click', () => setMapRotation(state.rotationAngle + 15));
-            document.getElementById('btn-reset-north').addEventListener('click', () => setMapRotation(0));
+            // Compass Reset to North 0°
+            document.getElementById('btn-reset-north').addEventListener('click', () => {
+                setMapRotation(0);
+                showToast("Mapa alinhado para o Norte (0°)");
+            });
+
+            // Instant Recenter on User Location Pin (`btn-locate`)
+            document.getElementById('btn-locate').addEventListener('click', () => {
+                showToast("Buscando sua localização exata...");
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        const lat = pos.coords.latitude;
+                        const lng = pos.coords.longitude;
+                        const acc = pos.coords.accuracy;
+                        updateUserLocationMarker(lat, lng, acc);
+                        state.map.flyTo([lat, lng], 18, { animate: true, duration: 1.2 });
+                        updateCoordsDisplay(lat, lng);
+                        showToast(`Localização encontrada (Precisão: ±${acc.toFixed(1)}m)`);
+                    },
+                    (err) => {
+                        showToast("Não foi possível obter sinal do GPS. Ative a localização.");
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            });
 
             // Main Action Button (GPS)
             document.getElementById('btn-add-point').addEventListener('click', () => startCanopyStabilizer(false));
@@ -1882,7 +1989,7 @@
                 });
             });
 
-            // Submit Manual Coordinates Button (Adds or Replaces)
+            // Submit Manual Coordinates Button
             document.getElementById('btn-submit-manual-coord').addEventListener('click', () => {
                 let lat = null, lng = null;
 
@@ -1952,16 +2059,6 @@
                     saveActiveProject();
                     showToast("Todos os marcos foram limpos.");
                 }
-            });
-
-            // Geolocation FAB
-            document.getElementById('btn-locate').addEventListener('click', () => {
-                navigator.geolocation.getCurrentPosition(pos => {
-                    const lat = pos.coords.latitude;
-                    const lng = pos.coords.longitude;
-                    state.map.flyTo([lat, lng], 18);
-                    updateCoordsDisplay(lat, lng);
-                }, () => showToast("Erro ao obter localização."));
             });
 
             // Map Layer Toggle FAB
