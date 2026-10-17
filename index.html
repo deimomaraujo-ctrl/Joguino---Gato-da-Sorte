@@ -8,16 +8,16 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Glow Medidas Pro - Topografia & Precisão Rural</title>
-  
+
   <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  
+
   <!-- Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-  
+
   <style>
     :root {
       --bg-dark: #0F172A;
@@ -73,7 +73,6 @@
       background-color: #0F172A !important;
     }
 
-    /* Otimização da Aceleração de Hardware para Rotação Touch 360° */
     .leaflet-map-pane {
       will-change: transform;
       transition: transform 0.05s linear;
@@ -178,20 +177,9 @@
       border-radius: 50%;
       background: #94A3B8;
     }
-
-    .gps-dot.good {
-      background: var(--accent-green);
-      box-shadow: 0 0 8px var(--accent-green);
-    }
-
-    .gps-dot.warn {
-      background: var(--accent-amber);
-      box-shadow: 0 0 8px var(--accent-amber);
-    }
-
-    .gps-dot.poor {
-      background: var(--accent-danger);
-    }
+    .gps-dot.good { background: var(--accent-green); box-shadow: 0 0 8px var(--accent-green); }
+    .gps-dot.warn { background: var(--accent-amber); box-shadow: 0 0 8px var(--accent-amber); }
+    .gps-dot.poor { background: var(--accent-danger); }
 
     /* Controls Columns */
     .fab-column {
@@ -317,7 +305,7 @@
       transform: scale(0.92);
     }
 
-    /* User Location Pin */
+    /* User Location Pin ("Facada" / Agulha de Precisão) */
     .user-location-wrapper {
       position: relative;
       width: 36px;
@@ -349,6 +337,93 @@
     @keyframes pulse-ring {
       0% { transform: scale(0.5); opacity: 1; }
       80%, 100% { transform: scale(2.2); opacity: 0; }
+    }
+
+    /* Painel de Projetos Salvos na Tela Principal (Requisitos C e D) */
+    .saved-projects-panel {
+      position: absolute;
+      top: 125px;
+      left: 64px;
+      z-index: 999;
+      width: 260px;
+      max-height: 220px;
+      background: var(--surface-dark);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-main);
+      padding: 10px;
+      box-shadow: var(--shadow-glow);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .saved-projects-header {
+      font-size: 0.70rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .project-card-item {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--surface-border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .project-card-item.active {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 229, 255, 0.1);
+    }
+
+    .project-card-info {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .project-card-name {
+      font-size: 0.80rem;
+      font-weight: 700;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .project-card-details {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+    }
+
+    .btn-edit-pen {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--surface-border);
+      border-radius: 8px;
+      color: var(--accent-cyan);
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .btn-edit-pen:active {
+      background: var(--accent-cyan);
+      color: #0F172A;
     }
 
     /* Modals System */
@@ -484,6 +559,19 @@
       border: none;
       border-radius: 12px;
       color: #0F172A;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    .btn-danger-confirm {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent-danger);
+      border: none;
+      border-radius: 12px;
+      color: #FFFFFF;
       font-weight: 700;
       font-size: 0.95rem;
       cursor: pointer;
@@ -736,66 +824,6 @@
       transform: translateX(-50%) translateY(0);
     }
 
-    .project-item {
-      background: rgba(0, 0, 0, 0.25);
-      border: 1px solid var(--surface-border);
-      border-radius: 14px;
-      padding: 12px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-
-    .project-item.active {
-      border-color: var(--accent-cyan);
-      background: rgba(0, 229, 255, 0.08);
-    }
-
-    .project-info {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .project-title {
-      font-weight: 700;
-      font-size: 0.95rem;
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .project-sub {
-      font-size: 0.72rem;
-      color: var(--text-muted);
-    }
-
-    .project-actions {
-      display: flex;
-      gap: 6px;
-    }
-
-    .btn-small-action {
-      padding: 6px 12px;
-      border-radius: 8px;
-      border: 1px solid var(--surface-border);
-      background: rgba(255,255,255,0.08);
-      color: var(--text-main);
-      font-size: 0.75rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .btn-small-action.delete {
-      border-color: var(--accent-danger);
-      color: var(--accent-danger);
-    }
-
     .settings-btn-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -824,6 +852,7 @@
   </style>
 </head>
 <body>
+
   <!-- Map Container -->
   <div id="map"></div>
 
@@ -858,6 +887,17 @@
     </div>
   </header>
 
+  <!-- Painel de Projetos Salvos na Tela Principal (Requisitos C e D) -->
+  <div class="saved-projects-panel" id="main-saved-projects-panel">
+    <div class="saved-projects-header">
+      <span>Projetos Salvos</span>
+      <span id="saved-projects-count" style="font-size:0.65rem; color:var(--text-muted);">0</span>
+    </div>
+    <div id="main-saved-projects-list">
+      <div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:6px;">Nenhum projeto salvo.</div>
+    </div>
+  </div>
+
   <!-- Left Side Controls -->
   <div class="left-controls-column">
     <button id="btn-zoom-in" class="fab-btn" title="Aumentar Zoom (+)">
@@ -877,10 +917,11 @@
     </button>
   </div>
 
-  <!-- Right Side Controls -->
+  <!-- Right Side Controls (Sem o botão de pastinha de projetos - Requisito A) -->
   <div class="fab-column">
-    <button id="btn-projects" class="fab-btn" title="Meus Projetos">
-      <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+    <!-- Botão "Novo Projeto" (Requisito B) -->
+    <button id="btn-new-project-main" class="fab-btn" title="Novo Projeto">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
     </button>
     <button id="btn-locate" class="fab-btn" title="Minha Localização Exata">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3m0 14v3M2 12h3m14 0h3"></path></svg>
@@ -914,6 +955,7 @@
       <svg viewBox="0 0 24 24" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
       <span>CAPTURA GPS (MATA)</span>
     </button>
+    <!-- Botão "Salvar Projeto" na Barra Inferior (Requisito C) -->
     <button id="btn-save-global" class="btn-secondary-action" title="Salvar Projeto Permanentemente">
       <svg viewBox="0 0 24 24" width="22" height="22" stroke="var(--accent-green)" stroke-width="2" fill="none"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
     </button>
@@ -963,28 +1005,30 @@
     </div>
   </div>
 
-  <!-- Modal: Projects Manager -->
-  <div id="modal-projects" class="modal-overlay">
+  <!-- Modal: Alerta de Alterações Não Salvas (Requisito B) -->
+  <div id="modal-confirm-unsaved" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-header">
-        <div class="modal-title">Gestão de Projetos Rurais</div>
-        <button class="modal-close" id="btn-close-projects">
+        <div class="modal-title" style="color: var(--accent-amber);">
+          ⚠️ Alterações Não Salvas!
+        </div>
+        <button class="modal-close" id="btn-close-confirm-unsaved">
           <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
-      <button id="btn-new-project" class="btn-confirm" style="margin-top: 0;">+ CRIAR NOVO PROJETO</button>
-      <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-top: 8px;">
-        Projetos Armazenados
-      </div>
-      <div id="projects-list"></div>
+      <p style="font-size: 0.85rem; color: var(--text-main); line-height: 1.4;">
+        A medição em edição possui alterações que não foram salvas. Tem certeza que deseja iniciar um novo projeto e perder todas as alterações atuais?
+      </p>
+      <button id="btn-force-new-project" class="btn-danger-confirm">SIM, DESCARTE E INICIE NOVO</button>
+      <button id="btn-cancel-new-project" class="btn-confirm" style="background: rgba(255,255,255,0.1); color: var(--text-main); margin-top: 0;">VOLTAR E SALVAR</button>
     </div>
   </div>
 
-  <!-- Modal: Universal Save Project -->
+  <!-- Modal: Salvar Projeto (Requisito C) -->
   <div id="modal-save-project" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-header">
-        <div class="modal-title">Salvar Projeto Atual</div>
+        <div class="modal-title">Salvar Projeto</div>
         <button class="modal-close" id="btn-close-save-project">
           <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
@@ -1146,11 +1190,13 @@
           Backup Completo JSON
         </button>
       </div>
+
       <button id="btn-import-trigger" class="btn-action-full" style="margin-top: 6px;">
         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
         Importar Backup JSON / Ficheiro
       </button>
       <input type="file" id="file-import" accept="*/*" style="display:none;" />
+
       <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: 10px;">
         Glow Medidas Pro v2.0 • Topografia Geodésica de Campo
       </div>
@@ -1216,7 +1262,7 @@
 
   <!-- MAIN ENGINE SCRIPT -->
   <script>
-    /* 1. STORAGE ENGINE (INDEXEDDB) */
+    /* 1. STORAGE ENGINE (INDEXEDDB) - PRESERVADO INTEGRALMENTE */
     class StorageEngine {
       constructor() {
         this.dbName = 'GlowMedidasDB_v2';
@@ -1277,13 +1323,15 @@
     }
     const db = new StorageEngine();
 
-    /* 2. MATH GEO ALGORITHMS */
+    /* 2. MATH GEO ALGORITHMS - PRESERVADO INTEGRALMENTE */
     const MathGeo = {
       distance(lat1, lon1, lat2, lon2) {
         const R = 6378137;
         const dLat = (lat2 - lat1) * Math.PI / 180;
         const dLon = (lon2 - lon1) * Math.PI / 180;
-        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       },
       bearing(lat1, lon1, lat2, lon2) {
@@ -1399,8 +1447,7 @@
             if (lat >= latMid) { ch |= BITS[bit]; latMin = latMid; } else latMax = latMid;
           }
           isEven = !isEven;
-          if (bit < 4) bit++;
-          else { geohash += BASE32[ch]; bit = 0; ch = 0; }
+          if (bit < 4) bit++; else { geohash += BASE32[ch]; bit = 0; ch = 0; }
         }
         return geohash;
       },
@@ -1450,10 +1497,11 @@
       unitArea: 'm2',
       rotationAngle: 0,
       showAzimuth: false,
-      selectedPointIndexForEdit: null
+      selectedPointIndexForEdit: null,
+      isSaved: true // Controle de alterações não salvas (Requisito B)
     };
 
-    /* 4. MAP INIT & TOUCH GESTURES */
+    /* 4. MAP INIT & TOUCH INTERACTION */
     function initMap() {
       state.map = L.map('map', {
         zoomControl: false,
@@ -1465,10 +1513,27 @@
         minZoom: 3
       }).setView([-15.7801, -47.9292], 4);
 
-      state.layers.googleSat = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', { maxZoom: 20, maxNativeZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'] });
-      state.layers.googleHybrid = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom: 20, maxNativeZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'] });
-      state.layers.satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 20, maxNativeZoom: 18 });
-      state.layers.streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 20, maxNativeZoom: 19 });
+      state.layers.googleSat = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        maxNativeZoom: 20,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+      });
+
+      state.layers.googleHybrid = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        maxNativeZoom: 20,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+      });
+
+      state.layers.satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 20,
+        maxNativeZoom: 18
+      });
+
+      state.layers.streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 20,
+        maxNativeZoom: 19
+      });
 
       state.layers.googleSat.addTo(state.map);
 
@@ -1481,7 +1546,10 @@
 
       initTouchRotationAndPinch();
       startLocationTracker();
-      setTimeout(() => { state.map.invalidateSize(); }, 500);
+      
+      setTimeout(() => {
+        state.map.invalidateSize();
+      }, 500);
     }
 
     function initTouchRotationAndPinch() {
@@ -1514,8 +1582,10 @@
         if (isTwoFingers && e.touches.length === 2) {
           const currentDist = getTouchDist(e.touches);
           const currentAngle = getTouchAngle(e.touches);
+
           const distChange = Math.abs(currentDist - initialDistance);
           const deltaAngle = currentAngle - initialTouchAngle;
+
           if (distChange < 45 && Math.abs(deltaAngle) > 1.5) {
             setMapRotation(initialMapAngle + (deltaAngle * 0.65));
             initialTouchAngle = currentAngle;
@@ -1537,9 +1607,11 @@
       if (mapPane) {
         mapPane.style.transform = `rotate(${state.rotationAngle}deg)`;
       }
+
       document.querySelectorAll('.custom-marker, .segment-badge').forEach(el => {
         el.style.transform = `rotate(${-state.rotationAngle}deg)`;
       });
+
       const compass = document.getElementById('compass-arrow');
       if (compass) {
         compass.style.transform = `rotate(${state.rotationAngle}deg)`;
@@ -1613,37 +1685,31 @@
       }
     }
 
+    function markUnsaved() {
+      state.isSaved = false;
+    }
+
     function addPoint(lat, lng, alt = null, saveUndo = true) {
       if (saveUndo) {
         state.undoStack.push(JSON.parse(JSON.stringify(state.points)));
         state.redoStack = [];
       }
-      const point = {
-        lat,
-        lng,
-        alt: alt || (state.userLocation ? state.userLocation.alt : null),
-        timestamp: Date.now()
-      };
+      const point = { lat, lng, alt: alt || (state.userLocation ? state.userLocation.alt : null), timestamp: Date.now() };
       state.points.push(point);
+      markUnsaved();
       renderMapElements();
       updateMetrics();
       updateCoordsDisplay(lat, lng, point.alt);
-      saveActiveProject();
     }
 
     function replacePoint(index, lat, lng, alt = null) {
       state.undoStack.push(JSON.parse(JSON.stringify(state.points)));
       state.redoStack = [];
-      state.points[index] = {
-        lat,
-        lng,
-        alt: alt || state.points[index].alt,
-        timestamp: Date.now()
-      };
+      state.points[index] = { lat, lng, alt: alt || state.points[index].alt, timestamp: Date.now() };
+      markUnsaved();
       renderMapElements();
       updateMetrics();
       updateCoordsDisplay(lat, lng, state.points[index].alt);
-      saveActiveProject();
       showToast(`Marco #${index + 1} atualizado!`);
     }
 
@@ -1663,25 +1729,30 @@
           iconAnchor: [13, 13]
         });
         const marker = L.marker([p.lat, p.lng], { icon: customIcon, draggable: true }).addTo(state.map);
+        
         marker.on('dragstart', () => {
           state.undoStack.push(JSON.parse(JSON.stringify(state.points)));
           state.redoStack = [];
         });
+
         marker.on('drag', (e) => {
           const newPos = e.target.getLatLng();
           state.points[idx].lat = newPos.lat;
           state.points[idx].lng = newPos.lng;
+          markUnsaved();
+          
           state.polyline.setLatLngs(state.points.map(pt => [pt.lat, pt.lng]));
           if (state.points.length >= 3) {
             state.polygon.setLatLngs(state.points.map(pt => [pt.lat, pt.lng]));
           }
           updateMetrics();
         });
+
         marker.on('dragend', () => {
           renderMapElements();
-          saveActiveProject();
           showToast(`Marco #${idx + 1} reposicionado.`);
         });
+
         marker.on('click', (e) => {
           L.DomEvent.stopPropagation(e);
           openEditPointModal(idx);
@@ -1709,10 +1780,12 @@
       const brng = MathGeo.bearing(p1.lat, p1.lng, p2.lat, p2.lng);
       const midLat = (p1.lat + p2.lat) / 2;
       const midLng = (p1.lng + p2.lng) / 2;
+      
       let text = state.unitDist === 'km' ? `${(dist / 1000).toFixed(3)} km` : `${dist.toFixed(1)} m`;
       if (state.showAzimuth) {
         text += ` • ${brng.toFixed(1)}°`;
       }
+
       const labelIcon = L.divIcon({
         className: 'segment-label-container',
         html: `<div class="segment-badge" style="transform: rotate(${-state.rotationAngle}deg);">${text}</div>`,
@@ -1773,7 +1846,7 @@
       setTimeout(() => toast.classList.remove('show'), 3000);
     }
 
-    /* 5. PROJECTS MANAGEMENT */
+    /* 5. PROJETOS SALVOS E RENDERIZAÇÃO NA TELA PRINCIPAL (Requisitos C e D) */
     async function saveActiveProject() {
       const project = {
         id: state.currentProjectId,
@@ -1784,6 +1857,8 @@
         updatedAt: Date.now()
       };
       await db.saveProject(project);
+      state.isSaved = true;
+      await renderMainSavedProjectsList();
     }
 
     async function loadProject(id) {
@@ -1797,79 +1872,62 @@
         state.unitArea = proj.unitArea || 'm2';
         state.undoStack = [];
         state.redoStack = [];
+        state.isSaved = true;
+
         document.getElementById('unit-distance').value = state.unitDist;
         document.getElementById('unit-area').value = state.unitArea;
+
         renderMapElements();
         updateMetrics();
+
         if (state.points.length > 0) {
           const lastP = state.points[state.points.length - 1];
           state.map.setView([lastP.lat, lastP.lng], 17);
         }
         showToast(`Projeto "${proj.name}" carregado.`);
-        renderProjectsList();
+        await renderMainSavedProjectsList();
       }
     }
 
-    async function renderProjectsList() {
-      const listEl = document.getElementById('projects-list');
+    // Renderiza a lista de "Projetos Salvos" com a caneta (Requisitos C e D)
+    async function renderMainSavedProjectsList() {
+      const listEl = document.getElementById('main-saved-projects-list');
+      const countEl = document.getElementById('saved-projects-count');
       listEl.innerHTML = '';
       const projects = await db.getAllProjects();
+
+      countEl.textContent = projects.length;
+
       if (projects.length === 0) {
-        listEl.innerHTML = '<div style="font-size:0.8rem; color:var(--text-muted); text-align:center; padding:10px;">Nenhum projeto salvo.</div>';
+        listEl.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:6px;">Nenhum projeto salvo.</div>';
         return;
       }
+
       projects.forEach(p => {
         const item = document.createElement('div');
-        item.className = `project-item ${p.id === state.currentProjectId ? 'active' : ''}`;
+        item.className = `project-card-item ${p.id === state.currentProjectId ? 'active' : ''}`;
         const dateStr = new Date(p.updatedAt).toLocaleDateString('pt-BR');
         const pointCount = p.points ? p.points.length : 0;
+
         item.innerHTML = `
-          <div class="project-info">
-            <span class="project-title">
-              ${p.name}
-              <button class="btn-small-action edit-title-btn" title="Renomear Projeto" style="padding: 2px 6px; font-size: 0.65rem;">✏️ Edit</button>
-            </span>
-            <span class="project-sub">${pointCount} marcos • ${dateStr}</span>
+          <div class="project-card-info">
+            <span class="project-card-name" title="${p.name}">${p.name}</span>
+            <span class="project-card-details">${pointCount} marcos • ${dateStr}</span>
           </div>
-          <div class="project-actions">
-            ${p.id !== state.currentProjectId ? `<button class="btn-small-action load-btn">Abrir</button>` : `<span style="font-size:0.7rem; color:var(--accent-cyan); font-weight:700;">ATIVO</span>`}
-            <button class="btn-small-action delete delete-btn">Excluir</button>
-          </div>
+          <button class="btn-edit-pen" title="Editar este projeto">
+            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          </button>
         `;
 
-        item.querySelector('.edit-title-btn').addEventListener('click', async (e) => {
+        // Botão de Caneta para Retomar Edição do Projeto (Requisito D)
+        item.querySelector('.btn-edit-pen').addEventListener('click', async (e) => {
           e.stopPropagation();
-          const newName = prompt("Editar nome do projeto:", p.name);
-          if (newName && newName.trim() !== '') {
-            p.name = newName.trim();
-            p.updatedAt = Date.now();
-            await db.saveProject(p);
-            if (p.id === state.currentProjectId) {
-              state.currentProjectName = p.name;
-            }
-            renderProjectsList();
-            showToast("Nome do projeto atualizado.");
-          }
-        });
-
-        const loadBtn = item.querySelector('.load-btn');
-        if (loadBtn) {
-          loadBtn.addEventListener('click', () => {
-            loadProject(p.id);
-            document.getElementById('modal-projects').classList.remove('active');
-          });
-        }
-
-        item.querySelector('.delete-btn').addEventListener('click', async (e) => {
-          e.stopPropagation();
-          if (confirm(`Excluir permanentemente "${p.name}"?`)) {
-            await db.deleteProject(p.id);
-            if (p.id === state.currentProjectId) {
-              createNewProject("Novo Projeto");
-            } else {
-              renderProjectsList();
+          if (!state.isSaved && state.points.length > 0 && p.id !== state.currentProjectId) {
+            if (!confirm("Você tem alterações não salvas no projeto atual. Deseja descartá-las para abrir este projeto?")) {
+              return;
             }
           }
+          await loadProject(p.id);
         });
 
         listEl.appendChild(item);
@@ -1883,10 +1941,22 @@
       state.points = [];
       state.undoStack = [];
       state.redoStack = [];
+      state.isSaved = true;
       renderMapElements();
       updateMetrics();
-      saveActiveProject();
-      showToast(`Projeto "${name}" criado.`);
+      showToast(`Novo projeto "${name}" iniciado.`);
+    }
+
+    // Executa a criação de um Novo Projeto (Requisito B)
+    function handleNewProjectRequest() {
+      if (!state.isSaved && state.points.length > 0) {
+        document.getElementById('modal-confirm-unsaved').classList.add('active');
+      } else {
+        const name = prompt("Nome do Novo Projeto:", `Projeto ${new Date().toLocaleDateString('pt-BR')}`);
+        if (name && name.trim() !== '') {
+          createNewProject(name.trim());
+        }
+      }
     }
 
     function openEditPointModal(index) {
@@ -1896,7 +1966,7 @@
       updateCoordsDisplay(state.points[index].lat, state.points[index].lng, state.points[index].alt);
     }
 
-    /* 6. ENGINE DE ESTABILIZAÇÃO POR VARIÂNCIA INVERSA */
+    /* 6. GPS CANOPY FILTER */
     let stabilizerInterval = null;
     let stabilizerSamples = [];
 
@@ -1905,6 +1975,7 @@
         showToast("GPS não suportado.");
         return;
       }
+
       const modal = document.getElementById('modal-stabilizer');
       const countdownEl = document.getElementById('stabilizer-countdown');
       const progressCircle = document.getElementById('stabilizer-progress');
@@ -1998,16 +2069,17 @@
       };
     }
 
-    /* 7. PROFESSIONAL FILE EXPORTERS (KML, GEOJSON, CSV, JSON) */
+    /* 7. PROFESSIONAL FILE EXPORTERS (KML, GEOJSON, CSV) */
     function exportToKML() {
       if (state.points.length === 0) {
         showToast("Nenhum ponto para exportar.");
         return;
       }
-      let coordsStr = state.points.map(p => `${p.lng},${p.lat},${p.alt || 0}`).join('\n ');
+      let coordsStr = state.points.map(p => `${p.lng},${p.lat},${p.alt || 0}`).join('\n        ');
       if (state.points.length >= 3) {
-        coordsStr += `\n ${state.points[0].lng},${state.points[0].lat},${state.points[0].alt || 0}`;
+        coordsStr += `\n        ${state.points[0].lng},${state.points[0].lat},${state.points[0].alt || 0}`;
       }
+
       let placemarks = state.points.map((p, i) => `
     <Placemark>
       <name>Marco #${i + 1}</name>
@@ -2032,7 +2104,7 @@
         <outerBoundaryIs>
           <LinearRing>
             <coordinates>
-              ${coordsStr}
+        ${coordsStr}
             </coordinates>
           </LinearRing>
         </outerBoundaryIs>
@@ -2041,6 +2113,7 @@
     ${placemarks}
   </Document>
 </kml>`;
+
       downloadFile(kmlContent, `${state.currentProjectName.replace(/\s+/g, '_')}.kml`, 'application/vnd.google-earth.kml+xml');
       showToast("Arquivo KML exportado!");
     }
@@ -2052,8 +2125,17 @@
       }
       const features = state.points.map((p, i) => ({
         type: "Feature",
-        geometry: { type: "Point", coordinates: [p.lng, p.lat, p.alt || 0] },
-        properties: { marco: i + 1, latitude: p.lat, longitude: p.lng, altitude: p.alt || 0, utm: MathGeo.toUTM(p.lat, p.lng) }
+        geometry: {
+          type: "Point",
+          coordinates: [p.lng, p.lat, p.alt || 0]
+        },
+        properties: {
+          marco: i + 1,
+          latitude: p.lat,
+          longitude: p.lng,
+          altitude: p.alt || 0,
+          utm: MathGeo.toUTM(p.lat, p.lng)
+        }
       }));
 
       if (state.points.length >= 3) {
@@ -2061,8 +2143,14 @@
         ring.push([state.points[0].lng, state.points[0].lat, state.points[0].alt || 0]);
         features.push({
           type: "Feature",
-          geometry: { type: "Polygon", coordinates: [ring] },
-          properties: { name: state.currentProjectName, area_m2: MathGeo.area(state.points) }
+          geometry: {
+            type: "Polygon",
+            coordinates: [ring]
+          },
+          properties: {
+            name: state.currentProjectName,
+            area_m2: MathGeo.area(state.points)
+          }
         });
       }
 
@@ -2071,6 +2159,7 @@
         name: state.currentProjectName,
         features: features
       };
+
       downloadFile(JSON.stringify(geoJsonObj, null, 2), `${state.currentProjectName.replace(/\s+/g, '_')}.geojson`, 'application/json');
       showToast("Arquivo GeoJSON exportado!");
     }
@@ -2087,19 +2176,9 @@
         const utm = MathGeo.toUTM(p.lat, p.lng);
         csv += `${i + 1},${p.lat.toFixed(6)},${p.lng.toFixed(6)},${p.alt ? p.alt.toFixed(2) : 0},"${dmsLat}","${dmsLng}","${utm}"\n`;
       });
+
       downloadFile(csv, `${state.currentProjectName.replace(/\s+/g, '_')}_marcos.csv`, 'text/csv;charset=utf-8;');
       showToast("Planilha CSV exportada!");
-    }
-
-    async function exportToJSON() {
-      const projects = await db.getAllProjects();
-      const backupData = {
-        version: "2.0",
-        exportedAt: new Date().toISOString(),
-        projects: projects
-      };
-      downloadFile(JSON.stringify(backupData, null, 2), `GlowMedidas_Backup_${Date.now()}.json`, 'application/json');
-      showToast("Backup JSON exportado!");
     }
 
     function downloadFile(content, fileName, mimeType) {
@@ -2130,7 +2209,7 @@
       document.getElementById('btn-zoom-in').onclick = () => state.map.zoomIn();
       document.getElementById('btn-zoom-out').onclick = () => state.map.zoomOut();
 
-      // GPS Centering
+      // Centralização Automática no GPS
       document.getElementById('btn-center-gps').onclick = () => {
         if (state.userLocation) {
           state.map.flyTo([state.userLocation.lat, state.userLocation.lng], 18, { animate: true, duration: 1 });
@@ -2181,56 +2260,30 @@
         );
       };
 
-      // Layer Toggle
-      const layerBtn = document.getElementById('btn-layer');
-      const layerKeys = ['googleSat', 'googleHybrid', 'satellite', 'streets'];
-      layerBtn.onclick = () => {
-        const currentIdx = layerKeys.indexOf(state.activeLayer);
-        const nextIdx = (currentIdx + 1) % layerKeys.length;
-        state.map.removeLayer(state.layers[state.activeLayer]);
-        state.activeLayer = layerKeys[nextIdx];
-        state.layers[state.activeLayer].addTo(state.map);
-        showToast(`Camada: ${state.activeLayer.toUpperCase()}`);
-      };
-
-      // Undo / Redo
-      document.getElementById('btn-undo').onclick = () => {
-        if (state.undoStack.length > 0) {
-          state.redoStack.push(JSON.parse(JSON.stringify(state.points)));
-          state.points = state.undoStack.pop();
-          renderMapElements();
-          updateMetrics();
-          saveActiveProject();
-          showToast("Ação desfeita.");
-        } else {
-          showToast("Nada para desfazer.");
-        }
-      };
-
-      document.getElementById('btn-redo').onclick = () => {
-        if (state.redoStack.length > 0) {
-          state.undoStack.push(JSON.parse(JSON.stringify(state.points)));
-          state.points = state.redoStack.pop();
-          renderMapElements();
-          updateMetrics();
-          saveActiveProject();
-          showToast("Ação refeita.");
-        } else {
-          showToast("Nada para refazer.");
-        }
-      };
-
-      // Theme Switch
-      document.getElementById('btn-theme').onclick = () => {
-        document.body.classList.toggle('light-theme');
-        const isLight = document.body.classList.contains('light-theme');
-        showToast(isLight ? "Modo Claro Ativo" : "Modo Escuro Ativo");
-      };
-
-      // Add Point GPS Button
+      // Add Point GPS
       document.getElementById('btn-add-point').onclick = () => startCanopyStabilizer(false);
 
-      // Save Project Modal
+      // Botão "Novo Projeto" (Requisito B)
+      document.getElementById('btn-new-project-main').onclick = handleNewProjectRequest;
+
+      // Modal de Alerta de Alterações Não Salvas (Requisito B)
+      const modalUnsaved = document.getElementById('modal-confirm-unsaved');
+      document.getElementById('btn-close-confirm-unsaved').onclick = () => {
+        modalUnsaved.classList.remove('active');
+      };
+      document.getElementById('btn-cancel-new-project').onclick = () => {
+        modalUnsaved.classList.remove('active');
+        document.getElementById('btn-save-global').click(); // Redireciona para salvar
+      };
+      document.getElementById('btn-force-new-project').onclick = () => {
+        modalUnsaved.classList.remove('active');
+        const name = prompt("Nome do Novo Projeto:", `Projeto ${new Date().toLocaleDateString('pt-BR')}`);
+        if (name && name.trim() !== '') {
+          createNewProject(name.trim());
+        }
+      };
+
+      // Botão "Salvar Projeto" na Barra Inferior (Requisito C)
       const saveModal = document.getElementById('modal-save-project');
       const inputSaveName = document.getElementById('input-save-project-name');
       document.getElementById('btn-save-global').onclick = () => {
@@ -2252,9 +2305,10 @@
         }
       };
 
-      // Trail Mode
+      // Modo Trilha
       const trailBtn = document.getElementById('btn-trail');
       const trailModal = document.getElementById('modal-trail-transport');
+      
       trailBtn.onclick = () => {
         if (!state.isTrailMode) {
           trailModal.classList.add('active');
@@ -2265,7 +2319,6 @@
           showToast("Modo Trilha DESATIVADO.");
         }
       };
-
       document.getElementById('btn-close-trail-transport').onclick = () => {
         trailModal.classList.remove('active');
       };
@@ -2293,26 +2346,10 @@
             err => console.warn(err),
             { enableHighAccuracy: true, distanceFilter: distFilter }
           );
+
           showToast(`Modo Trilha Ativado: ${labelMode}`);
         };
       });
-
-      // Projects Modal
-      const projectsModal = document.getElementById('modal-projects');
-      document.getElementById('btn-projects').onclick = () => {
-        renderProjectsList();
-        projectsModal.classList.add('active');
-      };
-      document.getElementById('btn-close-projects').onclick = () => {
-        projectsModal.classList.remove('active');
-      };
-      document.getElementById('btn-new-project').onclick = () => {
-        const name = prompt("Nome do Projeto:", `Projeto ${new Date().toLocaleDateString('pt-BR')}`);
-        if (name && name.trim() !== '') {
-          createNewProject(name.trim());
-          projectsModal.classList.remove('active');
-        }
-      };
 
       // Edit Point Modal
       const editModal = document.getElementById('modal-edit-point');
@@ -2337,16 +2374,16 @@
           state.undoStack.push(JSON.parse(JSON.stringify(state.points)));
           state.redoStack = [];
           state.points.splice(state.selectedPointIndexForEdit, 1);
+          markUnsaved();
           renderMapElements();
           updateMetrics();
-          saveActiveProject();
           editModal.classList.remove('active');
           showToast("Marco removido.");
           state.selectedPointIndexForEdit = null;
         }
       };
 
-      // Manual Coords Input Modal
+      // Manual Coords
       document.getElementById('btn-manual-coords').onclick = () => {
         state.selectedPointIndexForEdit = null;
         document.getElementById('manual-coords-title').textContent = "Inserir Coordenada Manual";
@@ -2356,40 +2393,36 @@
         manualModal.classList.remove('active');
       };
 
-      // Manual Coords Tabs Switching
-      const tabBtns = manualModal.querySelectorAll('.tab-btn');
-      tabBtns.forEach(btn => {
+      let currentTab = 'tab-geo';
+      document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.onclick = () => {
-          tabBtns.forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
-          const targetTab = btn.getAttribute('data-tab');
-          manualModal.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
-          document.getElementById(targetTab).style.display = 'block';
+          currentTab = btn.getAttribute('data-tab');
+          document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+          document.getElementById(currentTab).style.display = 'block';
         };
       });
 
-      // Submit Manual Coordinates
       document.getElementById('btn-submit-manual-coord').onclick = () => {
-        const activeTab = manualModal.querySelector('.tab-btn.active').getAttribute('data-tab');
         let lat = null, lng = null;
-
-        if (activeTab === 'tab-geo') {
+        if (currentTab === 'tab-geo') {
           lat = parseFloat(document.getElementById('input-lat').value);
           lng = parseFloat(document.getElementById('input-lng').value);
-        } else if (activeTab === 'tab-dms') {
-          const latDMS = document.getElementById('input-dms-lat').value;
-          const lngDMS = document.getElementById('input-dms-lng').value;
-          lat = MathGeo.parseDMS(latDMS);
-          lng = MathGeo.parseDMS(lngDMS);
-        } else if (activeTab === 'tab-utm') {
-          const zone = parseInt(document.getElementById('input-utm-zone').value, 10);
-          const hem = document.getElementById('input-utm-hemisphere').value;
+        } else if (currentTab === 'tab-dms') {
+          const dmsLatStr = document.getElementById('input-dms-lat').value;
+          const dmsLngStr = document.getElementById('input-dms-lng').value;
+          lat = MathGeo.parseDMS(dmsLatStr);
+          lng = MathGeo.parseDMS(dmsLngStr);
+        } else if (currentTab === 'tab-utm') {
+          const zone = parseInt(document.getElementById('input-utm-zone').value);
+          const hemi = document.getElementById('input-utm-hemisphere').value;
           const easting = parseFloat(document.getElementById('input-utm-easting').value);
           const northing = parseFloat(document.getElementById('input-utm-northing').value);
-          if (!isNaN(zone) && !isNaN(easting) && !isNaN(northing)) {
-            const coords = MathGeo.utmToLatLng(zone, hem, easting, northing);
-            lat = coords.lat;
-            lng = coords.lng;
+          if (zone && hemi && easting && northing) {
+            const res = MathGeo.utmToLatLng(zone, hemi, easting, northing);
+            lat = res.lat;
+            lng = res.lng;
           }
         }
 
@@ -2399,87 +2432,79 @@
             state.selectedPointIndexForEdit = null;
           } else {
             addPoint(lat, lng);
-            showToast("Marco cadastrado manualmente.");
+            showToast("Coordenada adicionada!");
           }
-          manualModal.classList.remove('active');
           state.map.flyTo([lat, lng], 18);
+          manualModal.classList.remove('active');
         } else {
-          showToast("Coordenadas inválidas. Verifique os campos.");
+          showToast("Formato de coordenada inválido.");
         }
       };
 
-      // Settings & Exports Modal
-      const settingsModal = document.getElementById('modal-settings');
-      document.getElementById('btn-settings').onclick = () => settingsModal.classList.add('active');
-      document.getElementById('btn-close-settings').onclick = () => settingsModal.classList.remove('active');
-
-      document.getElementById('btn-export-kml').onclick = () => exportToKML();
-      document.getElementById('btn-export-geojson').onclick = () => exportToGeoJSON();
-      document.getElementById('btn-export-csv').onclick = () => exportToCSV();
-      document.getElementById('btn-export-json').onclick = () => exportToJSON();
-
-      // Backup Import
-      const fileInput = document.getElementById('file-import');
-      document.getElementById('btn-import-trigger').onclick = () => fileInput.click();
-      fileInput.onchange = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = async (evt) => {
-          try {
-            const json = JSON.parse(evt.target.result);
-            if (json.projects && Array.isArray(json.projects)) {
-              for (const p of json.projects) {
-                await db.saveProject(p);
-              }
-              showToast("Backup importado com sucesso!");
-              renderProjectsList();
-            } else {
-              showToast("Formato de backup inválido.");
-            }
-          } catch(err) {
-            showToast("Erro ao processar ficheiro JSON.");
-          }
-        };
-        reader.readAsText(file);
-      };
-
-      // Coords Panel Bottom Sheet
-      const coordsPanel = document.getElementById('coords-panel');
-      document.getElementById('btn-coords-toggle').onclick = () => {
-        coordsPanel.classList.toggle('open');
-      };
-      document.getElementById('btn-close-coords').onclick = () => {
-        coordsPanel.classList.remove('open');
-      };
-
-      // Copy text inside Coords Panel
-      document.querySelectorAll('.btn-copy').forEach(btn => {
-        btn.onclick = () => {
-          const targetId = btn.getAttribute('data-target');
-          const valText = document.getElementById(targetId).textContent;
-          const tempInput = document.createElement('textarea');
-          tempInput.value = valText;
-          document.body.appendChild(tempInput);
-          tempInput.select();
-          document.execCommand('copy');
-          document.body.removeChild(tempInput);
-          showToast("Copiado para a área de transferência!");
-        };
-      });
-
-      // Clear All
-      document.getElementById('btn-clear').onclick = () => {
-        if (state.points.length === 0) return;
-        if (confirm("Deseja apagar todos os marcos da medição atual?")) {
-          state.undoStack.push(JSON.parse(JSON.stringify(state.points)));
-          state.redoStack = [];
-          state.points = [];
+      // Undo / Redo
+      document.getElementById('btn-undo').onclick = () => {
+        if (state.points.length === 0 && state.undoStack.length === 0) return;
+        if (state.undoStack.length > 0) {
+          state.redoStack.push(JSON.parse(JSON.stringify(state.points)));
+          state.points = state.undoStack.pop();
+          markUnsaved();
           renderMapElements();
           updateMetrics();
-          saveActiveProject();
-          showToast("Medição limpa.");
+          showToast("Ação desfeita.");
         }
+      };
+
+      document.getElementById('btn-redo').onclick = () => {
+        if (state.redoStack.length === 0) return;
+        state.undoStack.push(JSON.parse(JSON.stringify(state.points)));
+        state.points = state.redoStack.pop();
+        markUnsaved();
+        renderMapElements();
+        updateMetrics();
+        showToast("Ação refeita.");
+      };
+
+      // Clear
+      document.getElementById('btn-clear').onclick = () => {
+        if (state.points.length === 0) return;
+        if (confirm("Apagar todos os pontos da medição atual?")) {
+          state.undoStack.push(JSON.parse(JSON.stringify(state.points)));
+          state.points = [];
+          markUnsaved();
+          renderMapElements();
+          updateMetrics();
+          showToast("Todos os marcos foram limpos.");
+        }
+      };
+
+      // Layer Selection
+      document.getElementById('btn-layer').onclick = () => {
+        if (state.activeLayer === 'googleSat') {
+          state.map.removeLayer(state.layers.googleSat);
+          state.layers.googleHybrid.addTo(state.map);
+          state.activeLayer = 'googleHybrid';
+          showToast("Camada: Google Híbrido HD");
+        } else if (state.activeLayer === 'googleHybrid') {
+          state.map.removeLayer(state.layers.googleHybrid);
+          state.layers.satellite.addTo(state.map);
+          state.activeLayer = 'satellite';
+          showToast("Camada: ESRI Satélite");
+        } else if (state.activeLayer === 'satellite') {
+          state.map.removeLayer(state.layers.satellite);
+          state.layers.streets.addTo(state.map);
+          state.activeLayer = 'streets';
+          showToast("Camada: OpenStreetMap Ruas");
+        } else {
+          state.map.removeLayer(state.layers.streets);
+          state.layers.googleSat.addTo(state.map);
+          state.activeLayer = 'googleSat';
+          showToast("Camada: Google Satélite HD");
+        }
+      };
+
+      // Theme Toggle
+      document.getElementById('btn-theme').onclick = () => {
+        document.body.classList.toggle('light-theme');
       };
 
       // Unit Selectors
@@ -2487,12 +2512,131 @@
         state.unitDist = e.target.value;
         renderMapElements();
         updateMetrics();
-        saveActiveProject();
       };
+
       document.getElementById('unit-area').onchange = (e) => {
         state.unitArea = e.target.value;
         updateMetrics();
-        saveActiveProject();
+      };
+
+      // Coords Panel
+      const coordsSheet = document.getElementById('coords-panel');
+      document.getElementById('btn-coords-toggle').onclick = () => {
+        coordsSheet.classList.toggle('open');
+      };
+      document.getElementById('btn-close-coords').onclick = () => {
+        coordsSheet.classList.remove('open');
+      };
+
+      // Settings Modal
+      const settingsModal = document.getElementById('modal-settings');
+      document.getElementById('btn-settings').onclick = () => {
+        settingsModal.classList.add('active');
+      };
+      document.getElementById('btn-close-settings').onclick = () => {
+        settingsModal.classList.remove('active');
+      };
+
+      // Copy Buttons
+      document.querySelectorAll('.btn-copy').forEach(btn => {
+        btn.onclick = () => {
+          const targetId = btn.getAttribute('data-target');
+          const text = document.getElementById(targetId).textContent;
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => showToast("Copiado!")).catch(() => showToast("Erro ao copiar."));
+          } else {
+            showToast("Área de transferência indisponível.");
+          }
+        };
+      });
+
+      // Export Handlers
+      document.getElementById('btn-export-kml').onclick = exportToKML;
+      document.getElementById('btn-export-geojson').onclick = exportToGeoJSON;
+      document.getElementById('btn-export-csv').onclick = exportToCSV;
+
+      // Export JSON Backup
+      document.getElementById('btn-export-json').onclick = async () => {
+        const projects = await db.getAllProjects();
+        downloadFile(JSON.stringify(projects, null, 2), `GlowMedidas_Backup_${new Date().toISOString().slice(0,10)}.json`, 'application/json');
+        showToast("Backup JSON exportado!");
+      };
+
+      // Import JSON
+      document.getElementById('btn-import-trigger').onclick = () => {
+        document.getElementById('file-import').click();
+      };
+
+      document.getElementById('file-import').onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          try {
+            let importedData = JSON.parse(event.target.result);
+            let projectsToImport = [];
+
+            if (Array.isArray(importedData)) {
+              projectsToImport = importedData;
+            } else if (typeof importedData === 'object' && importedData !== null) {
+              if (importedData.projects && Array.isArray(importedData.projects)) {
+                projectsToImport = importedData.projects;
+              } else if (importedData.id || importedData.points || importedData.latlngs || importedData.coordenadas) {
+                projectsToImport = [importedData];
+              } else {
+                for (let k in importedData) {
+                  if (Array.isArray(importedData[k])) {
+                    projectsToImport = importedData[k];
+                    break;
+                  }
+                }
+              }
+            }
+
+            if (projectsToImport.length > 0) {
+              let count = 0;
+              let firstProjectId = null;
+
+              for (const proj of projectsToImport) {
+                const rawPts = proj.points || proj.coordinates || proj.latlngs || proj.coordenadas || [];
+                const cleanPoints = [];
+
+                rawPts.forEach(pt => {
+                  let lat = pt.lat ?? pt.latitude ?? pt[0];
+                  let lng = pt.lng ?? pt.longitude ?? pt.lon ?? pt[1];
+                  let alt = pt.alt ?? pt.altitude ?? pt[2] ?? null;
+                  if (typeof lat === 'number' && typeof lng === 'number') {
+                    cleanPoints.push({ lat, lng, alt, timestamp: pt.timestamp || Date.now() });
+                  }
+                });
+
+                const projId = proj.id || ('proj_' + Date.now() + '_' + Math.floor(Math.random() * 1000));
+                if (!firstProjectId) firstProjectId = projId;
+
+                const projectObj = {
+                  id: projId,
+                  name: proj.name || proj.title || proj.nome || "Projeto Importado",
+                  points: cleanPoints,
+                  unitDist: proj.unitDist || 'm',
+                  unitArea: proj.unitArea || 'm2',
+                  updatedAt: proj.updatedAt || Date.now()
+                };
+                await db.saveProject(projectObj);
+                count++;
+              }
+
+              await loadProject(firstProjectId);
+              settingsModal.classList.remove('active');
+              showToast(`${count} projeto(s) importado(s) e carregado(s)!`);
+            } else {
+              showToast("Nenhum projeto válido encontrado no arquivo.");
+            }
+          } catch (err) {
+            showToast("Erro ao processar o arquivo.");
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
       };
     });
   </script>
