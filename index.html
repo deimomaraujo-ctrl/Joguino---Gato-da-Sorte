@@ -7,7 +7,7 @@
   <meta name="description" content="Glow Medidas - Aplicativo Profissional de Topografia e Medição Rural">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Glow Medidas - Topografia & Precisão Rural</title>
+  <title>Glow Medidas Pro - Topografia & Precisão Rural</title>
 
   <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
@@ -21,8 +21,8 @@
   <style>
     :root {
       --bg-dark: #0F172A;
-      --surface-dark: rgba(30, 41, 59, 0.88);
-      --surface-border: rgba(255, 255, 255, 0.15);
+      --surface-dark: rgba(30, 41, 59, 0.92);
+      --surface-border: rgba(255, 255, 255, 0.18);
       --text-main: #F8FAFC;
       --text-muted: #94A3B8;
       --accent-green: #00E676;
@@ -31,12 +31,12 @@
       --accent-danger: #FF5252;
       --radius-main: 16px;
       --font-mono: 'JetBrains Mono', monospace;
-      --shadow-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+      --shadow-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
     }
 
     body.light-theme {
       --bg-dark: #F1F5F9;
-      --surface-dark: rgba(255, 255, 255, 0.92);
+      --surface-dark: rgba(255, 255, 255, 0.95);
       --surface-border: rgba(0, 0, 0, 0.15);
       --text-main: #0F172A;
       --text-muted: #64748B;
@@ -147,11 +147,44 @@
       color: var(--text-main);
     }
 
+    /* GPS Live Quality Badge */
+    .gps-status-badge {
+      position: absolute;
+      top: 92px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      background: var(--surface-dark);
+      border: 1px solid var(--surface-border);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.68rem;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: var(--text-muted);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: var(--shadow-glow);
+      pointer-events: none;
+    }
+
+    .gps-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #94A3B8;
+    }
+    .gps-dot.good { background: var(--accent-green); box-shadow: 0 0 8px var(--accent-green); }
+    .gps-dot.warn { background: var(--accent-amber); box-shadow: 0 0 8px var(--accent-amber); }
+    .gps-dot.poor { background: var(--accent-danger); }
+
     /* Controls Columns */
     .fab-column {
       position: absolute;
       right: 12px;
-      top: 95px;
+      top: 125px;
       z-index: 1000;
       display: flex;
       flex-direction: column;
@@ -161,7 +194,7 @@
     .left-controls-column {
       position: absolute;
       left: 12px;
-      top: 95px;
+      top: 125px;
       z-index: 1000;
       display: flex;
       flex-direction: column;
@@ -203,7 +236,7 @@
     .fab-btn.active {
       border-color: var(--accent-cyan);
       color: var(--accent-cyan);
-      background: rgba(0, 229, 255, 0.15);
+      background: rgba(0, 229, 255, 0.18);
     }
 
     /* Bottom Control Bar */
@@ -228,8 +261,9 @@
       border: none;
       border-radius: 18px;
       color: #0F172A;
-      font-size: 0.92rem;
-      font-weight: 700;
+      font-size: 0.90rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -626,17 +660,23 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 24px;
-      height: 24px;
+      width: 26px;
+      height: 26px;
       background: #00E5FF;
       border: 3px solid #FFFFFF;
       border-radius: 50%;
-      box-shadow: 0 0 12px rgba(0, 229, 255, 0.8);
-      font-size: 10px;
+      box-shadow: 0 0 14px rgba(0, 229, 255, 0.9);
+      font-size: 11px;
       font-weight: 800;
       color: #0F172A;
       font-family: var(--font-mono);
       transition: transform 0.05s linear;
+      cursor: grab;
+    }
+
+    .custom-marker:active {
+      cursor: grabbing;
+      transform: scale(1.2);
     }
 
     .segment-label-container {
@@ -645,15 +685,15 @@
     }
 
     .segment-badge {
-      background: rgba(15, 23, 42, 0.9);
+      background: rgba(15, 23, 42, 0.92);
       border: 1px solid var(--accent-cyan);
       color: #FFFFFF;
-      padding: 2px 6px;
+      padding: 3px 7px;
       border-radius: 6px;
       font-size: 0.68rem;
       font-family: var(--font-mono);
       font-weight: 700;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.6);
       white-space: nowrap;
       text-align: center;
       transition: transform 0.05s linear;
@@ -740,18 +780,18 @@
     .settings-btn-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      gap: 10px;
     }
 
     .btn-action-full {
       width: 100%;
-      padding: 14px;
-      border-radius: 14px;
+      padding: 12px;
+      border-radius: 12px;
       border: 1px solid var(--surface-border);
       background: rgba(255,255,255,0.05);
       color: var(--text-main);
       font-weight: 600;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -769,11 +809,17 @@
   <!-- Map Container -->
   <div id="map"></div>
 
+  <!-- GPS Live Quality Badge -->
+  <div class="gps-status-badge" id="gps-status-badge">
+    <div class="gps-dot" id="gps-dot"></div>
+    <span id="gps-status-text">GPS: Aguardando sinal...</span>
+  </div>
+
   <!-- Header -->
   <header class="top-bar">
     <div class="metric-card">
       <div class="metric-label">
-        <span>Distância Total</span>
+        <span>Perímetro Total</span>
         <select id="unit-distance" class="unit-select">
           <option value="m">Metros (m)</option>
           <option value="km">Quilômetros (km)</option>
@@ -783,7 +829,7 @@
     </div>
     <div class="metric-card">
       <div class="metric-label">
-        <span>Área Total</span>
+        <span>Área Calculada</span>
         <select id="unit-area" class="unit-select">
           <option value="m2">m²</option>
           <option value="ha">Hectares (ha)</option>
@@ -805,6 +851,9 @@
     <button id="btn-reset-north" class="fab-btn" title="Alinhar Norte (0°)">
       <svg id="compass-arrow" viewBox="0 0 24 24" style="transition: transform 0.1s linear;"><polygon points="12 2 19 21 12 17 5 21 12 2" fill="var(--accent-cyan)"></polygon></svg>
     </button>
+    <button id="btn-toggle-azimuth" class="fab-btn" title="Exibir Azimute / Rumbo nos Segmentos">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>
+    </button>
   </div>
 
   <!-- Right Side Controls -->
@@ -824,13 +873,13 @@
     <button id="btn-redo" class="fab-btn" title="Refazer">
       <svg viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"></path><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5v0A5.5 5.5 0 0 0 9.5 20H13"></path></svg>
     </button>
-    <button id="btn-trail" class="fab-btn" title="Modo Trilha">
+    <button id="btn-trail" class="fab-btn" title="Modo Trilha Autotracking">
       <svg viewBox="0 0 24 24"><path d="M13 4v16M17 8l-4-4-4 4M17 16l-4 4-4-4"></path></svg>
     </button>
     <button id="btn-theme" class="fab-btn" title="Modo Claro/Escuro">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path></svg>
     </button>
-    <button id="btn-settings" class="fab-btn" title="Configurações e Exportação">
+    <button id="btn-settings" class="fab-btn" title="Exportações e Configurações">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
     </button>
   </div>
@@ -858,14 +907,14 @@
       <div class="modal-header">
         <div class="modal-title">
           <svg viewBox="0 0 24 24" width="22" height="22" stroke="var(--accent-cyan)" stroke-width="2" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-          Filtro de Precisão Máxima GPS
+          Filtro Canópico Geodésico GPS
         </div>
         <button class="modal-close" id="btn-cancel-stabilizer">
           <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
       <p style="font-size: 0.78rem; color: var(--text-muted); text-align: center;">
-        Aguarde o cancelamento de ruídos geodésicos por Variância Inversa.
+        Aguarde a estabilização estatística por Variância Inversa para anular ruídos de densa vegetação.
       </p>
       <div class="stabilizer-ring-container">
         <svg class="stabilizer-svg">
@@ -874,7 +923,7 @@
         </svg>
         <div class="stabilizer-timer-text">
           <span id="stabilizer-countdown">15</span>s
-          <div class="stabilizer-timer-sub">Processando...</div>
+          <div class="stabilizer-timer-sub">Filtrando...</div>
         </div>
       </div>
       <div class="stabilizer-stats">
@@ -883,7 +932,7 @@
           <span id="stat-samples" class="stat-val">0</span>
         </div>
         <div class="stat-box">
-          <span class="stat-lbl">Precisão Calculada</span>
+          <span class="stat-lbl">Precisão Estimada</span>
           <span id="stat-accuracy" class="stat-val">± 0.0 m</span>
         </div>
       </div>
@@ -894,20 +943,20 @@
   <div id="modal-projects" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-header">
-        <div class="modal-title">Gestão de Projetos</div>
+        <div class="modal-title">Gestão de Projetos Rurais</div>
         <button class="modal-close" id="btn-close-projects">
           <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
-      <button id="btn-new-project" class="btn-confirm" style="margin-top: 0;">+ CRIAR NOVO PROJETO DO ZERO</button>
+      <button id="btn-new-project" class="btn-confirm" style="margin-top: 0;">+ CRIAR NOVO PROJETO</button>
       <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-top: 8px;">
-        Projetos Salvos
+        Projetos Armazenados
       </div>
       <div id="projects-list"></div>
     </div>
   </div>
 
-  <!-- Modal: Replace/Edit Point -->
+  <!-- Modal: Edit Point -->
   <div id="modal-edit-point" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-header">
@@ -917,7 +966,7 @@
         </button>
       </div>
       <p style="font-size: 0.8rem; color: var(--text-muted);">
-        Escolha a forma como deseja atualizar este ponto:
+        Escolha como deseja recadastrar este ponto de medição:
       </p>
       <button id="btn-replace-gps" class="btn-action-full">
         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3m0 14v3M2 12h3m14 0h3"></path></svg>
@@ -1002,29 +1051,42 @@
     </div>
   </div>
 
-  <!-- Modal: Settings & Export Archiving -->
+  <!-- Modal: Settings & Professional Exports -->
   <div id="modal-settings" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-header">
-        <div class="modal-title">Configurações & Backup</div>
+        <div class="modal-title">Exportações & Backup</div>
         <button class="modal-close" id="btn-close-settings">
           <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
       <div class="settings-btn-grid">
+        <button id="btn-export-kml" class="btn-action-full">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--accent-green)" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Exportar KML (Google Earth)
+        </button>
+        <button id="btn-export-geojson" class="btn-action-full">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--accent-cyan)" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Exportar GeoJSON (QGIS)
+        </button>
+        <button id="btn-export-csv" class="btn-action-full">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--accent-amber)" stroke-width="2" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+          Exportar CSV (Planilha)
+        </button>
         <button id="btn-export-json" class="btn-action-full">
           <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          Exportar Backup JSON
+          Backup Completo JSON
         </button>
-        <button id="btn-import-trigger" class="btn-action-full">
-          <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-          Importar Backup JSON
-        </button>
-        <!-- Input com accept="*/*" para permitir selecionar qualquer tipo de arquivo de backup sem ficar esbranquiçado -->
-        <input type="file" id="file-import" accept="*/*" style="display:none;" />
       </div>
+
+      <button id="btn-import-trigger" class="btn-action-full" style="margin-top: 6px;">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+        Importar Backup JSON / Ficheiro
+      </button>
+      <input type="file" id="file-import" accept="*/*" style="display:none;" />
+
       <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: 10px;">
-        Glow Medidas v1.6 • Topografia Rural Geodésica
+        Glow Medidas Pro v2.0 • Topografia Geodésica de Campo
       </div>
     </div>
   </div>
@@ -1041,8 +1103,8 @@
     <div class="coords-grid">
       <div class="coord-item">
         <div class="coord-info">
-          <span class="coord-type">Geográficas Decimais (GEO)</span>
-          <span id="coord-geo" class="coord-val">0.000000, 0.000000</span>
+          <span class="coord-type">Geográficas Decimais (GEO) & Altitude</span>
+          <span id="coord-geo" class="coord-val">0.000000, 0.000000 (Alt: --)</span>
         </div>
         <button class="btn-copy" data-target="coord-geo"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
       </div>
@@ -1086,7 +1148,7 @@
 
   <div id="toast" class="toast">Notificação</div>
 
-  <!-- MAIN SCRIPT -->
+  <!-- MAIN ENGINE SCRIPT -->
   <script>
     /* 1. STORAGE ENGINE (INDEXEDDB) */
     class StorageEngine {
@@ -1159,6 +1221,15 @@
                   Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
                   Math.sin(dLon / 2) * Math.sin(dLon / 2);
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      },
+      bearing(lat1, lon1, lat2, lon2) {
+        const radLat1 = lat1 * Math.PI / 180;
+        const radLat2 = lat2 * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const y = Math.sin(dLon) * Math.cos(radLat2);
+        const x = Math.cos(radLat1) * Math.sin(radLat2) - Math.sin(radLat1) * Math.cos(radLat2) * Math.cos(dLon);
+        const brng = Math.atan2(y, x) * 180 / Math.PI;
+        return (brng + 360) % 360;
       },
       area(latlngs) {
         if (latlngs.length < 3) return 0;
@@ -1312,12 +1383,12 @@
       unitDist: 'm',
       unitArea: 'm2',
       rotationAngle: 0,
+      showAzimuth: false,
       selectedPointIndexForEdit: null
     };
 
     /* 4. MAP INIT & TOUCH ROTATION */
     function initMap() {
-      // Bloqueio de Zoom Máximo 20 sem tela branca
       state.map = L.map('map', {
         zoomControl: false,
         attributionControl: false,
@@ -1328,14 +1399,12 @@
         minZoom: 3
       }).setView([-15.7801, -47.9292], 4);
 
-      // Google Satélite HD (Visão atualizada de imóveis e áreas rurais do Brasil)
       state.layers.googleSat = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
         maxZoom: 20,
         maxNativeZoom: 20,
         subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
       });
 
-      // Google Híbrido HD
       state.layers.googleHybrid = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
         maxZoom: 20,
         maxNativeZoom: 20,
@@ -1352,7 +1421,6 @@
         maxNativeZoom: 19
       });
 
-      // Ativa Google Satélite HD por padrão
       state.layers.googleSat.addTo(state.map);
 
       state.polyline = L.polyline([], { color: '#00E5FF', weight: 3, dashArray: '5, 10' }).addTo(state.map);
@@ -1370,7 +1438,6 @@
       }, 500);
     }
 
-    /* Rotação com Filtro Anti-Saltos / Sensibilidade Suave */
     function initTouchRotation() {
       const mapEl = document.getElementById('map');
       let initialTouchAngle = 0;
@@ -1400,13 +1467,11 @@
       mapEl.addEventListener('touchmove', (e) => {
         if (isRotating && e.touches.length === 2) {
           const currentDist = getTouchDist(e.touches);
-          // Evita pulos de rotação durante um gesto focado em zoom por pinça (> 35px variação)
           if (Math.abs(currentDist - initialDistance) > 35) return;
 
           const currentAngle = getTouchAngle(e.touches);
           const deltaAngle = currentAngle - initialTouchAngle;
 
-          // Zona morta (dead-band): ignora tremores acidentais menores que 2.0 graus
           if (Math.abs(deltaAngle) > 2.0) {
             setMapRotation(initialMapAngle + (deltaAngle * 0.5));
             initialTouchAngle = currentAngle;
@@ -1440,9 +1505,8 @@
       }
     }
 
-    /* Marcador de Localização "Facada" (Agulha de Precisão) */
-    function updateUserLocationMarker(lat, lng, accuracy) {
-      state.userLocation = { lat, lng, accuracy };
+    function updateUserLocationMarker(lat, lng, accuracy, alt) {
+      state.userLocation = { lat, lng, accuracy, alt };
       if (!state.userMarker) {
         const locationIcon = L.divIcon({
           className: 'user-location-wrapper',
@@ -1456,7 +1520,7 @@
             </svg>
           `,
           iconSize: [36, 36],
-          iconAnchor: [18, 34] // A ponta da agulha toca a coordenada exata
+          iconAnchor: [18, 34]
         });
         state.userMarker = L.marker([lat, lng], { icon: locationIcon, zIndexOffset: 1000 }).addTo(state.map);
       } else {
@@ -1475,13 +1539,33 @@
         state.userAccuracyCircle.setLatLng([lat, lng]);
         if (accuracy) state.userAccuracyCircle.setRadius(accuracy);
       }
+
+      // Update Live GPS Status Badge UI
+      const badgeDot = document.getElementById('gps-dot');
+      const badgeText = document.getElementById('gps-status-text');
+      badgeDot.className = 'gps-dot';
+      if (accuracy <= 5) {
+        badgeDot.classList.add('good');
+        badgeText.textContent = `GPS: ±${accuracy.toFixed(1)}m (Excelente)`;
+      } else if (accuracy <= 15) {
+        badgeDot.classList.add('warn');
+        badgeText.textContent = `GPS: ±${accuracy.toFixed(1)}m (Bom)`;
+      } else {
+        badgeDot.classList.add('poor');
+        badgeText.textContent = `GPS: ±${accuracy.toFixed(1)}m (Fraco)`;
+      }
     }
 
     function startLocationTracker() {
       if (navigator.geolocation) {
         navigator.geolocation.watchPosition(
           (pos) => {
-            updateUserLocationMarker(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
+            updateUserLocationMarker(
+              pos.coords.latitude,
+              pos.coords.longitude,
+              pos.coords.accuracy,
+              pos.coords.altitude
+            );
           },
           (err) => console.warn("GPS Notice: ", err),
           { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 }
@@ -1489,26 +1573,26 @@
       }
     }
 
-    function addPoint(lat, lng, saveUndo = true) {
+    function addPoint(lat, lng, alt = null, saveUndo = true) {
       if (saveUndo) {
-        state.undoStack.push([...state.points]);
+        state.undoStack.push(JSON.parse(JSON.stringify(state.points)));
         state.redoStack = [];
       }
-      const point = { lat, lng, timestamp: Date.now() };
+      const point = { lat, lng, alt: alt || (state.userLocation ? state.userLocation.alt : null), timestamp: Date.now() };
       state.points.push(point);
       renderMapElements();
       updateMetrics();
-      updateCoordsDisplay(lat, lng);
+      updateCoordsDisplay(lat, lng, point.alt);
       saveActiveProject();
     }
 
-    function replacePoint(index, lat, lng) {
-      state.undoStack.push([...state.points]);
+    function replacePoint(index, lat, lng, alt = null) {
+      state.undoStack.push(JSON.parse(JSON.stringify(state.points)));
       state.redoStack = [];
-      state.points[index] = { lat, lng, timestamp: Date.now() };
+      state.points[index] = { lat, lng, alt: alt || state.points[index].alt, timestamp: Date.now() };
       renderMapElements();
       updateMetrics();
-      updateCoordsDisplay(lat, lng);
+      updateCoordsDisplay(lat, lng, state.points[index].alt);
       saveActiveProject();
       showToast(`Marco #${index + 1} atualizado!`);
     }
@@ -1525,10 +1609,34 @@
         const customIcon = L.divIcon({
           className: '',
           html: `<div class="custom-marker" style="transform: rotate(${-state.rotationAngle}deg);">${idx + 1}</div>`,
-          iconSize: [24, 24],
-          iconAnchor: [12, 12]
+          iconSize: [26, 26],
+          iconAnchor: [13, 13]
         });
-        const marker = L.marker([p.lat, p.lng], { icon: customIcon }).addTo(state.map);
+        const marker = L.marker([p.lat, p.lng], { icon: customIcon, draggable: true }).addTo(state.map);
+        
+        marker.on('dragstart', () => {
+          state.undoStack.push(JSON.parse(JSON.stringify(state.points)));
+          state.redoStack = [];
+        });
+
+        marker.on('drag', (e) => {
+          const newPos = e.target.getLatLng();
+          state.points[idx].lat = newPos.lat;
+          state.points[idx].lng = newPos.lng;
+          
+          state.polyline.setLatLngs(state.points.map(pt => [pt.lat, pt.lng]));
+          if (state.points.length >= 3) {
+            state.polygon.setLatLngs(state.points.map(pt => [pt.lat, pt.lng]));
+          }
+          updateMetrics();
+        });
+
+        marker.on('dragend', () => {
+          renderMapElements();
+          saveActiveProject();
+          showToast(`Marco #${idx + 1} reposicionado.`);
+        });
+
         marker.on('click', (e) => {
           L.DomEvent.stopPropagation(e);
           openEditPointModal(idx);
@@ -1553,15 +1661,20 @@
 
     function renderSegmentLabel(p1, p2) {
       const dist = MathGeo.distance(p1.lat, p1.lng, p2.lat, p2.lng);
+      const brng = MathGeo.bearing(p1.lat, p1.lng, p2.lat, p2.lng);
       const midLat = (p1.lat + p2.lat) / 2;
       const midLng = (p1.lng + p2.lng) / 2;
-      const text = state.unitDist === 'km' ? `${(dist / 1000).toFixed(3)} km` : `${dist.toFixed(1)} m`;
+      
+      let text = state.unitDist === 'km' ? `${(dist / 1000).toFixed(3)} km` : `${dist.toFixed(1)} m`;
+      if (state.showAzimuth) {
+        text += ` • ${brng.toFixed(1)}°`;
+      }
 
       const labelIcon = L.divIcon({
         className: 'segment-label-container',
         html: `<div class="segment-badge" style="transform: rotate(${-state.rotationAngle}deg);">${text}</div>`,
-        iconSize: [80, 20],
-        iconAnchor: [40, 10]
+        iconSize: [100, 20],
+        iconAnchor: [50, 10]
       });
       const labelMarker = L.marker([midLat, midLng], { icon: labelIcon, interactive: false }).addTo(state.map);
       state.segmentLabels.push(labelMarker);
@@ -1600,8 +1713,9 @@
       }
     }
 
-    function updateCoordsDisplay(lat, lng) {
-      document.getElementById('coord-geo').textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+    function updateCoordsDisplay(lat, lng, alt = null) {
+      const altStr = (alt !== null && !isNaN(alt)) ? ` (Alt: ${alt.toFixed(1)}m)` : ' (Alt: --)';
+      document.getElementById('coord-geo').textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}${altStr}`;
       document.getElementById('coord-dms').textContent = `${MathGeo.toDMS(lat, true)} ${MathGeo.toDMS(lng, false)}`;
       document.getElementById('coord-utm').textContent = MathGeo.toUTM(lat, lng);
       document.getElementById('coord-mgrs').textContent = MathGeo.toMGRS(lat, lng);
@@ -1724,7 +1838,7 @@
       state.selectedPointIndexForEdit = index;
       document.getElementById('edit-point-title').textContent = `Substituir Marco #${index + 1}`;
       document.getElementById('modal-edit-point').classList.add('active');
-      updateCoordsDisplay(state.points[index].lat, state.points[index].lng);
+      updateCoordsDisplay(state.points[index].lat, state.points[index].lng, state.points[index].alt);
     }
 
     /* 6. GPS CANOPY FILTER */
@@ -1757,6 +1871,7 @@
             stabilizerSamples.push({
               lat: pos.coords.latitude,
               lng: pos.coords.longitude,
+              alt: pos.coords.altitude,
               accuracy: pos.coords.accuracy
             });
             samplesEl.textContent = stabilizerSamples.length;
@@ -1787,25 +1902,32 @@
             let totalWeight = 0;
             let weightedLat = 0;
             let weightedLng = 0;
+            let validAltCount = 0;
+            let totalAlt = 0;
 
             filteredSamples.forEach(s => {
               const weight = 1 / Math.pow(s.accuracy, 2);
               totalWeight += weight;
               weightedLat += s.lat * weight;
               weightedLng += s.lng * weight;
+              if (s.alt !== null && !isNaN(s.alt)) {
+                totalAlt += s.alt;
+                validAltCount++;
+              }
             });
 
             const finalLat = weightedLat / totalWeight;
             const finalLng = weightedLng / totalWeight;
+            const finalAlt = validAltCount > 0 ? (totalAlt / validAltCount) : null;
 
             if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
 
             if (isReplacement && state.selectedPointIndexForEdit !== null) {
-              replacePoint(state.selectedPointIndexForEdit, finalLat, finalLng);
+              replacePoint(state.selectedPointIndexForEdit, finalLat, finalLng, finalAlt);
               state.selectedPointIndexForEdit = null;
             } else {
-              addPoint(finalLat, finalLng);
-              showToast(`Ponto Salvo com Sucesso!`);
+              addPoint(finalLat, finalLng, finalAlt);
+              showToast(`Ponto GPS Salvo com Sucesso!`);
             }
             state.map.flyTo([finalLat, finalLng], 19);
           } else {
@@ -1822,7 +1944,131 @@
       };
     }
 
-    /* 7. EVENT LISTENERS AND BINDINGS */
+    /* 7. PROFESSIONAL FILE EXPORTERS (KML, GEOJSON, CSV) */
+    function exportToKML() {
+      if (state.points.length === 0) {
+        showToast("Nenhum ponto para exportar.");
+        return;
+      }
+      let coordsStr = state.points.map(p => `${p.lng},${p.lat},${p.alt || 0}`).join('\n        ');
+      if (state.points.length >= 3) {
+        coordsStr += `\n        ${state.points[0].lng},${state.points[0].lat},${state.points[0].alt || 0}`;
+      }
+
+      let placemarks = state.points.map((p, i) => `
+    <Placemark>
+      <name>Marco #${i + 1}</name>
+      <Point>
+        <coordinates>${p.lng},${p.lat},${p.alt || 0}</coordinates>
+      </Point>
+    </Placemark>`).join('');
+
+      const kmlContent = `<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>${state.currentProjectName}</name>
+    <description>Levantamento Topográfico Glow Medidas</description>
+    <Style id="polyStyle">
+      <LineStyle><color>ffffe500</color><width>3</width></LineStyle>
+      <PolyStyle><color>4000e676</color></PolyStyle>
+    </Style>
+    <Placemark>
+      <name>${state.currentProjectName} - Perímetro</name>
+      <styleUrl>#polyStyle</styleUrl>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+        ${coordsStr}
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    ${placemarks}
+  </Document>
+</kml>`;
+
+      downloadFile(kmlContent, `${state.currentProjectName.replace(/\s+/g, '_')}.kml`, 'application/vnd.google-earth.kml+xml');
+      showToast("Arquivo KML exportado!");
+    }
+
+    function exportToGeoJSON() {
+      if (state.points.length === 0) {
+        showToast("Nenhum ponto para exportar.");
+        return;
+      }
+      const features = state.points.map((p, i) => ({
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [p.lng, p.lat, p.alt || 0]
+        },
+        properties: {
+          marco: i + 1,
+          latitude: p.lat,
+          longitude: p.lng,
+          altitude: p.alt || 0,
+          utm: MathGeo.toUTM(p.lat, p.lng)
+        }
+      }));
+
+      if (state.points.length >= 3) {
+        const ring = state.points.map(p => [p.lng, p.lat, p.alt || 0]);
+        ring.push([state.points[0].lng, state.points[0].lat, state.points[0].alt || 0]);
+        features.push({
+          type: "Feature",
+          geometry: {
+            type: "Polygon",
+            coordinates: [ring]
+          },
+          properties: {
+            name: state.currentProjectName,
+            area_m2: MathGeo.area(state.points)
+          }
+        });
+      }
+
+      const geoJsonObj = {
+        type: "FeatureCollection",
+        name: state.currentProjectName,
+        features: features
+      };
+
+      downloadFile(JSON.stringify(geoJsonObj, null, 2), `${state.currentProjectName.replace(/\s+/g, '_')}.geojson`, 'application/json');
+      showToast("Arquivo GeoJSON exportado!");
+    }
+
+    function exportToCSV() {
+      if (state.points.length === 0) {
+        showToast("Nenhum ponto para exportar.");
+        return;
+      }
+      let csv = "Marco,Latitude,Longitude,Altitude_m,DMS_Lat,DMS_Lng,UTM_WGS84\n";
+      state.points.forEach((p, i) => {
+        const dmsLat = MathGeo.toDMS(p.lat, true);
+        const dmsLng = MathGeo.toDMS(p.lng, false);
+        const utm = MathGeo.toUTM(p.lat, p.lng);
+        csv += `${i + 1},${p.lat.toFixed(6)},${p.lng.toFixed(6)},${p.alt ? p.alt.toFixed(2) : 0},"${dmsLat}","${dmsLng}","${utm}"\n`;
+      });
+
+      downloadFile(csv, `${state.currentProjectName.replace(/\s+/g, '_')}_marcos.csv`, 'text/csv;charset=utf-8;');
+      showToast("Planilha CSV exportada!");
+    }
+
+    function downloadFile(content, fileName, mimeType) {
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    /* 8. EVENT LISTENERS AND BINDINGS */
     document.addEventListener('DOMContentLoaded', async () => {
       initMap();
       await db.init();
@@ -1844,6 +2090,15 @@
         showToast("Norte Alinhado (0°)");
       };
 
+      // Toggle Azimuth
+      const btnAzimuth = document.getElementById('btn-toggle-azimuth');
+      btnAzimuth.onclick = () => {
+        state.showAzimuth = !state.showAzimuth;
+        btnAzimuth.classList.toggle('active', state.showAzimuth);
+        renderMapElements();
+        showToast(state.showAzimuth ? "Azimute Ativado nos Segmentos" : "Azimute Desativado");
+      };
+
       // GPS Locate
       document.getElementById('btn-locate').onclick = () => {
         showToast("Buscando localização...");
@@ -1852,12 +2107,13 @@
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
             const acc = pos.coords.accuracy;
-            updateUserLocationMarker(lat, lng, acc);
+            const alt = pos.coords.altitude;
+            updateUserLocationMarker(lat, lng, acc, alt);
             state.map.flyTo([lat, lng], 18, { animate: true, duration: 1 });
-            updateCoordsDisplay(lat, lng);
+            updateCoordsDisplay(lat, lng, alt);
             showToast(`Precisão GPS: ±${acc.toFixed(1)}m`);
           },
-          () => showToast("Ative a localização/GPS do telemóvel."),
+          () => showToast("Ative a localização/GPS do dispositivo."),
           { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
       };
@@ -1902,7 +2158,7 @@
 
       document.getElementById('btn-delete-single-point').onclick = () => {
         if (state.selectedPointIndexForEdit !== null) {
-          state.undoStack.push([...state.points]);
+          state.undoStack.push(JSON.parse(JSON.stringify(state.points)));
           state.redoStack = [];
           state.points.splice(state.selectedPointIndexForEdit, 1);
           renderMapElements();
@@ -1974,28 +2230,32 @@
 
       // Undo / Redo
       document.getElementById('btn-undo').onclick = () => {
-        if (state.points.length === 0) return;
-        state.redoStack.push([...state.points]);
-        state.points.pop();
-        renderMapElements();
-        updateMetrics();
-        saveActiveProject();
+        if (state.points.length === 0 && state.undoStack.length === 0) return;
+        if (state.undoStack.length > 0) {
+          state.redoStack.push(JSON.parse(JSON.stringify(state.points)));
+          state.points = state.undoStack.pop();
+          renderMapElements();
+          updateMetrics();
+          saveActiveProject();
+          showToast("Ação desfeita.");
+        }
       };
 
       document.getElementById('btn-redo').onclick = () => {
         if (state.redoStack.length === 0) return;
-        state.undoStack.push([...state.points]);
+        state.undoStack.push(JSON.parse(JSON.stringify(state.points)));
         state.points = state.redoStack.pop();
         renderMapElements();
         updateMetrics();
         saveActiveProject();
+        showToast("Ação refeita.");
       };
 
       // Clear
       document.getElementById('btn-clear').onclick = () => {
         if (state.points.length === 0) return;
         if (confirm("Apagar todos os pontos da medição atual?")) {
-          state.undoStack.push([...state.points]);
+          state.undoStack.push(JSON.parse(JSON.stringify(state.points)));
           state.points = [];
           renderMapElements();
           updateMetrics();
@@ -2004,7 +2264,7 @@
         }
       };
 
-      // Layers (Ciclo com Google Satélite HD do Brasil)
+      // Layers (Google Satélite HD por padrão)
       document.getElementById('btn-layer').onclick = () => {
         if (state.activeLayer === 'googleSat') {
           state.map.removeLayer(state.layers.googleSat);
@@ -2029,15 +2289,15 @@
         }
       };
 
-      // Trail Mode
+      // Trail Mode Autotracking
       const trailBtn = document.getElementById('btn-trail');
       trailBtn.onclick = () => {
         state.isTrailMode = !state.isTrailMode;
         if (state.isTrailMode) {
           trailBtn.classList.add('active');
-          showToast("Modo Trilha ATIVADO.");
+          showToast("Modo Trilha Autotracking ATIVADO.");
           state.trailWatchId = navigator.geolocation.watchPosition(
-            pos => addPoint(pos.coords.latitude, pos.coords.longitude),
+            pos => addPoint(pos.coords.latitude, pos.coords.longitude, pos.coords.altitude),
             err => console.warn(err),
             { enableHighAccuracy: true, distanceFilter: 3 }
           );
@@ -2093,25 +2353,25 @@
           if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(text).then(() => showToast("Copiado!")).catch(() => showToast("Erro ao copiar."));
           } else {
-            showToast("Área de transferência não acessível.");
+            showToast("Área de transferência indisponível.");
           }
         };
       });
 
-      // Export JSON
+      // Export Handlers
+      document.getElementById('btn-export-kml').onclick = exportToKML;
+      document.getElementById('btn-export-geojson').onclick = exportToGeoJSON;
+      document.getElementById('btn-export-csv').onclick = exportToCSV;
+
+      // Export JSON Backup
       document.getElementById('btn-export-json').onclick = async () => {
         const projects = await db.getAllProjects();
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projects, null, 2));
-        const downloadAnchor = document.createElement('a');
-        downloadAnchor.setAttribute("href", dataStr);
-        downloadAnchor.setAttribute("download", `GlowMedidas_Backup_${new Date().toISOString().slice(0,10)}.json`);
-        document.body.appendChild(downloadAnchor);
-        downloadAnchor.click();
-        downloadAnchor.remove();
+        downloadFile(JSON.stringify(projects, null, 2), `GlowMedidas_Backup_${new Date().toISOString().slice(0,10)}.json`, 'application/json');
         showToast("Backup JSON exportado!");
       };
 
-      // Import JSON - UNIVERSAL & COMPATÍVEL COM TODOS OS BACKUPS
+      // Import JSON Universal File Reader
       document.getElementById('btn-import-trigger').onclick = () => {
         document.getElementById('file-import').click();
       };
@@ -2125,7 +2385,6 @@
             let importedData = JSON.parse(event.target.result);
             let projectsToImport = [];
 
-            // Suporta backups do Globo Medidas, arrays de projetos ou projeto isolado
             if (Array.isArray(importedData)) {
               projectsToImport = importedData;
             } else if (typeof importedData === 'object' && importedData !== null) {
@@ -2152,8 +2411,9 @@
                 rawPts.forEach(pt => {
                   let lat = pt.lat ?? pt.latitude ?? pt[0];
                   let lng = pt.lng ?? pt.longitude ?? pt.lon ?? pt[1];
+                  let alt = pt.alt ?? pt.altitude ?? pt[2] ?? null;
                   if (typeof lat === 'number' && typeof lng === 'number') {
-                    cleanPoints.push({ lat, lng, timestamp: pt.timestamp || Date.now() });
+                    cleanPoints.push({ lat, lng, alt, timestamp: pt.timestamp || Date.now() });
                   }
                 });
 
@@ -2172,14 +2432,14 @@
               settingsModal.classList.remove('active');
               showToast(`${count} projeto(s) importado(s) com sucesso!`);
             } else {
-              showToast("Nenhum dado de projeto reconhecido no ficheiro.");
+              showToast("Nenhum projeto válido encontrado no arquivo.");
             }
           } catch (err) {
-            showToast("Erro ao ler o ficheiro de backup.");
+            showToast("Erro ao processar o arquivo.");
           }
         };
         reader.readAsText(file);
-        e.target.value = ''; // Permite selecionar o mesmo arquivo novamente se necessário
+        e.target.value = '';
       };
     });
   </script>
