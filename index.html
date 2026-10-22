@@ -1,922 +1,1419 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulação do 2º Turno - Eleições 2026</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js para o Gráfico de Linha do Tempo -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Google Font Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulação Eleições 2026 - 2º Turno</title>
+  
+  <!-- Fontes Google -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Rawline:wght@700&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js para Gráfico da Linha do Tempo -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-        /* Estilo da tela LCD da Urna Eletrônica */
-        .screen-lcd {
-            background-color: #f0f4f1;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.15);
-            font-family: 'Courier New', Courier, monospace;
-        }
+  <style>
+    :root {
+      --bg-green-top: #0a703a;
+      --bg-yellow: #ffcc00;
+      --bg-page: #eaf1ea;
+      --card-bg: #ffffff;
+      --bolsonaro-blue: #1d52a8;
+      --lula-red: #c81a27;
+      --text-dark: #1f2937;
+      --text-muted: #6b7280;
+      --urna-body: #d1d5db;
+      --urna-screen: #f8fafc;
+      --btn-confirm: #22c55e;
+      --btn-corrige: #f97316;
+      --btn-branco: #ffffff;
+    }
 
-        /* Animação do Piscar da Etapa */
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
-        }
-        .blink {
-            animation: blink 1s infinite;
-        }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
 
-        /* Estilos dos Botões da Urna */
-        .btn-key {
-            background: linear-gradient(180deg, #333 0%, #1a1a1a 100%);
-            color: #fff;
-            border-bottom: 4px solid #000;
-            transition: all 0.1s ease;
-        }
-        .btn-key:active {
-            transform: translateY(2px);
-            border-bottom-width: 2px;
-        }
-        .btn-white {
-            background: linear-gradient(180deg, #ffffff 0%, #e0e0e0 100%);
-            color: #000;
-            border-bottom: 4px solid #aaa;
-        }
-        .btn-corrige {
-            background: linear-gradient(180deg, #ff6b35 0%, #d84315 100%);
-            color: #000;
-            border-bottom: 4px solid #992400;
-            font-weight: bold;
-        }
-        .btn-confirma {
-            background: linear-gradient(180deg, #00c853 0%, #00872c 100%);
-            color: #000;
-            border-bottom: 4px solid #005018;
-            font-weight: bold;
-        }
+    body {
+      background-color: var(--bg-page);
+      color: var(--text-dark);
+      padding-bottom: 40px;
+    }
 
-        /* Borda estilizada e sombras */
-        .urna-frame {
-            background: #dcdcdc;
-            border: 2px solid #bbb;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
-        }
-    </style>
+    /* HEADER BANNER */
+    .header-banner {
+      background: linear-gradient(135deg, var(--bg-green-top) 0%, #064e27 100%);
+      color: white;
+      padding: 16px 16px 24px 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header-banner::after {
+      content: '';
+      position: absolute;
+      top: -30px;
+      right: -30px;
+      width: 120px;
+      height: 120px;
+      background: var(--bg-yellow);
+      border-radius: 50%;
+      opacity: 0.8;
+      z-index: 1;
+    }
+
+    .header-content {
+      max-width: 500px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 2;
+    }
+
+    .header-tag {
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--bg-yellow);
+      margin-bottom: 4px;
+    }
+
+    .header-title {
+      font-size: 1.6rem;
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 12px;
+    }
+
+    .header-title span {
+      color: var(--bg-yellow);
+    }
+
+    .timers-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .timer-card {
+      background: rgba(255, 255, 255, 0.95);
+      color: #000;
+      border-radius: 12px;
+      padding: 8px 10px;
+      text-align: center;
+    }
+
+    .timer-title {
+      font-size: 0.7rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+      color: #1f2937;
+    }
+
+    .timer-boxes {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .timer-box {
+      background: #f1f5f9;
+      border-radius: 4px;
+      padding: 2px 4px;
+      min-width: 26px;
+    }
+
+    .timer-num {
+      font-size: 0.9rem;
+      font-weight: 900;
+      color: #0369a1;
+      line-height: 1;
+    }
+
+    .timer-lbl {
+      font-size: 0.55rem;
+      color: #64748b;
+    }
+
+    .disclaimer-box {
+      background: rgba(0, 0, 0, 0.25);
+      border-left: 3px solid var(--bg-yellow);
+      padding: 8px 10px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      line-height: 1.3;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    /* MAIN CONTAINER */
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 0 12px;
+    }
+
+    /* PISCANTE E DESTAQUE DO PIX */
+    .pix-alert-box {
+      background: #ffffff;
+      border: 2px solid #10b981;
+      border-radius: 14px;
+      padding: 12px;
+      margin: 14px 0;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+      animation: pulse-border 1.5s infinite alternate;
+    }
+
+    @keyframes pulse-border {
+      0% {
+        border-color: #10b981;
+        box-shadow: 0 0 5px rgba(16, 185, 129, 0.4);
+      }
+      100% {
+        border-color: #059669;
+        box-shadow: 0 0 18px rgba(16, 185, 129, 0.85);
+      }
+    }
+
+    .pix-title-blink {
+      font-weight: 900;
+      color: #047857;
+      font-size: 0.95rem;
+      text-align: center;
+      margin-bottom: 8px;
+      animation: blink-text 1s infinite alternate;
+    }
+
+    @keyframes blink-text {
+      0% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0.85; transform: scale(1.02); }
+    }
+
+    .pix-field {
+      display: flex;
+      gap: 6px;
+      background: #f0fdf4;
+      border: 1px dashed #059669;
+      border-radius: 8px;
+      padding: 6px;
+      align-items: center;
+    }
+
+    .pix-key-text {
+      font-family: monospace;
+      font-size: 0.78rem;
+      word-break: break-all;
+      flex: 1;
+      color: #064e3b;
+      font-weight: 700;
+    }
+
+    .btn-copy-pix {
+      background: #059669;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.75rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s;
+    }
+
+    .btn-copy-pix:active {
+      background: #047857;
+    }
+
+    /* APURAÇÃO CARD */
+    .apuracao-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      margin-bottom: 14px;
+    }
+
+    .apuracao-header {
+      background: #0f172a;
+      color: white;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .apuracao-title {
+      font-weight: 800;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .live-dot {
+      width: 10px;
+      height: 10px;
+      background: #22c55e;
+      border-radius: 50%;
+      display: inline-block;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0% { opacity: 1; }
+      50% { opacity: 0.3; }
+      100% { opacity: 1; }
+    }
+
+    .votos-total-header {
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: #38bdf8;
+    }
+
+    .recent-votos-sub {
+      background: #f8fafc;
+      padding: 6px 14px;
+      font-size: 0.75rem;
+      color: #059669;
+      font-weight: 700;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .candidates-comparison {
+      padding: 16px 12px;
+    }
+
+    .candidates-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .cand-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cand-box.right {
+      flex-direction: row-reverse;
+      text-align: right;
+    }
+
+    .cand-photo-thumb {
+      width: 54px;
+      height: 68px;
+      border-radius: 6px;
+      object-fit: cover;
+      border: 2px solid #cbd5e1;
+    }
+
+    .cand-box.bolsonaro .cand-photo-thumb {
+      border-color: var(--bolsonaro-blue);
+    }
+
+    .cand-box.lula .cand-photo-thumb {
+      border-color: var(--lula-red);
+    }
+
+    .cand-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: white;
+      font-weight: 800;
+      font-size: 0.7rem;
+      margin-bottom: 2px;
+    }
+
+    .badge-22 { background: var(--bolsonaro-blue); }
+    .badge-13 { background: var(--lula-red); }
+
+    .cand-name-title {
+      font-weight: 800;
+      font-size: 0.85rem;
+      line-height: 1.1;
+    }
+
+    .cand-percent {
+      font-size: 1.4rem;
+      font-weight: 900;
+      line-height: 1;
+      margin-top: 4px;
+    }
+
+    .cand-box.bolsonaro .cand-percent { color: var(--bolsonaro-blue); }
+    .cand-box.lula .cand-percent { color: var(--lula-red); }
+
+    /* BARRA DE PROGRESSO */
+    .progress-bar-container {
+      height: 14px;
+      background: #e2e8f0;
+      border-radius: 7px;
+      overflow: hidden;
+      display: flex;
+      margin-bottom: 6px;
+    }
+
+    .progress-fill-22 {
+      height: 100%;
+      background: var(--bolsonaro-blue);
+      transition: width 0.5s ease;
+    }
+
+    .progress-fill-13 {
+      height: 100%;
+      background: var(--lula-red);
+      transition: width 0.5s ease;
+    }
+
+    .progress-subtext {
+      text-align: center;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+
+    /* URNA ELETRÔNICA COMPONENT */
+    .urna-wrapper {
+      background: #c3c8cf;
+      border: 3px solid #94a3b8;
+      border-radius: 18px;
+      padding: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      margin-bottom: 16px;
+    }
+
+    .urna-top-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 4px 8px 4px;
+      font-weight: 800;
+      font-size: 0.75rem;
+      color: #334155;
+      letter-spacing: 1px;
+    }
+
+    .tse-seal-dot {
+      width: 10px;
+      height: 10px;
+      background: #22c55e;
+      border-radius: 50%;
+      box-shadow: 0 0 6px #22c55e;
+    }
+
+    .urna-body-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* TELA DA URNA */
+    .urna-screen {
+      background: #f8fafc;
+      border: 3px solid #334155;
+      border-radius: 10px;
+      min-height: 210px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .screen-header-role {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+    }
+
+    .candidate-display-area {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: 10px;
+    }
+
+    .candidate-text-info {
+      flex: 1;
+    }
+
+    .candidate-name-large {
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #0f172a;
+      margin-top: 4px;
+    }
+
+    .candidate-party {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #475569;
+    }
+
+    .number-boxes {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .num-digit-box {
+      width: 28px;
+      height: 36px;
+      border: 2px solid #0f172a;
+      font-size: 1.3rem;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+    }
+
+    .num-digit-box.blink {
+      animation: cursor-blink 0.8s infinite;
+    }
+
+    @keyframes cursor-blink {
+      0%, 100% { border-color: #0f172a; }
+      50% { border-color: transparent; }
+    }
+
+    .candidate-screen-photo {
+      width: 85px;
+      height: 110px;
+      border: 2px solid #0f172a;
+      object-fit: cover;
+      background: #e2e8f0;
+    }
+
+    .screen-footer-instructions {
+      border-top: 1px solid #cbd5e1;
+      padding-top: 6px;
+      margin-top: 10px;
+      font-size: 0.65rem;
+      color: #475569;
+      line-height: 1.2;
+    }
+
+    .screen-voted-msg {
+      text-align: center;
+      padding: 30px 10px;
+    }
+
+    .screen-voted-msg h2 {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+
+    .screen-voted-msg p {
+      font-size: 0.85rem;
+      color: #475569;
+      font-weight: 700;
+    }
+
+    .screen-fim {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      min-height: 180px;
+      font-size: 3rem;
+      font-weight: 900;
+      letter-spacing: 4px;
+      color: #0f172a;
+    }
+
+    /* TECLADO DA URNA */
+    .urna-keypad {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 14px 10px;
+    }
+
+    .numeric-keys-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      max-width: 260px;
+      margin: 0 auto 12px auto;
+    }
+
+    .key-btn {
+      background: #0f172a;
+      color: white;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      height: 42px;
+      font-size: 1.2rem;
+      font-weight: 800;
+      box-shadow: 0 4px 0 #000;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .key-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #000;
+    }
+
+    .key-btn.key-zero {
+      grid-column: 2;
+    }
+
+    .action-keys-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .btn-action {
+      height: 40px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      box-shadow: 0 3px 0 rgba(0,0,0,0.4);
+      cursor: pointer;
+    }
+
+    .btn-action:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 rgba(0,0,0,0.4);
+    }
+
+    .btn-branco { background: var(--btn-branco); color: #0f172a; }
+    .btn-corrige { background: var(--btn-corrige); color: white; }
+    .btn-confirma { background: var(--btn-confirma); color: #064e3b; font-size: 0.75rem; }
+
+    /* LISTA COMPLETA DOS VOTOS */
+    .votos-breakdown-card {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    .votos-breakdown-title {
+      font-size: 0.85rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    .voto-item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px dashed #e2e8f0;
+    }
+
+    .voto-item-row:last-child {
+      border-bottom: none;
+    }
+
+    .voto-item-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .voto-badge-sq {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      color: white;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+    }
+
+    .badge-b { background: #64748b; }
+    .badge-n { background: #475569; }
+
+    .voto-item-name {
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+
+    .voto-item-sub {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .voto-item-right {
+      text-align: right;
+    }
+
+    .voto-item-pct {
+      font-weight: 800;
+      font-size: 0.95rem;
+    }
+
+    .voto-item-count {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    /* LINHA DO TEMPO / CHART */
+    .chart-section-card {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    .chart-section-title {
+      font-size: 1.1rem;
+      font-weight: 900;
+      margin-bottom: 4px;
+    }
+
+    .chart-section-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .chart-container-box {
+      position: relative;
+      height: 180px;
+      width: 100%;
+    }
+
+    /* FOOTER DONATION CARD */
+    .footer-support-card {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      border-left: 5px solid #059669;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      margin-bottom: 20px;
+    }
+
+    .support-title {
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #065f46;
+      margin-bottom: 6px;
+    }
+
+    .support-text {
+      font-size: 0.8rem;
+      color: #374151;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+
+    .qr-container {
+      text-align: center;
+      margin: 12px 0;
+    }
+
+    .qr-img-box {
+      width: 140px;
+      height: 140px;
+      border: 2px solid #059669;
+      border-radius: 12px;
+      padding: 6px;
+      background: white;
+    }
+
+    .contact-info-list {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid #e2e8f0;
+      font-size: 0.75rem;
+      color: #4b5563;
+    }
+
+    .contact-item {
+      margin-bottom: 4px;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .contact-item a {
+      color: #0284c7;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .site-footer-bar {
+      background: #064e3b;
+      color: #a7f3d0;
+      padding: 14px;
+      text-align: center;
+      font-size: 0.7rem;
+      border-radius: 12px;
+    }
+
+    .site-footer-bar a {
+      color: #ffffff;
+      font-weight: 700;
+      text-decoration: none;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 text-gray-800 antialiased min-h-screen pb-12">
+<body>
 
-    <!-- HEADER / BANNER DE NAVEGAÇÃO SUPERIOR -->
-    <header class="bg-[#006029] text-white overflow-hidden relative shadow-md">
-        <!-- Detalhe em amarelo idêntico à imagem -->
-        <div class="absolute top-0 right-0 w-32 h-32 bg-yellow-400 rounded-bl-full opacity-90 pointer-events-none transform translate-x-8 -translate-y-8"></div>
-        <div class="absolute top-4 right-6 w-16 h-16 bg-blue-900 rounded-full pointer-events-none opacity-80"></div>
+  <!-- CABEÇALHO COM TIMERS -->
+  <header class="header-banner">
+    <div class="header-content">
+      <div class="header-tag">Eleições 2026 • Presidente da República</div>
+      <h1 class="header-title">Simulação do <span>2º turno</span></h1>
 
-        <div class="max-w-3xl mx-auto px-4 pt-6 pb-6 relative z-10">
-            <h2 class="text-xs font-bold tracking-widest text-yellow-300 uppercase mb-1">ELEIÇÕES 2026 · PRESIDENTE DA REPÚBLICA</h2>
-            <h1 class="text-3xl sm:text-4xl font-black text-white tracking-tight mb-4">
-                Simulação do <span class="text-yellow-400">2º turno</span>
-            </h1>
-
-            <!-- CARDS DE CONTAGEM REGRESSIVA -->
-            <div class="grid grid-cols-2 gap-3 mb-4">
-                <!-- Card 2º Turno -->
-                <div class="bg-white/95 rounded-xl p-3 text-gray-900 shadow-sm border border-gray-100">
-                    <p class="text-xs sm:text-sm font-bold text-gray-800 mb-2 border-b pb-1">2º turno · 25/10</p>
-                    <div class="grid grid-cols-4 gap-1 text-center" id="timer-turno">
-                        <div class="bg-gray-100 rounded p-1"><span class="block text-sm sm:text-base font-extrabold text-emerald-800" id="t1-d">0</span><span class="text-[9px] text-gray-500 uppercase">dias</span></div>
-                        <div class="bg-gray-100 rounded p-1"><span class="block text-sm sm:text-base font-extrabold text-emerald-800" id="t1-h">0</span><span class="text-[9px] text-gray-500 uppercase">h</span></div>
-                        <div class="bg-gray-100 rounded p-1"><span class="block text-sm sm:text-base font-extrabold text-emerald-800" id="t1-m">0</span><span class="text-[9px] text-gray-500 uppercase">min</span></div>
-                        <div class="bg-gray-100 rounded p-1"><span class="block text-sm sm:text-base font-extrabold text-emerald-800" id="t1-s">0</span><span class="text-[9px] text-gray-500 uppercase">s</span></div>
-                    </div>
-                </div>
-
-                <!-- Card Debate Globo -->
-                <div class="bg-white/95 rounded-xl p-3 text-gray-900 shadow-sm border border-gray-100">
-                    <p class="text-xs sm:text-sm font-bold text-gray-800 mb-2 border-b pb-1">Debate Globo · 23/10</p>
-                    <div class="grid grid-cols-4 gap-1 text-center" id="timer-debate">
-                        <div class="bg-gray-100 rounded p-1"><span class="block text-sm sm:text-base font-extrabold text-blue-900" id="t2-d">0</span><span class="text-[9px] text-gray-500 uppercase">dias</span></div>
-                        <div class="bg-gray-100 rounded p-1"><span class="block text-sm sm:text-base font-extrabold text-blue-900" id="t2-h">0</span><span class="text-[9px] text-gray-500 uppercase">h</span></div>
-                        <div class="bg-gray-100 rounded p-1"><span class="block text-sm sm:text-base font-extrabold text-blue-900" id="t2-m">0</span><span class="text-[9px] text-gray-500 uppercase">min</span></div>
-                        <div class="bg-gray-100 rounded p-1"><span class="block text-sm sm:text-base font-extrabold text-blue-900" id="t2-s">0</span><span class="text-[9px] text-gray-500 uppercase">s</span></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- AVISO LEGAL DESTAQUE -->
-            <div class="bg-[#004d20] border border-yellow-500/40 rounded-lg p-3 text-xs sm:text-sm text-yellow-200 flex items-start space-x-2">
-                <i class="fa-solid fa-circle-info text-yellow-400 mt-0.5 text-base flex-shrink-0"></i>
-                <p class="leading-snug">Brincadeira interativa. Não é pesquisa eleitoral, não tem registro no TSE e não tem valor estatístico.</p>
-            </div>
-        </div>
-    </header>
-
-    <!-- CONTEÚDO PRINCIPAL -->
-    <main class="max-w-3xl mx-auto px-3 sm:px-4 mt-4 space-y-4">
-
-        <!-- BLOCO DE DOAÇÃO PIX RÁPIDA -->
-        <div class="bg-white rounded-xl p-3 sm:p-4 border border-teal-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div class="flex items-center space-x-3 w-full sm:w-auto">
-                <span class="bg-teal-500 text-white text-xs font-black px-2.5 py-1 rounded">PIX</span>
-                <span class="text-xs sm:text-sm font-semibold text-gray-700">Ajude a manter o site online</span>
-            </div>
-            <button onclick="copyPixKey()" class="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs sm:text-sm py-2 px-4 rounded-lg transition duration-200 flex items-center justify-center space-x-2 shadow">
-                <i class="fa-regular fa-copy"></i>
-                <span>Copiar chave</span>
-            </button>
+      <div class="timers-grid">
+        <div class="timer-card">
+          <div class="timer-title">2º turno • 25/10</div>
+          <div class="timer-boxes">
+            <div class="timer-box"><div class="timer-num" id="t1-d">0</div><div class="timer-lbl">dias</div></div>
+            <div class="timer-box"><div class="timer-num" id="t1-h">0</div><div class="timer-lbl">h</div></div>
+            <div class="timer-box"><div class="timer-num" id="t1-m">0</div><div class="timer-lbl">min</div></div>
+            <div class="timer-box"><div class="timer-num" id="t1-s">0</div><div class="timer-lbl">s</div></div>
+          </div>
         </div>
 
-        <!-- SEÇÃO APURAÇÃO AO VIVO -->
-        <section class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-            <!-- Header Apuração -->
-            <div class="bg-[#001e50] text-white p-4 flex flex-wrap items-center justify-between gap-2">
-                <div class="flex items-center space-x-2">
-                    <span class="text-base sm:text-lg font-black tracking-wider uppercase">APURAÇÃO</span>
-                    <span class="flex items-center text-xs font-bold bg-green-500 text-black px-2 py-0.5 rounded-full animate-pulse">
-                        <span class="w-2 h-2 bg-white rounded-full mr-1.5"></span>AO VIVO
-                    </span>
-                </div>
-                <div class="text-right">
-                    <span class="text-xl sm:text-2xl font-black text-white" id="total-votos-header">0</span>
-                    <span class="text-xs text-blue-200 ml-1">votos</span>
-                </div>
-            </div>
-
-            <!-- Votos recentes -->
-            <div class="bg-emerald-50/60 border-b border-emerald-100 px-4 py-2 text-xs sm:text-sm font-medium text-emerald-800 flex items-center">
-                <span class="w-2 h-2 bg-emerald-500 rounded-full mr-2"></span>
-                <span id="votos-5min">0</span>&nbsp;votos nos últimos 5 minutos
-            </div>
-
-            <!-- APURAÇÃO DOS CANDIDATOS -->
-            <div class="p-4 sm:p-6">
-                <div class="grid grid-cols-2 gap-4 items-center">
-                    <!-- Flávio Bolsonaro (22) -->
-                    <div class="flex items-center space-x-3">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Fl%C3%A1vio_Bolsonaro_em_2023.jpg/400px-Fl%C3%A1vio_Bolsonaro_em_2023.jpg" 
-                             alt="Flávio Bolsonaro" 
-                             onerror="this.src='https://placehold.co/100x120/003366/ffffff?text=22'"
-                             class="w-14 h-16 sm:w-20 sm:h-24 object-cover rounded-lg shadow-md border-2 border-blue-600 bg-gray-200">
-                        <div>
-                            <span class="bg-blue-700 text-white text-xs font-extrabold px-1.5 py-0.5 rounded">22</span>
-                            <h3 class="text-sm sm:text-base font-bold text-gray-900 leading-tight mt-1">Flávio Bolsonaro</h3>
-                            <div class="text-2xl sm:text-3xl font-black text-blue-800 mt-0.5" id="perc-22">0,0%</div>
-                            <p class="text-[11px] text-gray-500 font-medium" id="count-22">0 votos</p>
-                        </div>
-                    </div>
-
-                    <!-- Lula (13) -->
-                    <div class="flex items-center justify-end space-x-3 text-right">
-                        <div>
-                            <span class="bg-red-600 text-white text-xs font-extrabold px-1.5 py-0.5 rounded">13</span>
-                            <h3 class="text-sm sm:text-base font-bold text-gray-900 leading-tight mt-1">Lula</h3>
-                            <div class="text-2xl sm:text-3xl font-black text-red-600 mt-0.5" id="perc-13">0,0%</div>
-                            <p class="text-[11px] text-gray-500 font-medium" id="count-13">0 votos</p>
-                        </div>
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Lula_-_Foto_oficial_05_jan_2023_%28cropped%29.jpg/400px-Lula_-_Foto_oficial_05_jan_2023_%28cropped%29.jpg" 
-                             alt="Lula" 
-                             onerror="this.src='https://placehold.co/100x120/cc0000/ffffff?text=13'"
-                             class="w-14 h-16 sm:w-20 sm:h-24 object-cover rounded-lg shadow-md border-2 border-red-600 bg-gray-200">
-                    </div>
-                </div>
-
-                <!-- Barra Proporcional de Votos -->
-                <div class="mt-5">
-                    <div class="w-full bg-gray-200 h-5 rounded-full overflow-hidden flex shadow-inner">
-                        <div id="bar-22" class="bg-blue-700 h-full transition-all duration-500" style="width: 50%;"></div>
-                        <div id="bar-13" class="bg-red-600 h-full transition-all duration-500" style="width: 50%;"></div>
-                    </div>
-                    <p class="text-center text-[11px] text-gray-500 mt-2">
-                        Percentual de votos válidos, sem brancos e nulos, como o TSE calcula o resultado.
-                    </p>
-                </div>
-            </div>
-        </section>
-
-        <!-- SEÇÃO DA URNA ELETRÔNICA INTERATIVA -->
-        <section class="bg-gray-300 rounded-2xl p-3 sm:p-5 urna-frame">
-            <div class="bg-gray-100 rounded-xl p-3 border border-gray-400">
-                <div class="flex items-center justify-between pb-2 mb-3 border-b border-gray-300">
-                    <div class="flex items-center space-x-2">
-                        <div class="w-4 h-4 rounded-full bg-yellow-500 border border-yellow-600"></div>
-                        <span class="text-xs font-black text-gray-600 tracking-wider">JUSTIÇA ELEITORAL</span>
-                    </div>
-                    <span class="flex h-2.5 w-2.5 relative">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
-                    </span>
-                </div>
-
-                <!-- TELA + TECLADO -->
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                    
-                    <!-- LCD SCREEN (7 Cols no MD) -->
-                    <div class="md:col-span-7 screen-lcd rounded-lg p-3 sm:p-4 min-h-[260px] flex flex-col justify-between border-2 border-gray-400 relative overflow-hidden">
-                        
-                        <!-- Conteúdo Normal de Votação -->
-                        <div id="lcd-content" class="h-full flex flex-col justify-between">
-                            <div>
-                                <p class="text-[11px] uppercase tracking-wider font-bold text-gray-700">SEU VOTO VAI PARA</p>
-                                <h4 class="text-sm font-black text-gray-900 mt-1 uppercase">PRESIDENTE</h4>
-                            </div>
-
-                            <!-- Campos de Número -->
-                            <div class="my-2 flex items-center space-x-2">
-                                <span class="text-xs font-bold text-gray-600">Número:</span>
-                                <div class="flex space-x-1" id="digit-boxes">
-                                    <div class="w-7 h-9 border-2 border-gray-800 bg-white text-gray-900 font-extrabold text-xl flex items-center justify-center shadow-inner" id="digit-1"></div>
-                                    <div class="w-7 h-9 border-2 border-gray-800 bg-white text-gray-900 font-extrabold text-xl flex items-center justify-center shadow-inner" id="digit-2"></div>
-                                </div>
-                            </div>
-
-                            <!-- Informações do Candidato e Foto -->
-                            <div class="flex items-end justify-between min-h-[90px] border-t border-gray-300 pt-2">
-                                <div id="cand-info" class="space-y-1 hidden">
-                                    <p class="text-xs text-gray-600">Nome: <strong id="cand-name" class="text-gray-900 uppercase">---</strong></p>
-                                    <p class="text-xs text-gray-600">Partido: <strong id="cand-party" class="text-gray-900">---</strong></p>
-                                </div>
-                                <div id="cand-photo-container" class="hidden">
-                                    <img id="cand-photo" src="" alt="Candidato" class="w-16 h-20 object-cover border-2 border-gray-700 rounded bg-white">
-                                </div>
-                            </div>
-
-                            <!-- Instruções no Rodapé da Tela -->
-                            <div class="border-t border-gray-400 pt-1 text-[10px] text-gray-700 font-sans">
-                                Aperte a tecla:<br>
-                                <span class="font-bold">VERDE</span> para CONFIRMAR este voto<br>
-                                <span class="font-bold">LARANJA</span> para REINICIAR este voto
-                            </div>
-                        </div>
-
-                        <!-- Tela FIM -->
-                        <div id="lcd-fim" class="absolute inset-0 bg-[#f0f4f1] flex flex-col items-center justify-center hidden z-20">
-                            <h2 class="text-5xl font-black tracking-widest text-gray-800">F I M</h2>
-                            <p class="text-xs font-bold text-emerald-700 mt-2 uppercase tracking-wide">VOTO GRAVADO</p>
-                        </div>
-
-                        <!-- Bloqueio de Voto Repetido -->
-                        <div id="lcd-already-voted" class="absolute inset-0 bg-[#f0f4f1] p-4 flex flex-col items-center justify-center text-center hidden z-20">
-                            <i class="fa-solid fa-circle-check text-emerald-600 text-4xl mb-2"></i>
-                            <h3 class="text-base font-bold text-gray-800">VOCÊ JÁ VOTOU!</h3>
-                            <p class="text-xs text-gray-600 mt-1" id="already-voted-msg">Seu voto foi computado com sucesso.</p>
-                            <button onclick="resetUserVote()" class="mt-4 bg-gray-200 hover:bg-gray-300 text-gray-700 text-[10px] font-bold py-1 px-3 rounded border border-gray-400">
-                                Simulador: Votar novamente
-                            </button>
-                        </div>
-
-                    </div>
-
-                    <!-- TECLADO NUMÉRICO (5 Cols no MD) -->
-                    <div class="md:col-span-5 bg-zinc-900 p-4 rounded-lg flex flex-col justify-between shadow-inner">
-                        <div class="grid grid-cols-3 gap-2 mb-3">
-                            <button onclick="pressKey('1')" class="btn-key py-2.5 rounded font-bold text-lg">1</button>
-                            <button onclick="pressKey('2')" class="btn-key py-2.5 rounded font-bold text-lg">2</button>
-                            <button onclick="pressKey('3')" class="btn-key py-2.5 rounded font-bold text-lg">3</button>
-                            <button onclick="pressKey('4')" class="btn-key py-2.5 rounded font-bold text-lg">4</button>
-                            <button onclick="pressKey('5')" class="btn-key py-2.5 rounded font-bold text-lg">5</button>
-                            <button onclick="pressKey('6')" class="btn-key py-2.5 rounded font-bold text-lg">6</button>
-                            <button onclick="pressKey('7')" class="btn-key py-2.5 rounded font-bold text-lg">7</button>
-                            <button onclick="pressKey('8')" class="btn-key py-2.5 rounded font-bold text-lg">8</button>
-                            <button onclick="pressKey('9')" class="btn-key py-2.5 rounded font-bold text-lg">9</button>
-                            <div class="col-span-1"></div>
-                            <button onclick="pressKey('0')" class="btn-key py-2.5 rounded font-bold text-lg">0</button>
-                            <div class="col-span-1"></div>
-                        </div>
-
-                        <!-- Botões de Ação da Urna -->
-                        <div class="grid grid-cols-3 gap-1.5 text-xs">
-                            <button onclick="pressBranco()" class="btn-white py-3 rounded uppercase text-[10px] sm:text-xs">Branco</button>
-                            <button onclick="pressCorrige()" class="btn-corrige py-3 rounded uppercase text-[10px] sm:text-xs">Corrige</button>
-                            <button onclick="pressConfirma()" class="btn-confirma py-3 rounded uppercase text-[10px] sm:text-xs">Confirma</button>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </section>
-
-        <!-- SEÇÃO TODOS OS VOTOS (DETALHAMENTO) -->
-        <section class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-200">
-            <h3 class="text-base font-bold text-gray-900 mb-3 flex items-center">
-                <i class="fa-solid fa-chart-pie text-emerald-600 mr-2"></i> Todos os Votos Contabilizados
-            </h3>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-                <div class="bg-blue-50 border border-blue-200 p-3 rounded-xl">
-                    <span class="text-xs text-blue-800 font-bold block">Flávio Bolsonaro (22)</span>
-                    <span class="text-xl font-black text-blue-900" id="det-22">0</span>
-                    <span class="text-[10px] text-blue-600 block" id="det-perc-22">0,0%</span>
-                </div>
-                <div class="bg-red-50 border border-red-200 p-3 rounded-xl">
-                    <span class="text-xs text-red-800 font-bold block">Lula (13)</span>
-                    <span class="text-xl font-black text-red-900" id="det-13">0</span>
-                    <span class="text-[10px] text-red-600 block" id="det-perc-13">0,0%</span>
-                </div>
-                <div class="bg-gray-50 border border-gray-200 p-3 rounded-xl">
-                    <span class="text-xs text-gray-700 font-bold block">Votos Brancos</span>
-                    <span class="text-xl font-black text-gray-800" id="det-branco">0</span>
-                    <span class="text-[10px] text-gray-500 block" id="det-perc-branco">0,0%</span>
-                </div>
-                <div class="bg-gray-50 border border-gray-200 p-3 rounded-xl">
-                    <span class="text-xs text-gray-700 font-bold block">Votos Nulos</span>
-                    <span class="text-xl font-black text-gray-800" id="det-nulo">0</span>
-                    <span class="text-[10px] text-gray-500 block" id="det-perc-nulo">0,0%</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- SEÇÃO GRÁFICO E ESTATÍSTICAS DA LINHA DO TEMPO -->
-        <section class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-200 space-y-4">
-            <h3 class="text-base font-bold text-gray-900 flex items-center">
-                <i class="fa-solid fa-chart-line text-blue-600 mr-2"></i> Evolução dos Votos na Linha do Tempo
-            </h3>
-
-            <!-- Canvas Chart.js -->
-            <div class="relative h-64 w-full">
-                <canvas id="timelineChart"></canvas>
-            </div>
-
-            <!-- Métrica e Destaques -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-                <div class="bg-gray-50 p-2.5 rounded-lg border border-gray-200 text-center">
-                    <span class="text-[10px] uppercase font-bold text-gray-500 block">Pico do 22</span>
-                    <span class="text-sm font-extrabold text-blue-700" id="stat-pico-22">0 v/h</span>
-                </div>
-                <div class="bg-gray-50 p-2.5 rounded-lg border border-gray-200 text-center">
-                    <span class="text-[10px] uppercase font-bold text-gray-500 block">Pico do 13</span>
-                    <span class="text-sm font-extrabold text-red-600" id="stat-pico-13">0 v/h</span>
-                </div>
-                <div class="bg-gray-50 p-2.5 rounded-lg border border-gray-200 text-center">
-                    <span class="text-[10px] uppercase font-bold text-gray-500 block">Hora Mais Movimentada</span>
-                    <span class="text-sm font-extrabold text-gray-800" id="stat-hora-mov">--:00</span>
-                </div>
-                <div class="bg-gray-50 p-2.5 rounded-lg border border-gray-200 text-center">
-                    <span class="text-[10px] uppercase font-bold text-gray-500 block">Quem Venceu Mais Horas</span>
-                    <span class="text-sm font-extrabold text-emerald-700" id="stat-vencedor-horas">Empate</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- SEÇÃO DE APOIO E DADOS DO CRIADOR (PIX & CONTATO) -->
-        <section class="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
-            <h3 class="text-base font-bold text-gray-900 mb-4 flex items-center">
-                <i class="fa-solid fa-heart text-red-500 mr-2"></i> Apoie este Projeto
-            </h3>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                <!-- QR Code e Botões -->
-                <div class="flex flex-col items-center sm:items-start space-y-3">
-                    <p class="text-xs text-gray-600 leading-relaxed text-center sm:text-left">
-                        Apoie o servidor e os custos de manutenção da plataforma fazendo um PIX de qualquer valor!
-                    </p>
-
-                    <div class="flex flex-col sm:flex-row items-center gap-3 w-full">
-                        <button onclick="copyPixKey()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 px-3 rounded-lg transition flex items-center justify-center space-x-2 shadow">
-                            <i class="fa-regular fa-copy"></i>
-                            <span>Copiar Chave Aleatória</span>
-                        </button>
-                        <button onclick="copyPixCopiaECola()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2.5 px-3 rounded-lg transition flex items-center justify-center space-x-2 shadow">
-                            <i class="fa-solid fa-qrcode"></i>
-                            <span>Copiar Pix Copia e Cola</span>
-                        </button>
-                    </div>
-
-                    <!-- Informações de Contato -->
-                    <div class="pt-3 border-t border-gray-100 w-full space-y-1.5 text-xs text-gray-600">
-                        <div class="flex items-center space-x-2">
-                            <i class="fa-brands fa-instagram text-pink-600 text-base"></i>
-                            <span>Instagram: <a href="https://instagram.com/deimom_araujo" target="_blank" class="font-bold text-gray-800 hover:underline">@deimom_araujo</a></span>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <i class="fa-regular fa-envelope text-blue-600 text-base"></i>
-                            <span>E-mail: <strong class="text-gray-800">demoaraujo@gmail.com</strong></span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Exibição do QR Code -->
-                <div class="flex flex-col items-center justify-center bg-gray-50 p-4 rounded-xl border border-gray-200">
-                    <img id="pix-qrcode-img" 
-                         src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=016b30ba-351a-41db-a411-dc5c58a5e948" 
-                         alt="QR Code PIX" 
-                         class="w-40 h-40 object-contain rounded border border-gray-300 shadow-sm">
-                    <span class="text-[11px] font-semibold text-gray-500 mt-2">Escaneie o QR Code acima</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- BOTAO ZERAR DADOS (PARA TESTES/ADMIN) -->
-        <div class="text-center pt-2">
-            <button onclick="resetAllData()" class="text-xs text-gray-400 hover:text-red-500 underline transition">
-                Zerar toda a contabilidade (Resetar dados para 0)
-            </button>
+        <div class="timer-card">
+          <div class="timer-title">Debate Globo • 23/10</div>
+          <div class="timer-boxes">
+            <div class="timer-box"><div class="timer-num" id="t2-d">0</div><div class="timer-lbl">dias</div></div>
+            <div class="timer-box"><div class="timer-num" id="t2-h">0</div><div class="timer-lbl">h</div></div>
+            <div class="timer-box"><div class="timer-num" id="t2-m">0</div><div class="timer-lbl">min</div></div>
+            <div class="timer-box"><div class="timer-num" id="t2-s">0</div><div class="timer-lbl">s</div></div>
+          </div>
         </div>
+      </div>
 
-    </main>
+      <div class="disclaimer-box">
+        <span>⚠️</span>
+        <div>Brincadeira interativa. Não é pesquisa eleitoral, não tem registro no TSE e não tem valor estatístico.</div>
+      </div>
+    </div>
+  </header>
 
-    <!-- NOTIFICAÇÃO TOAST / MODAL -->
-    <div id="toast" class="fixed bottom-5 right-5 bg-gray-900 text-white px-4 py-3 rounded-xl shadow-2xl z-50 text-xs sm:text-sm font-semibold hidden transform transition-all duration-300 flex items-center space-x-2">
-        <i class="fa-solid fa-circle-check text-green-400 text-base"></i>
-        <span id="toast-msg">Mensagem</span>
+  <div class="container">
+
+    <!-- CAIXA PIX PISCANTE DE APOIO DA PÁGINA -->
+    <div class="pix-alert-box">
+      <div class="pix-title-blink">⚡ Ajude a manter o site online com qualquer valor!</div>
+      <div class="pix-field">
+        <div class="pix-key-text" id="chave-pix-top">016b30ba-351a-41db-a411-dc5c58a5e948</div>
+        <button class="btn-copy-pix" onclick="copiarChavePix('016b30ba-351a-41db-a411-dc5c58a5e948')">Copiar chave</button>
+      </div>
     </div>
 
-    <!-- LÓGICA E SCRIPT PRINCIPAL -->
-    <script>
-        // --- CHAVES E DADOS CONSTANTES ---
-        const PIX_KEY = "016b30ba-351a-41db-a411-dc5c58a5e948";
-        const PIX_LINK = "https://pagamentospix.apps.bb.com.br/m/#/cm49eyJvcHIiOiJQSVhRUkMiLCJpZCI6ImRmM2ZjMjFhLTQyMWMtNGQwYy1hMGNkLTE1YWJjYjRjZjJmZSJ9";
+    <!-- CARD DA APURAÇÃO AO VIVO -->
+    <div class="apuracao-card">
+      <div class="apuracao-header">
+        <div class="apuracao-title">
+          <span class="live-dot"></span>
+          APURAÇÃO AO VIVO
+        </div>
+        <div class="votos-total-header" id="txt-votos-totais">0 votos</div>
+      </div>
 
-        // Candidatos
-        const CANDIDATES = {
-            '22': {
-                name: 'Flávio Bolsonaro',
-                party: 'PL',
-                photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Fl%C3%A1vio_Bolsonaro_em_2023.jpg/400px-Fl%C3%A1vio_Bolsonaro_em_2023.jpg'
+      <div class="recent-votos-sub" id="txt-votos-recentes">
+        🟢 0 votos registrados
+      </div>
+
+      <div class="candidates-comparison">
+        <div class="candidates-grid">
+          <!-- FLÁVIO BOLSONARO -->
+          <div class="cand-box bolsonaro">
+            <img src="https://i.postimg.org/pX3v7Kz2/1001468166.jpg" alt="Flávio Bolsonaro" class="cand-photo-thumb">
+            <div>
+              <span class="cand-badge badge-22">22</span>
+              <div class="cand-name-title">Flávio Bolsonaro</div>
+              <div class="cand-percent" id="pct-22">0,0%</div>
+            </div>
+          </div>
+
+          <!-- LULA -->
+          <div class="cand-box lula right">
+            <img src="https://i.postimg.org/3N3P41gX/1001468165.jpg" alt="Lula" class="cand-photo-thumb">
+            <div>
+              <span class="cand-badge badge-13">13</span>
+              <div class="cand-name-title">Lula</div>
+              <div class="cand-percent" id="pct-13">0,0%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BARRA DE PROGRESSO DUPLA -->
+        <div class="progress-bar-container">
+          <div class="progress-fill-22" id="bar-22" style="width: 50%;"></div>
+          <div class="progress-fill-13" id="bar-13" style="width: 50%;"></div>
+        </div>
+
+        <div class="progress-subtext">
+          Percentual de votos válidos, sem brancos e nulos, como o TSE calcula o resultado.
+        </div>
+      </div>
+    </div>
+
+    <!-- URNA ELETRÔNICA -->
+    <div class="urna-wrapper">
+      <div class="urna-top-header">
+        <span>JUSTIÇA ELEITORAL</span>
+        <span class="tse-seal-dot"></span>
+      </div>
+
+      <div class="urna-body-grid">
+        <!-- TELA -->
+        <div class="urna-screen" id="urna-screen-box">
+          <!-- CONTEÚDO DINÂMICO VIA JS -->
+        </div>
+
+        <!-- TECLADO -->
+        <div class="urna-keypad">
+          <div class="numeric-keys-grid">
+            <button class="key-btn" onclick="pressKey('1')">1</button>
+            <button class="key-btn" onclick="pressKey('2')">2</button>
+            <button class="key-btn" onclick="pressKey('3')">3</button>
+            <button class="key-btn" onclick="pressKey('4')">4</button>
+            <button class="key-btn" onclick="pressKey('5')">5</button>
+            <button class="key-btn" onclick="pressKey('6')">6</button>
+            <button class="key-btn" onclick="pressKey('7')">7</button>
+            <button class="key-btn" onclick="pressKey('8')">8</button>
+            <button class="key-btn" onclick="pressKey('9')">9</button>
+            <button class="key-btn key-zero" onclick="pressKey('0')">0</button>
+          </div>
+
+          <div class="action-keys-grid">
+            <button class="btn-action btn-branco" onclick="pressBranco()">BRANCO</button>
+            <button class="btn-action btn-corrige" onclick="pressCorrige()">CORRIGE</button>
+            <button class="btn-action btn-confirma" onclick="pressConfirma()">CONFIRMA</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INSTRUÇÕES E REGRAS -->
+    <div style="background: white; border-radius: 12px; padding: 12px; font-size: 0.72rem; color: #4b5563; margin-bottom: 16px; line-height: 1.4;">
+      <strong>1 Digite 22 ou 13 &nbsp;•&nbsp; 2 Confira a foto e o nome &nbsp;•&nbsp; 3 Aperte CONFIRMA</strong>
+      <br><br>
+      Placar ao vivo. <strong>Um voto por pessoa.</strong> Para evitar votos repetidos, guardamos o código anônimo do navegador/dispositivo sem ligação pessoal.
+    </div>
+
+    <!-- TODOS OS VOTOS (DETALHADO) -->
+    <div class="votos-breakdown-card">
+      <div class="votos-breakdown-title">Todos os votos</div>
+
+      <!-- FLÁVIO BOLSONARO -->
+      <div class="voto-item-row">
+        <div class="voto-item-left">
+          <div class="voto-badge-sq badge-22">22</div>
+          <div>
+            <div class="voto-item-name">Flávio Bolsonaro</div>
+            <div class="voto-item-sub">PL</div>
+          </div>
+        </div>
+        <div class="voto-item-right">
+          <div class="voto-item-pct" id="list-pct-22">0,0%</div>
+          <div class="voto-item-count" id="list-count-22">0 votos</div>
+        </div>
+      </div>
+
+      <!-- LULA -->
+      <div class="voto-item-row">
+        <div class="voto-item-left">
+          <div class="voto-badge-sq badge-13">13</div>
+          <div>
+            <div class="voto-item-name">Lula</div>
+            <div class="voto-item-sub">PT</div>
+          </div>
+        </div>
+        <div class="voto-item-right">
+          <div class="voto-item-pct" id="list-pct-13">0,0%</div>
+          <div class="voto-item-count" id="list-count-13">0 votos</div>
+        </div>
+      </div>
+
+      <!-- BRANCOS -->
+      <div class="voto-item-row">
+        <div class="voto-item-left">
+          <div class="voto-badge-sq badge-b">B</div>
+          <div>
+            <div class="voto-item-name">Brancos</div>
+          </div>
+        </div>
+        <div class="voto-item-right">
+          <div class="voto-item-pct" id="list-pct-b">0,0%</div>
+          <div class="voto-item-count" id="list-count-b">0 votos</div>
+        </div>
+      </div>
+
+      <!-- NULOS -->
+      <div class="voto-item-row">
+        <div class="voto-item-left">
+          <div class="voto-badge-sq badge-n">N</div>
+          <div>
+            <div class="voto-item-name">Nulos</div>
+          </div>
+        </div>
+        <div class="voto-item-right">
+          <div class="voto-item-pct" id="list-pct-n">0,0%</div>
+          <div class="voto-item-count" id="list-count-n">0 votos</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LINHA DO TEMPO DA VOTAÇÃO -->
+    <div class="chart-section-card">
+      <div class="chart-section-title">Linha do tempo</div>
+      <div class="chart-section-sub">Evolução dos votos registrados ao longo do tempo.</div>
+      <div class="chart-container-box">
+        <canvas id="votesChart"></canvas>
+      </div>
+    </div>
+
+    <!-- APOIE A URNA 2026 -->
+    <div class="footer-support-card">
+      <div class="support-title">Apoie a Urna 2026</div>
+      <div class="support-text">
+        O site é gratuito e sem cadastro. Se quiser ajudar a manter o servidor no ar, qualquer valor ajuda.
+      </div>
+
+      <div class="pix-field" style="margin-bottom: 10px;">
+        <div class="pix-key-text">016b30ba-351a-41db-a411-dc5c58a5e948</div>
+        <button class="btn-copy-pix" onclick="copiarChavePix('016b30ba-351a-41db-a411-dc5c58a5e948')">Copiar chave</button>
+      </div>
+
+      <!-- QR CODE DO BANCO DO BRASIL -->
+      <div class="qr-container">
+        <img src="https://pagamentospix.apps.bb.com.br/m/#/cm49eyJvcHIiOiJQSVhRUkMiLCJpZCI6ImRmM2ZjMjFhLTQyMWMtNGQwYy1hMGNkLTE1YWJjYjRjZjJmZSJ9" alt="QR Code Pix" class="qr-img-box" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=016b30ba-351a-41db-a411-dc5c58a5e948'">
+        <div style="font-size: 0.7rem; color: #6b7280; margin-top: 4px;">QR Pix • Leia no app do banco</div>
+      </div>
+
+      <div class="contact-info-list">
+        <div class="contact-item">📧 Contato / Dúvidas: <a href="mailto:demoaraujo@gmail.com">demoaraujo@gmail.com</a></div>
+        <div class="contact-item">📷 Instagram: <a href="https://instagram.com/deimom_araujo" target="_blank">@deimom_araujo</a></div>
+      </div>
+    </div>
+
+    <div class="site-footer-bar">
+      Desenvolvido por <a href="https://github.com/deimomaraujo" target="_blank">github.com/deimomaraujo</a> • <a href="https://instagram.com/deimom_araujo" target="_blank">@deimom_araujo</a>
+    </div>
+
+  </div>
+
+  <script>
+    /* ===================================================
+       1. SISTEMA DE AUDIO (SINTETIZADOR WEB AUDIO API)
+       =================================================== */
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    // Bip curto para clique de tecla
+    function playBipSound() {
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.08);
+      } catch(e) {}
+    }
+
+    // Som clássico de confirmação de voto ("Pililili")
+    function playConfirmaSound() {
+      try {
+        initAudio();
+        const now = audioCtx.currentTime;
+        
+        // Frequências clássicas do "pililili"
+        const notes = [
+          { freq: 523.25, duration: 0.12, time: 0 },
+          { freq: 659.25, duration: 0.12, time: 0.12 },
+          { freq: 783.99, duration: 0.12, time: 0.24 },
+          { freq: 1046.50, duration: 0.35, time: 0.36 }
+        ];
+
+        notes.forEach(note => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(note.freq, now + note.time);
+          gain.gain.setValueAtTime(0.25, now + note.time);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + note.time + note.duration);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now + note.time);
+          osc.stop(now + note.time + note.duration);
+        });
+      } catch(e) {}
+    }
+
+    /* ===================================================
+       2. DADOS DOS CANDIDATOS E ESTADO
+       =================================================== */
+    const FOTO_BOLSONARO = "https://i.postimg.org/pX3v7Kz2/1001468166.jpg";
+    const FOTO_LULA = "https://i.postimg.org/3N3P41gX/1001468165.jpg";
+
+    let state = {
+      voted: false,
+      userChoice: null,
+      digits: "",
+      isBranco: false,
+      votes: {
+        v22: 0,
+        v13: 0,
+        branco: 0,
+        nulo: 0
+      }
+    };
+
+    /* ===================================================
+       3. PERSISTÊNCIA E VERIFICAÇÃO DE VOTO
+       =================================================== */
+    function loadState() {
+      const savedVotes = localStorage.getItem('urn_2026_votes_v1');
+      if (savedVotes) {
+        state.votes = JSON.parse(savedVotes);
+      }
+
+      const hasVoted = localStorage.getItem('urn_2026_has_voted');
+      const userChoice = localStorage.getItem('urn_2026_user_choice');
+
+      if (hasVoted) {
+        state.voted = true;
+        state.userChoice = userChoice;
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem('urn_2026_votes_v1', JSON.stringify(state.votes));
+    }
+
+    /* ===================================================
+       4. CONTROLE DA URNA E INTERFACE
+       =================================================== */
+    function renderScreen() {
+      const screen = document.getElementById('urna-screen-box');
+
+      if (state.voted) {
+        let choiceText = "";
+        if (state.userChoice === '22') choiceText = "Seu voto: 22 · Flávio Bolsonaro";
+        else if (state.userChoice === '13') choiceText = "Seu voto: 13 · Lula";
+        else if (state.userChoice === 'branco') choiceText = "Seu voto: Em Branco";
+        else choiceText = "Seu voto: Nulo";
+
+        screen.innerHTML = `
+          <div class="screen-voted-msg">
+            <h2>VOCÊ JÁ VOTOU</h2>
+            <p>${choiceText}</p>
+          </div>
+        `;
+        return;
+      }
+
+      if (state.isBranco) {
+        screen.innerHTML = `
+          <div>
+            <div class="screen-header-role">SEU VOTO VAI PARA</div>
+            <div class="candidate-name-large" style="font-size:1.5rem; margin-top:20px; text-align:center;">VOTO EM BRANCO</div>
+          </div>
+          <div class="screen-footer-instructions">
+            Aperte tecla:<br>
+            <strong>GREEN/CONFIRMA</strong> para CONFIRMAR este voto<br>
+            <strong>ORANGE/CORRIGE</strong> para REINICIAR este voto
+          </div>
+        `;
+        return;
+      }
+
+      const d1 = state.digits[0] || "";
+      const d2 = state.digits[1] || "";
+
+      let candInfo = null;
+      if (state.digits === '22') {
+        candInfo = { name: "Flávio Bolsonaro", party: "PL", photo: FOTO_BOLSONARO };
+      } else if (state.digits === '13') {
+        candInfo = { name: "Lula", party: "PT", photo: FOTO_LULA };
+      } else if (state.digits.length === 2) {
+        candInfo = { name: "VOTO NULO", party: "Número Errado", photo: null };
+      }
+
+      screen.innerHTML = `
+        <div>
+          <div class="screen-header-role">PRESIDENTE</div>
+          <div class="number-boxes">
+            <div class="num-digit-box ${state.digits.length === 0 ? 'blink' : ''}">${d1}</div>
+            <div class="num-digit-box ${state.digits.length === 1 ? 'blink' : ''}">${d2}</div>
+          </div>
+          ${candInfo ? `
+            <div class="candidate-display-area">
+              <div class="candidate-text-info">
+                <div class="candidate-name-large">${candInfo.name}</div>
+                <div class="candidate-party">${candInfo.party}</div>
+              </div>
+              ${candInfo.photo ? `<img src="${candInfo.photo}" class="candidate-screen-photo">` : ''}
+            </div>
+          ` : ''}
+        </div>
+        <div class="screen-footer-instructions">
+          Aperte tecla:<br>
+          <strong>GREEN/CONFIRMA</strong> para CONFIRMAR este voto<br>
+          <strong>ORANGE/CORRIGE</strong> para REINICIAR este voto
+        </div>
+      `;
+    }
+
+    function pressKey(num) {
+      if (state.voted || state.isBranco) return;
+      if (state.digits.length < 2) {
+        playBipSound();
+        state.digits += num;
+        renderScreen();
+      }
+    }
+
+    function pressBranco() {
+      if (state.voted) return;
+      playBipSound();
+      state.isBranco = true;
+      state.digits = "";
+      renderScreen();
+    }
+
+    function pressCorrige() {
+      if (state.voted) return;
+      playBipSound();
+      state.digits = "";
+      state.isBranco = false;
+      renderScreen();
+    }
+
+    function pressConfirma() {
+      if (state.voted) return;
+
+      let validVote = false;
+      let choice = "";
+
+      if (state.isBranco) {
+        validVote = true;
+        choice = 'branco';
+        state.votes.branco++;
+      } else if (state.digits === '22') {
+        validVote = true;
+        choice = '22';
+        state.votes.v22++;
+      } else if (state.digits === '13') {
+        validVote = true;
+        choice = '13';
+        state.votes.v13++;
+      } else if (state.digits.length === 2) {
+        validVote = true;
+        choice = 'nulo';
+        state.votes.nulo++;
+      }
+
+      if (validVote) {
+        playConfirmaSound();
+        state.voted = true;
+        state.userChoice = choice;
+
+        localStorage.setItem('urn_2026_has_voted', 'true');
+        localStorage.setItem('urn_2026_user_choice', choice);
+        saveState();
+
+        // Tela de FIM temporária
+        const screen = document.getElementById('urna-screen-box');
+        screen.innerHTML = `<div class="screen-fim">FIM</div>`;
+
+        setTimeout(() => {
+          renderScreen();
+          updateDashboard();
+        }, 1500);
+      }
+    }
+
+    /* ===================================================
+       5. ATUALIZAÇÃO DO PAINEL DE APURAÇÃO
+       =================================================== */
+    function updateDashboard() {
+      const v22 = state.votes.v22;
+      const v13 = state.votes.v13;
+      const vb = state.votes.branco;
+      const vn = state.votes.nulo;
+
+      const totalVotos = v22 + v13 + vb + vn;
+      const validos = v22 + v13;
+
+      document.getElementById('txt-votos-totais').textContent = `${totalVotos.toLocaleString('pt-BR')} votos`;
+      document.getElementById('txt-votos-recentes').textContent = `🟢 ${totalVotos.toLocaleString('pt-BR')} votos registrados ao todo`;
+
+      let pct22 = validos > 0 ? ((v22 / validos) * 100).toFixed(1) : "0,0";
+      let pct13 = validos > 0 ? ((v13 / validos) * 100).toFixed(1) : "0,0";
+
+      document.getElementById('pct-22').textContent = `${pct22.replace('.', ',')}%`;
+      document.getElementById('pct-13').textContent = `${pct13.replace('.', ',')}%`;
+
+      // Barras de progresso
+      const fill22 = validos > 0 ? (v22 / validos) * 100 : 50;
+      const fill13 = validos > 0 ? (v13 / validos) * 100 : 50;
+      document.getElementById('bar-22').style.width = `${fill22}%`;
+      document.getElementById('bar-13').style.width = `${fill13}%`;
+
+      // Lista detalhada
+      let totPct22 = totalVotos > 0 ? ((v22 / totalVotos) * 100).toFixed(1) : "0,0";
+      let totPct13 = totalVotos > 0 ? ((v13 / totalVotos) * 100).toFixed(1) : "0,0";
+      let totPctB = totalVotos > 0 ? ((vb / totalVotos) * 100).toFixed(1) : "0,0";
+      let totPctN = totalVotos > 0 ? ((vn / totalVotos) * 100).toFixed(1) : "0,0";
+
+      document.getElementById('list-pct-22').textContent = `${totPct22.replace('.', ',')}%`;
+      document.getElementById('list-count-22').textContent = `${v22.toLocaleString('pt-BR')} votos`;
+
+      document.getElementById('list-pct-13').textContent = `${totPct13.replace('.', ',')}%`;
+      document.getElementById('list-count-13').textContent = `${v13.toLocaleString('pt-BR')} votos`;
+
+      document.getElementById('list-pct-b').textContent = `${totPctB.replace('.', ',')}%`;
+      document.getElementById('list-count-b').textContent = `${vb.toLocaleString('pt-BR')} votos`;
+
+      document.getElementById('list-pct-n').textContent = `${totPctN.replace('.', ',')}%`;
+      document.getElementById('list-count-n').textContent = `${vn.toLocaleString('pt-BR')} votos`;
+
+      updateChart();
+    }
+
+    /* ===================================================
+       6. GRÁFICO DE LINHA DO TEMPO
+       =================================================== */
+    let chartInstance = null;
+
+    function initChart() {
+      const ctx = document.getElementById('votesChart').getContext('2d');
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['00h', '02h', '04h', '06h', '08h', 'Agora'],
+          datasets: [
+            {
+              label: 'Flávio Bolsonaro',
+              data: [0, 0, 0, 0, 0, state.votes.v22],
+              borderColor: '#1d52a8',
+              backgroundColor: 'rgba(29, 82, 168, 0.1)',
+              tension: 0.3,
+              fill: true
             },
-            '13': {
-                name: 'Lula',
-                party: 'PT',
-                photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Lula_-_Foto_oficial_05_jan_2023_%28cropped%29.jpg/400px-Lula_-_Foto_oficial_05_jan_2023_%28cropped%29.jpg'
+            {
+              label: 'Lula',
+              data: [0, 0, 0, 0, 0, state.votes.v13],
+              borderColor: '#c81a27',
+              backgroundColor: 'rgba(200, 26, 39, 0.1)',
+              tension: 0.3,
+              fill: true
             }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: true, position: 'top' }
+          },
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    function updateChart() {
+      if (chartInstance) {
+        chartInstance.data.datasets[0].data[5] = state.votes.v22;
+        chartInstance.data.datasets[1].data[5] = state.votes.v13;
+        chartInstance.update();
+      }
+    }
+
+    /* ===================================================
+       7. TIMERS DE CONTAGEM REGRESSIVA
+       =================================================== */
+    function updateTimers() {
+      const now = new Date();
+      const target2nd = new Date('2026-10-25T08:00:00');
+      const targetDebate = new Date('2026-10-23T21:30:00');
+
+      function calc(diff) {
+        if (diff <= 0) return { d: 0, h: 0, m: 0, s: 0 };
+        return {
+          d: Math.floor(diff / (1000 * 60 * 60 * 24)),
+          h: Math.floor((diff / (1000 * 60 * 60)) % 24),
+          m: Math.floor((diff / 1000 / 60) % 60),
+          s: Math.floor((diff / 1000) % 60)
         };
+      }
 
-        // Estado do Voto na Urna
-        let currentDigits = "";
-        let isBranco = false;
+      const t1 = calc(target2nd - now);
+      document.getElementById('t1-d').textContent = t1.d;
+      document.getElementById('t1-h').textContent = t1.h;
+      document.getElementById('t1-m').textContent = t1.m;
+      document.getElementById('t1-s').textContent = t1.s;
 
-        // Estado Global da Apuração (Persistência no LocalStorage)
-        let voteData = {
-            c22: 0,
-            c13: 0,
-            branco: 0,
-            nulo: 0,
-            recentVotes: [], // Timestamps dos votos
-            hourlyHistory: {
-                '08:00': { c22: 0, c13: 0 },
-                '10:00': { c22: 0, c13: 0 },
-                '12:00': { c22: 0, c13: 0 },
-                '14:00': { c22: 0, c13: 0 },
-                '16:00': { c22: 0, c13: 0 },
-                '18:00': { c22: 0, c13: 0 },
-                '20:00': { c22: 0, c13: 0 }
-            }
-        };
+      const t2 = calc(targetDebate - now);
+      document.getElementById('t2-d').textContent = t2.d;
+      document.getElementById('t2-h').textContent = t2.h;
+      document.getElementById('t2-m').textContent = t2.m;
+      document.getElementById('t2-s').textContent = t2.s;
+    }
 
-        let timelineChart = null;
+    /* ===================================================
+       8. COPIAR CHAVE PIX
+       =================================================== */
+    function copiarChavePix(key) {
+      navigator.clipboard.writeText(key).then(() => {
+        alert("Chave Pix copiada para a área de transferência!");
+      }).catch(() => {
+        prompt("Copie a chave Pix abaixo:", key);
+      });
+    }
 
-        // --- INICIALIZAÇÃO NO CARREGAMENTO ---
-        window.onload = function() {
-            loadStoredData();
-            startCountdowns();
-            initChart();
-            updateDashboardUI();
-            checkUserVoteStatus();
-        };
-
-        // Carrega dados salvos ou zera tudo caso não existam
-        function loadStoredData() {
-            const saved = localStorage.getItem('urna_eleicao_2026_data');
-            if (saved) {
-                try {
-                    voteData = JSON.parse(saved);
-                } catch(e) {
-                    console.error("Erro ao carregar dados", e);
-                }
-            }
-        }
-
-        function saveData() {
-            localStorage.setItem('urna_eleicao_2026_data', JSON.stringify(voteData));
-        }
-
-        // --- GERADORES DE ÁUDIO WEB AUDIO API (Pililili real da Urna) ---
-        function playUrnaBeep() {
-            try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(440, ctx.currentTime);
-                gain.gain.setValueAtTime(0.1, ctx.currentTime);
-                osc.start();
-                osc.stop(ctx.currentTime + 0.08);
-            } catch(e){}
-        }
-
-        function playUrnaConfirmaSound() {
-            try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc1 = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc1.connect(gain);
-                gain.connect(ctx.destination);
-
-                // Som característico do FIM da Urna (Pililili)
-                osc1.type = 'sine';
-                osc1.frequency.setValueAtTime(400, ctx.currentTime);
-                osc1.frequency.setValueAtTime(800, ctx.currentTime + 0.15);
-                
-                gain.gain.setValueAtTime(0.2, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
-
-                osc1.start();
-                osc1.stop(ctx.currentTime + 0.6);
-            } catch(e){}
-        }
-
-        // --- REGRAS DO TECLADO DA URNA ---
-        function pressKey(digit) {
-            playUrnaBeep();
-            if (isBranco) return;
-            if (currentDigits.length < 2) {
-                currentDigits += digit;
-                renderUrnaScreen();
-            }
-        }
-
-        function pressBranco() {
-            playUrnaBeep();
-            currentDigits = "";
-            isBranco = true;
-            renderUrnaScreen();
-        }
-
-        function pressCorrige() {
-            playUrnaBeep();
-            currentDigits = "";
-            isBranco = false;
-            renderUrnaScreen();
-        }
-
-        function pressConfirma() {
-            if (currentDigits.length < 2 && !isBranco) {
-                return; // Voto incompleto
-            }
-
-            playUrnaConfirmaSound();
-
-            // Gravar o voto
-            let votedCandidate = null;
-            const now = new Date();
-            const currentHourStr = getNearestHourString(now.getHours());
-
-            if (isBranco) {
-                voteData.branco++;
-            } else if (currentDigits === '22') {
-                voteData.c22++;
-                votedCandidate = 'Flávio Bolsonaro (22)';
-                if (voteData.hourlyHistory[currentHourStr]) voteData.hourlyHistory[currentHourStr].c22++;
-            } else if (currentDigits === '13') {
-                voteData.c13++;
-                votedCandidate = 'Lula (13)';
-                if (voteData.hourlyHistory[currentHourStr]) voteData.hourlyHistory[currentHourStr].c13++;
-            } else {
-                voteData.nulo++;
-                votedCandidate = 'Nulo';
-            }
-
-            // Registrar timestamp do voto
-            voteData.recentVotes.push(Date.now());
-            saveData();
-
-            // Salva no navegador que o usuário já votou
-            localStorage.setItem('user_has_voted_2026', votedCandidate || 'Voto Computado');
-
-            // Exibir Tela de FIM
-            document.getElementById('lcd-fim').classList.remove('hidden');
-
-            setTimeout(() => {
-                document.getElementById('lcd-fim').classList.add('hidden');
-                currentDigits = "";
-                isBranco = false;
-                renderUrnaScreen();
-                updateDashboardUI();
-                checkUserVoteStatus();
-            }, 2000);
-        }
-
-        function renderUrnaScreen() {
-            const d1 = document.getElementById('digit-1');
-            const d2 = document.getElementById('digit-2');
-            const candInfo = document.getElementById('cand-info');
-            const candPhotoCont = document.getElementById('cand-photo-container');
-            const candPhoto = document.getElementById('cand-photo');
-            const candName = document.getElementById('cand-name');
-            const candParty = document.getElementById('cand-party');
-
-            d1.innerText = currentDigits[0] || '';
-            d2.innerText = currentDigits[1] || '';
-
-            if (isBranco) {
-                candInfo.classList.remove('hidden');
-                candPhotoCont.classList.add('hidden');
-                candName.innerText = "VOTO EM BRANCO";
-                candParty.innerText = "---";
-                return;
-            }
-
-            if (currentDigits.length === 2) {
-                const cand = CANDIDATES[currentDigits];
-                candInfo.classList.remove('hidden');
-                if (cand) {
-                    candName.innerText = cand.name;
-                    candParty.innerText = cand.party;
-                    candPhoto.src = cand.photo;
-                    candPhotoCont.classList.remove('hidden');
-                } else {
-                    candName.innerText = "VOTO NULO";
-                    candParty.innerText = "NÚMERO ERRADO";
-                    candPhotoCont.classList.add('hidden');
-                }
-            } else {
-                candInfo.classList.add('hidden');
-                candPhotoCont.classList.add('hidden');
-            }
-        }
-
-        function checkUserVoteStatus() {
-            const userVote = localStorage.getItem('user_has_voted_2026');
-            const alreadyVotedScreen = document.getElementById('lcd-already-voted');
-            const alreadyVotedMsg = document.getElementById('already-voted-msg');
-
-            if (userVote) {
-                alreadyVotedMsg.innerText = `Seu voto (${userVote}) foi computado.`;
-                alreadyVotedScreen.classList.remove('hidden');
-            } else {
-                alreadyVotedScreen.classList.add('hidden');
-            }
-        }
-
-        function resetUserVote() {
-            localStorage.removeItem('user_has_voted_2026');
-            checkUserVoteStatus();
-            showToast("Você pode votar novamente para teste!");
-        }
-
-        // --- ATUALIZAÇÃO DOS GRÁFICOS E PAINEL ---
-        function updateDashboardUI() {
-            const c22 = voteData.c22 || 0;
-            const c13 = voteData.c13 || 0;
-            const branco = voteData.branco || 0;
-            const nulo = voteData.nulo || 0;
-
-            const validos = c22 + c13;
-            const totalGeral = validos + branco + nulo;
-
-            // Header Total
-            document.getElementById('total-votos-header').innerText = totalGeral.toLocaleString('pt-BR');
-
-            // Percentuais de Votos Válidos (Conforme regra do TSE)
-            let perc22 = 0;
-            let perc13 = 0;
-            if (validos > 0) {
-                perc22 = ((c22 / validos) * 100).toFixed(1);
-                perc13 = ((c13 / validos) * 100).toFixed(1);
-            }
-
-            document.getElementById('perc-22').innerText = perc22.replace('.', ',') + '%';
-            document.getElementById('perc-13').innerText = perc13.replace('.', ',') + '%';
-
-            document.getElementById('count-22').innerText = `${c22.toLocaleString('pt-BR')} votos`;
-            document.getElementById('count-13').innerText = `${c13.toLocaleString('pt-BR')} votos`;
-
-            // Barras de Proporção Válida
-            const bar22 = document.getElementById('bar-22');
-            const bar13 = document.getElementById('bar-13');
-            if (validos === 0) {
-                bar22.style.width = '50%';
-                bar13.style.width = '50%';
-            } else {
-                bar22.style.width = `${perc22}%`;
-                bar13.style.width = `${perc13}%`;
-            }
-
-            // Votos nos últimos 5 minutos
-            const fiveMinAgo = Date.now() - (5 * 60 * 1000);
-            const recentCount = (voteData.recentVotes || []).filter(ts => ts >= fiveMinAgo).length;
-            document.getElementById('votos-5min').innerText = recentCount;
-
-            // Seção Detalhada de Todos os Votos
-            document.getElementById('det-22').innerText = c22.toLocaleString('pt-BR');
-            document.getElementById('det-13').innerText = c13.toLocaleString('pt-BR');
-            document.getElementById('det-branco').innerText = branco.toLocaleString('pt-BR');
-            document.getElementById('det-nulo').innerText = nulo.toLocaleString('pt-BR');
-
-            document.getElementById('det-perc-22').innerText = `${calcPercTotal(c22, totalGeral)}% do total`;
-            document.getElementById('det-perc-13').innerText = `${calcPercTotal(c13, totalGeral)}% do total`;
-            document.getElementById('det-perc-branco').innerText = `${calcPercTotal(branco, totalGeral)}% do total`;
-            document.getElementById('det-perc-nulo').innerText = `${calcPercTotal(nulo, totalGeral)}% do total`;
-
-            // Atualiza estatísticas do gráfico
-            updateChartAndStats();
-        }
-
-        function calcPercTotal(val, total) {
-            if (total === 0) return "0,0";
-            return ((val / total) * 100).toFixed(1).replace('.', ',');
-        }
-
-        function getNearestHourString(hour) {
-            if (hour < 9) return '08:00';
-            if (hour < 11) return '10:00';
-            if (hour < 13) return '12:00';
-            if (hour < 15) return '14:00';
-            if (hour < 17) return '16:00';
-            if (hour < 19) return '18:00';
-            return '20:00';
-        }
-
-        // --- CONTAGEM REGRESSIVA ---
-        function startCountdowns() {
-            // Datas de Referência Eleições 2026
-            const targetTurno = new Date('2026-10-25T08:00:00').getTime();
-            const targetDebate = new Date('2026-10-23T21:30:00').getTime();
-
-            function update() {
-                const now = new Date().getTime();
-
-                // Turno
-                const diff1 = Math.max(0, targetTurno - now);
-                document.getElementById('t1-d').innerText = Math.floor(diff1 / (1000 * 60 * 60 * 24));
-                document.getElementById('t1-h').innerText = Math.floor((diff1 % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                document.getElementById('t1-m').innerText = Math.floor((diff1 % (1000 * 60 * 60)) / (1000 * 60));
-                document.getElementById('t1-s').innerText = Math.floor((diff1 % (1000 * 60)) / 1000);
-
-                // Debate
-                const diff2 = Math.max(0, targetDebate - now);
-                document.getElementById('t2-d').innerText = Math.floor(diff2 / (1000 * 60 * 60 * 24));
-                document.getElementById('t2-h').innerText = Math.floor((diff2 % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                document.getElementById('t2-m').innerText = Math.floor((diff2 % (1000 * 60 * 60)) / (1000 * 60));
-                document.getElementById('t2-s').innerText = Math.floor((diff2 % (1000 * 60)) / 1000);
-            }
-
-            update();
-            setInterval(update, 1000);
-        }
-
-        // --- GRÁFICO CHART.JS DE EVOLUÇÃO ---
-        function initChart() {
-            const ctx = document.getElementById('timelineChart').getContext('2d');
-            const labels = Object.keys(voteData.hourlyHistory);
-            
-            timelineChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Flávio Bolsonaro (22)',
-                            data: labels.map(h => voteData.hourlyHistory[h].c22),
-                            borderColor: '#1d4ed8',
-                            backgroundColor: 'rgba(29, 78, 216, 0.1)',
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.3
-                        },
-                        {
-                            label: 'Lula (13)',
-                            data: labels.map(h => voteData.hourlyHistory[h].c13),
-                            borderColor: '#dc2626',
-                            backgroundColor: 'rgba(220, 38, 38, 0.1)',
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.3
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'top' }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: { precision: 0 }
-                        }
-                    }
-                }
-            });
-        }
-
-        function updateChartAndStats() {
-            if (!timelineChart) return;
-
-            const labels = Object.keys(voteData.hourlyHistory);
-            const data22 = labels.map(h => voteData.hourlyHistory[h].c22);
-            const data13 = labels.map(h => voteData.hourlyHistory[h].c13);
-
-            timelineChart.data.datasets[0].data = data22;
-            timelineChart.data.datasets[1].data = data13;
-            timelineChart.update();
-
-            // Cálculo dos Destaques da Linha do Tempo
-            const pico22 = Math.max(...data22, 0);
-            const pico13 = Math.max(...data13, 0);
-
-            document.getElementById('stat-pico-22').innerText = `${pico22} v/h`;
-            document.getElementById('stat-pico-13').innerText = `${pico13} v/h`;
-
-            // Hora Mais Movimentada
-            let maxTotal = -1;
-            let busyHour = '--:00';
-            let wins22 = 0;
-            let wins13 = 0;
-
-            labels.forEach(h => {
-                const v22 = voteData.hourlyHistory[h].c22;
-                const v13 = voteData.hourlyHistory[h].c13;
-                const tot = v22 + v13;
-
-                if (tot > maxTotal && tot > 0) {
-                    maxTotal = tot;
-                    busyHour = h;
-                }
-
-                if (v22 > v13) wins22++;
-                else if (v13 > v22) wins13++;
-            });
-
-            document.getElementById('stat-hora-mov').innerText = busyHour;
-
-            if (wins22 > wins13) {
-                document.getElementById('stat-vencedor-horas').innerText = "Flávio Bolsonaro";
-            } else if (wins13 > wins22) {
-                document.getElementById('stat-vencedor-horas').innerText = "Lula";
-            } else {
-                document.getElementById('stat-vencedor-horas').innerText = "Empate";
-            }
-        }
-
-        // --- FUNÇÕES DE CÓPIA PIX E INTERAÇÃO ---
-        function copyPixKey() {
-            copyToClipboard(PIX_KEY);
-            showToast("Chave PIX copiada com sucesso!");
-        }
-
-        function copyPixCopiaECola() {
-            copyToClipboard(PIX_LINK);
-            showToast("Código Pix Copia e Cola copiado!");
-        }
-
-        function copyToClipboard(text) {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text);
-            } else {
-                const input = document.createElement('input');
-                input.value = text;
-                document.body.appendChild(input);
-                input.select();
-                document.execCommand('copy');
-                document.body.removeChild(input);
-            }
-        }
-
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toast-msg').innerText = msg;
-            toast.classList.remove('hidden');
-            setTimeout(() => {
-                toast.classList.add('hidden');
-            }, 3000);
-        }
-
-        // Zerar toda a contabilidade para início do site
-        function resetAllData() {
-            if (confirm("Deseja realmente ZERAR todos os votos e métricas do site?")) {
-                voteData = {
-                    c22: 0,
-                    c13: 0,
-                    branco: 0,
-                    nulo: 0,
-                    recentVotes: [],
-                    hourlyHistory: {
-                        '08:00': { c22: 0, c13: 0 },
-                        '10:00': { c22: 0, c13: 0 },
-                        '12:00': { c22: 0, c13: 0 },
-                        '14:00': { c22: 0, c13: 0 },
-                        '16:00': { c22: 0, c13: 0 },
-                        '18:00': { c22: 0, c13: 0 },
-                        '20:00': { c22: 0, c13: 0 }
-                    }
-                };
-                localStorage.removeItem('user_has_voted_2026');
-                saveData();
-                updateDashboardUI();
-                checkUserVoteStatus();
-                showToast("Todos os dados foram zerados!");
-            }
-        }
-    </script>
+    /* ===================================================
+       9. INICIALIZAÇÃO
+       =================================================== */
+    window.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      renderScreen();
+      updateDashboard();
+      initChart();
+      updateTimers();
+      setInterval(updateTimers, 1000);
+    });
+  </script>
 </body>
 </html>
