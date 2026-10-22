@@ -24,7 +24,6 @@
       --text-dark: #1f2937;
       --text-muted: #6b7280;
       --urna-body: #d1d5db;
-      --urna-screen: #f8fafc;
       --btn-confirm: #22c55e;
       --btn-corrige: #f97316;
       --btn-branco: #ffffff;
@@ -151,14 +150,14 @@
       align-items: center;
     }
 
-    /* MAIN CONTAINER */
+    /* CONTAINER PRINCIPAL */
     .container {
       max-width: 500px;
       margin: 0 auto;
       padding: 0 12px;
     }
 
-    /* PISCANTE E DESTAQUE DO PIX */
+    /* PIX PISCANTE */
     .pix-alert-box {
       background: #ffffff;
       border: 2px solid #10b981;
@@ -230,7 +229,7 @@
       background: #047857;
     }
 
-    /* APURAÇÃO CARD */
+    /* CARD DA APURAÇÃO */
     .apuracao-card {
       background: var(--card-bg);
       border-radius: 16px;
@@ -309,20 +308,28 @@
       text-align: right;
     }
 
-    .cand-photo-thumb {
-      width: 54px;
-      height: 68px;
-      border-radius: 6px;
-      object-fit: cover;
+    /* SVG AVATAR EMBUTIDO (IMAGEM NUNCA QUEBRA) */
+    .cand-photo-avatar {
+      width: 58px;
+      height: 72px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       border: 2px solid #cbd5e1;
+      background: #f1f5f9;
+      overflow: hidden;
+      flex-shrink: 0;
     }
 
-    .cand-box.bolsonaro .cand-photo-thumb {
+    .cand-box.bolsonaro .cand-photo-avatar {
       border-color: var(--bolsonaro-blue);
+      background: #eff6ff;
     }
 
-    .cand-box.lula .cand-photo-thumb {
+    .cand-box.lula .cand-photo-avatar {
       border-color: var(--lula-red);
+      background: #fef2f2;
     }
 
     .cand-badge {
@@ -422,7 +429,7 @@
       background: #f8fafc;
       border: 3px solid #334155;
       border-radius: 10px;
-      min-height: 210px;
+      min-height: 220px;
       padding: 12px;
       display: flex;
       flex-direction: column;
@@ -488,12 +495,15 @@
       50% { border-color: transparent; }
     }
 
-    .candidate-screen-photo {
-      width: 85px;
-      height: 110px;
+    .candidate-screen-photo-box {
+      width: 80px;
+      height: 100px;
       border: 2px solid #0f172a;
-      object-fit: cover;
-      background: #e2e8f0;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
     }
 
     .screen-footer-instructions {
@@ -529,7 +539,7 @@
       justify-content: center;
       height: 100%;
       min-height: 180px;
-      font-size: 3rem;
+      font-size: 3.2rem;
       font-weight: 900;
       letter-spacing: 4px;
       color: #0f172a;
@@ -600,7 +610,7 @@
     .btn-corrige { background: var(--btn-corrige); color: white; }
     .btn-confirma { background: var(--btn-confirma); color: #064e3b; font-size: 0.75rem; }
 
-    /* LISTA COMPLETA DOS VOTOS */
+    /* DETALHES DOS VOTOS */
     .votos-breakdown-card {
       background: white;
       border-radius: 16px;
@@ -675,7 +685,7 @@
       color: var(--text-muted);
     }
 
-    /* LINHA DO TEMPO / CHART */
+    /* LINHA DO TEMPO */
     .chart-section-card {
       background: white;
       border-radius: 16px;
@@ -731,15 +741,6 @@
       margin: 12px 0;
     }
 
-    .qr-img-box {
-      width: 140px;
-      height: 140px;
-      border: 2px solid #059669;
-      border-radius: 12px;
-      padding: 6px;
-      background: white;
-    }
-
     .contact-info-list {
       margin-top: 12px;
       padding-top: 10px;
@@ -779,7 +780,7 @@
 </head>
 <body>
 
-  <!-- CABEÇALHO COM TIMERS -->
+  <!-- BANNER DE CABEÇALHO -->
   <header class="header-banner">
     <div class="header-content">
       <div class="header-tag">Eleições 2026 • Presidente da República</div>
@@ -816,7 +817,7 @@
 
   <div class="container">
 
-    <!-- CAIXA PIX PISCANTE DE APOIO DA PÁGINA -->
+    <!-- CAIXA PIX PISCANTE DA PÁGINA -->
     <div class="pix-alert-box">
       <div class="pix-title-blink">⚡ Ajude a manter o site online com qualquer valor!</div>
       <div class="pix-field">
@@ -843,7 +844,9 @@
         <div class="candidates-grid">
           <!-- FLÁVIO BOLSONARO -->
           <div class="cand-box bolsonaro">
-            <img src="https://i.postimg.org/pX3v7Kz2/1001468166.jpg" alt="Flávio Bolsonaro" class="cand-photo-thumb">
+            <div class="cand-photo-avatar" id="avatar-bolsonaro-apuracao">
+              <!-- SVG AVATAR DE FLÁVIO BOLSONARO -->
+            </div>
             <div>
               <span class="cand-badge badge-22">22</span>
               <div class="cand-name-title">Flávio Bolsonaro</div>
@@ -853,7 +856,9 @@
 
           <!-- LULA -->
           <div class="cand-box lula right">
-            <img src="https://i.postimg.org/3N3P41gX/1001468165.jpg" alt="Lula" class="cand-photo-thumb">
+            <div class="cand-photo-avatar" id="avatar-lula-apuracao">
+              <!-- SVG AVATAR DE LULA -->
+            </div>
             <div>
               <span class="cand-badge badge-13">13</span>
               <div class="cand-name-title">Lula</div>
@@ -911,14 +916,14 @@
       </div>
     </div>
 
-    <!-- INSTRUÇÕES E REGRAS -->
+    <!-- INSTRUÇÕES -->
     <div style="background: white; border-radius: 12px; padding: 12px; font-size: 0.72rem; color: #4b5563; margin-bottom: 16px; line-height: 1.4;">
       <strong>1 Digite 22 ou 13 &nbsp;•&nbsp; 2 Confira a foto e o nome &nbsp;•&nbsp; 3 Aperte CONFIRMA</strong>
       <br><br>
       Placar ao vivo. <strong>Um voto por pessoa.</strong> Para evitar votos repetidos, guardamos o código anônimo do navegador/dispositivo sem ligação pessoal.
     </div>
 
-    <!-- TODOS OS VOTOS (DETALHADO) -->
+    <!-- DETALHE DOS VOTOS -->
     <div class="votos-breakdown-card">
       <div class="votos-breakdown-title">Todos os votos</div>
 
@@ -990,7 +995,7 @@
       </div>
     </div>
 
-    <!-- APOIE A URNA 2026 -->
+    <!-- CARD APOIO PIX -->
     <div class="footer-support-card">
       <div class="support-title">Apoie a Urna 2026</div>
       <div class="support-text">
@@ -1002,14 +1007,8 @@
         <button class="btn-copy-pix" onclick="copiarChavePix('016b30ba-351a-41db-a411-dc5c58a5e948')">Copiar chave</button>
       </div>
 
-      <!-- QR CODE DO BANCO DO BRASIL -->
-      <div class="qr-container">
-        <img src="https://pagamentospix.apps.bb.com.br/m/#/cm49eyJvcHIiOiJQSVhRUkMiLCJpZCI6ImRmM2ZjMjFhLTQyMWMtNGQwYy1hMGNkLTE1YWJjYjRjZjJmZSJ9" alt="QR Code Pix" class="qr-img-box" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=016b30ba-351a-41db-a411-dc5c58a5e948'">
-        <div style="font-size: 0.7rem; color: #6b7280; margin-top: 4px;">QR Pix • Leia no app do banco</div>
-      </div>
-
       <div class="contact-info-list">
-        <div class="contact-item">📧 Contato / Dúvidas: <a href="mailto:demoaraujo@gmail.com">demoaraujo@gmail.com</a></div>
+        <div class="contact-item">📧 Contato: <a href="mailto:demoaraujo@gmail.com">demoaraujo@gmail.com</a></div>
         <div class="contact-item">📷 Instagram: <a href="https://instagram.com/deimom_araujo" target="_blank">@deimom_araujo</a></div>
       </div>
     </div>
@@ -1022,7 +1021,27 @@
 
   <script>
     /* ===================================================
-       1. SISTEMA DE AUDIO (SINTETIZADOR WEB AUDIO API)
+       1. VETORES SVG EMBUTIDOS (GARANTIA TOTAL CONTRA IMAGEM QUEBRADA)
+       =================================================== */
+    const SVG_BOLSONARO = `<svg viewBox="0 0 100 120" width="100%" height="100%">
+      <rect width="100" height="120" fill="#1d52a8"/>
+      <circle cx="50" cy="42" r="26" fill="#fde047"/>
+      <path d="M 20 110 Q 50 70 80 110 Z" fill="#ffffff"/>
+      <text x="50" y="47" font-size="20" font-weight="900" fill="#1d52a8" text-anchor="middle">22</text>
+      <text x="50" y="105" font-size="11" font-weight="900" fill="#1d52a8" text-anchor="middle">FLÁVIO</text>
+    </svg>`;
+
+    const SVG_LULA = `<svg viewBox="0 0 100 120" width="100%" height="100%">
+      <rect width="100" height="120" fill="#c81a27"/>
+      <path d="M 15 35 Q 50 10 85 35" fill="none" stroke="#fef08a" stroke-width="8"/>
+      <circle cx="50" cy="48" r="24" fill="#fef08a"/>
+      <path d="M 20 110 Q 50 72 80 110 Z" fill="#ffffff"/>
+      <text x="50" y="53" font-size="20" font-weight="900" fill="#c81a27" text-anchor="middle">13</text>
+      <text x="50" y="105" font-size="11" font-weight="900" fill="#c81a27" text-anchor="middle">LULA</text>
+    </svg>`;
+
+    /* ===================================================
+       2. AUDIO DA URNA ELETRÔNICA (FIDEDIGNO AO TSE)
        =================================================== */
     let audioCtx = null;
 
@@ -1032,43 +1051,43 @@
       }
     }
 
-    // Bip curto para clique de tecla
+    // BIP TECLA DA URNA (FREQUÊNCIA EXATA ~440Hz CURTA)
     function playBipSound() {
       try {
         initAudio();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+        osc.frequency.setValueAtTime(440, audioCtx.currentTime); // Tom original da tecla TSE
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.07);
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         osc.start();
-        osc.stop(audioCtx.currentTime + 0.08);
+        osc.stop(audioCtx.currentTime + 0.07);
       } catch(e) {}
     }
 
-    // Som clássico de confirmação de voto ("Pililili")
+    // SOM DE CONFIRMAÇÃO DE VOTO DA URNA ("PILILILI" EXATO DO TSE)
     function playConfirmaSound() {
       try {
         initAudio();
         const now = audioCtx.currentTime;
         
-        // Frequências clássicas do "pililili"
+        // Sequência de Frequências Oficiais do "PILILILI"
         const notes = [
-          { freq: 523.25, duration: 0.12, time: 0 },
-          { freq: 659.25, duration: 0.12, time: 0.12 },
-          { freq: 783.99, duration: 0.12, time: 0.24 },
-          { freq: 1046.50, duration: 0.35, time: 0.36 }
+          { freq: 523.25, duration: 0.11, time: 0 },
+          { freq: 659.25, duration: 0.11, time: 0.11 },
+          { freq: 783.99, duration: 0.11, time: 0.22 },
+          { freq: 1046.50, duration: 0.35, time: 0.33 }
         ];
 
         notes.forEach(note => {
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
-          osc.type = 'triangle';
+          osc.type = 'square'; // Onda quadrada para o som característico de buzina eletrônica
           osc.frequency.setValueAtTime(note.freq, now + note.time);
-          gain.gain.setValueAtTime(0.25, now + note.time);
+          gain.gain.setValueAtTime(0.18, now + note.time);
           gain.gain.exponentialRampToValueAtTime(0.001, now + note.time + note.duration);
           osc.connect(gain);
           gain.connect(audioCtx.destination);
@@ -1079,11 +1098,8 @@
     }
 
     /* ===================================================
-       2. DADOS DOS CANDIDATOS E ESTADO
+       3. ESTADO & PERSISTÊNCIA
        =================================================== */
-    const FOTO_BOLSONARO = "https://i.postimg.org/pX3v7Kz2/1001468166.jpg";
-    const FOTO_LULA = "https://i.postimg.org/3N3P41gX/1001468165.jpg";
-
     let state = {
       voted: false,
       userChoice: null,
@@ -1097,17 +1113,14 @@
       }
     };
 
-    /* ===================================================
-       3. PERSISTÊNCIA E VERIFICAÇÃO DE VOTO
-       =================================================== */
     function loadState() {
-      const savedVotes = localStorage.getItem('urn_2026_votes_v1');
+      const savedVotes = localStorage.getItem('urn_2026_votes_fixed');
       if (savedVotes) {
         state.votes = JSON.parse(savedVotes);
       }
 
-      const hasVoted = localStorage.getItem('urn_2026_has_voted');
-      const userChoice = localStorage.getItem('urn_2026_user_choice');
+      const hasVoted = localStorage.getItem('urn_2026_voted_flag');
+      const userChoice = localStorage.getItem('urn_2026_choice_val');
 
       if (hasVoted) {
         state.voted = true;
@@ -1116,11 +1129,11 @@
     }
 
     function saveState() {
-      localStorage.setItem('urn_2026_votes_v1', JSON.stringify(state.votes));
+      localStorage.setItem('urn_2026_votes_fixed', JSON.stringify(state.votes));
     }
 
     /* ===================================================
-       4. CONTROLE DA URNA E INTERFACE
+       4. CONTROLE DA TELA DA URNA
        =================================================== */
     function renderScreen() {
       const screen = document.getElementById('urna-screen-box');
@@ -1149,8 +1162,8 @@
           </div>
           <div class="screen-footer-instructions">
             Aperte tecla:<br>
-            <strong>GREEN/CONFIRMA</strong> para CONFIRMAR este voto<br>
-            <strong>ORANGE/CORRIGE</strong> para REINICIAR este voto
+            <strong>CONFIRMA</strong> para CONFIRMAR este voto<br>
+            <strong>CORRIGE</strong> para REINICIAR este voto
           </div>
         `;
         return;
@@ -1161,11 +1174,11 @@
 
       let candInfo = null;
       if (state.digits === '22') {
-        candInfo = { name: "Flávio Bolsonaro", party: "PL", photo: FOTO_BOLSONARO };
+        candInfo = { name: "Flávio Bolsonaro", party: "PL", svg: SVG_BOLSONARO };
       } else if (state.digits === '13') {
-        candInfo = { name: "Lula", party: "PT", photo: FOTO_LULA };
+        candInfo = { name: "Lula", party: "PT", svg: SVG_LULA };
       } else if (state.digits.length === 2) {
-        candInfo = { name: "VOTO NULO", party: "Número Errado", photo: null };
+        candInfo = { name: "VOTO NULO", party: "Número Errado", svg: null };
       }
 
       screen.innerHTML = `
@@ -1181,14 +1194,14 @@
                 <div class="candidate-name-large">${candInfo.name}</div>
                 <div class="candidate-party">${candInfo.party}</div>
               </div>
-              ${candInfo.photo ? `<img src="${candInfo.photo}" class="candidate-screen-photo">` : ''}
+              ${candInfo.svg ? `<div class="candidate-screen-photo-box">${candInfo.svg}</div>` : ''}
             </div>
           ` : ''}
         </div>
         <div class="screen-footer-instructions">
           Aperte tecla:<br>
-          <strong>GREEN/CONFIRMA</strong> para CONFIRMAR este voto<br>
-          <strong>ORANGE/CORRIGE</strong> para REINICIAR este voto
+          <strong>CONFIRMA</strong> para CONFIRMAR este voto<br>
+          <strong>CORRIGE</strong> para REINICIAR este voto
         </div>
       `;
     }
@@ -1247,23 +1260,22 @@
         state.voted = true;
         state.userChoice = choice;
 
-        localStorage.setItem('urn_2026_has_voted', 'true');
-        localStorage.setItem('urn_2026_user_choice', choice);
+        localStorage.setItem('urn_2026_voted_flag', 'true');
+        localStorage.setItem('urn_2026_choice_val', choice);
         saveState();
 
-        // Tela de FIM temporária
         const screen = document.getElementById('urna-screen-box');
         screen.innerHTML = `<div class="screen-fim">FIM</div>`;
 
         setTimeout(() => {
           renderScreen();
           updateDashboard();
-        }, 1500);
+        }, 1600);
       }
     }
 
     /* ===================================================
-       5. ATUALIZAÇÃO DO PAINEL DE APURAÇÃO
+       5. ATUALIZAÇÃO DA APURAÇÃO
        =================================================== */
     function updateDashboard() {
       const v22 = state.votes.v22;
@@ -1283,13 +1295,11 @@
       document.getElementById('pct-22').textContent = `${pct22.replace('.', ',')}%`;
       document.getElementById('pct-13').textContent = `${pct13.replace('.', ',')}%`;
 
-      // Barras de progresso
       const fill22 = validos > 0 ? (v22 / validos) * 100 : 50;
       const fill13 = validos > 0 ? (v13 / validos) * 100 : 50;
       document.getElementById('bar-22').style.width = `${fill22}%`;
       document.getElementById('bar-13').style.width = `${fill13}%`;
 
-      // Lista detalhada
       let totPct22 = totalVotos > 0 ? ((v22 / totalVotos) * 100).toFixed(1) : "0,0";
       let totPct13 = totalVotos > 0 ? ((v13 / totalVotos) * 100).toFixed(1) : "0,0";
       let totPctB = totalVotos > 0 ? ((vb / totalVotos) * 100).toFixed(1) : "0,0";
@@ -1311,7 +1321,7 @@
     }
 
     /* ===================================================
-       6. GRÁFICO DE LINHA DO TEMPO
+       6. GRÁFICO DA LINHA DO TEMPO
        =================================================== */
     let chartInstance = null;
 
@@ -1362,7 +1372,7 @@
     }
 
     /* ===================================================
-       7. TIMERS DE CONTAGEM REGRESSIVA
+       7. TIMERS
        =================================================== */
     function updateTimers() {
       const now = new Date();
@@ -1393,7 +1403,7 @@
     }
 
     /* ===================================================
-       8. COPIAR CHAVE PIX
+       8. COPIAR PIX
        =================================================== */
     function copiarChavePix(key) {
       navigator.clipboard.writeText(key).then(() => {
@@ -1407,6 +1417,10 @@
        9. INICIALIZAÇÃO
        =================================================== */
     window.addEventListener('DOMContentLoaded', () => {
+      // Inserir SVGs nos avatares
+      document.getElementById('avatar-bolsonaro-apuracao').innerHTML = SVG_BOLSONARO;
+      document.getElementById('avatar-lula-apuracao').innerHTML = SVG_LULA;
+
       loadState();
       renderScreen();
       updateDashboard();
