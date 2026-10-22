@@ -308,7 +308,7 @@
       text-align: right;
     }
 
-    /* SVG AVATAR EMBUTIDO (IMAGEM NUNCA QUEBRA) */
+    /* FOTO AVATAR DOS CANDIDATOS */
     .cand-photo-avatar {
       width: 58px;
       height: 72px;
@@ -320,6 +320,13 @@
       background: #f1f5f9;
       overflow: hidden;
       flex-shrink: 0;
+    }
+
+    .cand-photo-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
     }
 
     .cand-box.bolsonaro .cand-photo-avatar {
@@ -449,6 +456,7 @@
       justify-content: space-between;
       align-items: flex-end;
       margin-top: 10px;
+      gap: 10px;
     }
 
     .candidate-text-info {
@@ -504,6 +512,14 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .candidate-screen-photo-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
     }
 
     .screen-footer-instructions {
@@ -573,6 +589,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      user-select: none;
     }
 
     .key-btn:active {
@@ -599,6 +616,7 @@
       text-transform: uppercase;
       box-shadow: 0 3px 0 rgba(0,0,0,0.4);
       cursor: pointer;
+      user-select: none;
     }
 
     .btn-action:active {
@@ -608,7 +626,7 @@
 
     .btn-branco { background: var(--btn-branco); color: #0f172a; }
     .btn-corrige { background: var(--btn-corrige); color: white; }
-    .btn-confirma { background: var(--btn-confirma); color: #064e3b; font-size: 0.75rem; }
+    .btn-confirma { background: var(--btn-confirm); color: #064e3b; font-size: 0.75rem; }
 
     /* DETALHES DOS VOTOS */
     .votos-breakdown-card {
@@ -736,11 +754,6 @@
       line-height: 1.3;
     }
 
-    .qr-container {
-      text-align: center;
-      margin: 12px 0;
-    }
-
     .contact-info-list {
       margin-top: 12px;
       padding-top: 10px;
@@ -845,7 +858,7 @@
           <!-- FLÁVIO BOLSONARO -->
           <div class="cand-box bolsonaro">
             <div class="cand-photo-avatar" id="avatar-bolsonaro-apuracao">
-              <!-- SVG AVATAR DE FLÁVIO BOLSONARO -->
+              <!-- FOTO CARREGADA VIA JS -->
             </div>
             <div>
               <span class="cand-badge badge-22">22</span>
@@ -857,7 +870,7 @@
           <!-- LULA -->
           <div class="cand-box lula right">
             <div class="cand-photo-avatar" id="avatar-lula-apuracao">
-              <!-- SVG AVATAR DE LULA -->
+              <!-- FOTO CARREGADA VIA JS -->
             </div>
             <div>
               <span class="cand-badge badge-13">13</span>
@@ -1021,9 +1034,12 @@
 
   <script>
     /* ===================================================
-       1. VETORES SVG EMBUTIDOS (GARANTIA TOTAL CONTRA IMAGEM QUEBRADA)
+       1. FOTOS DOS CANDIDATOS COM FALLBACK DE SEGURANÇA
        =================================================== */
-    const SVG_BOLSONARO = `<svg viewBox="0 0 100 120" width="100%" height="100%">
+    const URL_FOTO_BOLSONARO = "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Fl%C3%A1vio_Bolsonaro_em_2023.jpg/300px-Fl%C3%A1vio_Bolsonaro_em_2023.jpg";
+    const URL_FOTO_LULA = "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Luiz_In%C3%A1cio_Lula_da_Silva_in_2023.jpg/300px-Luiz_In%C3%A1cio_Lula_da_Silva_in_2023.jpg";
+
+    const SVG_BOLSONARO_FALLBACK = `<svg viewBox="0 0 100 120" width="100%" height="100%">
       <rect width="100" height="120" fill="#1d52a8"/>
       <circle cx="50" cy="42" r="26" fill="#fde047"/>
       <path d="M 20 110 Q 50 70 80 110 Z" fill="#ffffff"/>
@@ -1031,17 +1047,25 @@
       <text x="50" y="105" font-size="11" font-weight="900" fill="#1d52a8" text-anchor="middle">FLÁVIO</text>
     </svg>`;
 
-    const SVG_LULA = `<svg viewBox="0 0 100 120" width="100%" height="100%">
+    const SVG_LULA_FALLBACK = `<svg viewBox="0 0 100 120" width="100%" height="100%">
       <rect width="100" height="120" fill="#c81a27"/>
-      <path d="M 15 35 Q 50 10 85 35" fill="none" stroke="#fef08a" stroke-width="8"/>
       <circle cx="50" cy="48" r="24" fill="#fef08a"/>
       <path d="M 20 110 Q 50 72 80 110 Z" fill="#ffffff"/>
       <text x="50" y="53" font-size="20" font-weight="900" fill="#c81a27" text-anchor="middle">13</text>
       <text x="50" y="105" font-size="11" font-weight="900" fill="#c81a27" text-anchor="middle">LULA</text>
     </svg>`;
 
+    function getCandidatePhotoHTML(num, altText) {
+      if (num === '22') {
+        return `<img src="${URL_FOTO_BOLSONARO}" alt="${altText}" onerror="this.onerror=null; this.parentElement.innerHTML=SVG_BOLSONARO_FALLBACK;">`;
+      } else if (num === '13') {
+        return `<img src="${URL_FOTO_LULA}" alt="${altText}" onerror="this.onerror=null; this.parentElement.innerHTML=SVG_LULA_FALLBACK;">`;
+      }
+      return '';
+    }
+
     /* ===================================================
-       2. AUDIO DA URNA ELETRÔNICA (FIDEDIGNO AO TSE)
+       2. ÁUDIO AUTÊNTICO DA URNA ELETRÔNICA (TSE)
        =================================================== */
     let audioCtx = null;
 
@@ -1049,43 +1073,44 @@
       if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
     }
 
-    // BIP TECLA DA URNA (FREQUÊNCIA EXATA ~440Hz CURTA)
+    // BIP DAS TECLAS (1200 Hz - FREQUÊNCIA EXATA DA URNA REAL)
     function playBipSound() {
       try {
         initAudio();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(440, audioCtx.currentTime); // Tom original da tecla TSE
+        osc.frequency.setValueAtTime(1200, audioCtx.currentTime); 
         gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.07);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         osc.start();
-        osc.stop(audioCtx.currentTime + 0.07);
+        osc.stop(audioCtx.currentTime + 0.06);
       } catch(e) {}
     }
 
-    // SOM DE CONFIRMAÇÃO DE VOTO DA URNA ("PILILILI" EXATO DO TSE)
+    // SOM "PILILILI" DE CONFIRMAÇÃO DO TSE
     function playConfirmaSound() {
       try {
         initAudio();
         const now = audioCtx.currentTime;
-        
-        // Sequência de Frequências Oficiais do "PILILILI"
         const notes = [
-          { freq: 523.25, duration: 0.11, time: 0 },
-          { freq: 659.25, duration: 0.11, time: 0.11 },
-          { freq: 783.99, duration: 0.11, time: 0.22 },
-          { freq: 1046.50, duration: 0.35, time: 0.33 }
+          { freq: 523.25, duration: 0.10, time: 0 },
+          { freq: 659.25, duration: 0.10, time: 0.10 },
+          { freq: 783.99, duration: 0.10, time: 0.20 },
+          { freq: 1046.50, duration: 0.35, time: 0.30 }
         ];
 
         notes.forEach(note => {
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
-          osc.type = 'square'; // Onda quadrada para o som característico de buzina eletrônica
+          osc.type = 'square';
           osc.frequency.setValueAtTime(note.freq, now + note.time);
           gain.gain.setValueAtTime(0.18, now + note.time);
           gain.gain.exponentialRampToValueAtTime(0.001, now + note.time + note.duration);
@@ -1174,11 +1199,11 @@
 
       let candInfo = null;
       if (state.digits === '22') {
-        candInfo = { name: "Flávio Bolsonaro", party: "PL", svg: SVG_BOLSONARO };
+        candInfo = { name: "Flávio Bolsonaro", party: "PL", num: '22' };
       } else if (state.digits === '13') {
-        candInfo = { name: "Lula", party: "PT", svg: SVG_LULA };
+        candInfo = { name: "Lula", party: "PT", num: '13' };
       } else if (state.digits.length === 2) {
-        candInfo = { name: "VOTO NULO", party: "Número Errado", svg: null };
+        candInfo = { name: "VOTO NULO", party: "Número Errado", num: null };
       }
 
       screen.innerHTML = `
@@ -1194,7 +1219,7 @@
                 <div class="candidate-name-large">${candInfo.name}</div>
                 <div class="candidate-party">${candInfo.party}</div>
               </div>
-              ${candInfo.svg ? `<div class="candidate-screen-photo-box">${candInfo.svg}</div>` : ''}
+              ${candInfo.num ? `<div class="candidate-screen-photo-box">${getCandidatePhotoHTML(candInfo.num, candInfo.name)}</div>` : ''}
             </div>
           ` : ''}
         </div>
@@ -1417,9 +1442,9 @@
        9. INICIALIZAÇÃO
        =================================================== */
     window.addEventListener('DOMContentLoaded', () => {
-      // Inserir SVGs nos avatares
-      document.getElementById('avatar-bolsonaro-apuracao').innerHTML = SVG_BOLSONARO;
-      document.getElementById('avatar-lula-apuracao').innerHTML = SVG_LULA;
+      // Carregar fotos oficiais dos candidatos no cabeçalho de apuração
+      document.getElementById('avatar-bolsonaro-apuracao').innerHTML = getCandidatePhotoHTML('22', 'Flávio Bolsonaro');
+      document.getElementById('avatar-lula-apuracao').innerHTML = getCandidatePhotoHTML('13', 'Lula');
 
       loadState();
       renderScreen();
