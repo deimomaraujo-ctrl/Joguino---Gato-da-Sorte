@@ -317,7 +317,7 @@
       align-items: center;
       justify-content: center;
       border: 2px solid #cbd5e1;
-      background: #f1f5f9;
+      background: #ffffff;
       overflow: hidden;
       flex-shrink: 0;
     }
@@ -331,12 +331,10 @@
 
     .cand-box.bolsonaro .cand-photo-avatar {
       border-color: var(--bolsonaro-blue);
-      background: #eff6ff;
     }
 
     .cand-box.lula .cand-photo-avatar {
       border-color: var(--lula-red);
-      background: #fef2f2;
     }
 
     .cand-badge {
@@ -858,7 +856,7 @@
           <!-- FLÁVIO BOLSONARO -->
           <div class="cand-box bolsonaro">
             <div class="cand-photo-avatar" id="avatar-bolsonaro-apuracao">
-              <!-- FOTO CARREGADA VIA JS -->
+              <!-- FOTO INSERIDA DIRETA VIA JS -->
             </div>
             <div>
               <span class="cand-badge badge-22">22</span>
@@ -870,7 +868,7 @@
           <!-- LULA -->
           <div class="cand-box lula right">
             <div class="cand-photo-avatar" id="avatar-lula-apuracao">
-              <!-- FOTO CARREGADA VIA JS -->
+              <!-- FOTO INSERIDA DIRETA VIA JS -->
             </div>
             <div>
               <span class="cand-badge badge-13">13</span>
@@ -1034,38 +1032,62 @@
 
   <script>
     /* ===================================================
-       1. FOTOS DOS CANDIDATOS COM FALLBACK DE SEGURANÇA
+       1. VETORES SVG DE ALTA QUALIDADE DOS CANDIDATOS
+       (GARANTIA TOTAL: NUNCA BLOQUEIAM, NUNCA FICA QUEBRADO)
        =================================================== */
-    const URL_FOTO_BOLSONARO = "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Fl%C3%A1vio_Bolsonaro_em_2023.jpg/300px-Fl%C3%A1vio_Bolsonaro_em_2023.jpg";
-    const URL_FOTO_LULA = "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Luiz_In%C3%A1cio_Lula_da_Silva_in_2023.jpg/300px-Luiz_In%C3%A1cio_Lula_da_Silva_in_2023.jpg";
-
-    const SVG_BOLSONARO_FALLBACK = `<svg viewBox="0 0 100 120" width="100%" height="100%">
-      <rect width="100" height="120" fill="#1d52a8"/>
-      <circle cx="50" cy="42" r="26" fill="#fde047"/>
-      <path d="M 20 110 Q 50 70 80 110 Z" fill="#ffffff"/>
-      <text x="50" y="47" font-size="20" font-weight="900" fill="#1d52a8" text-anchor="middle">22</text>
-      <text x="50" y="105" font-size="11" font-weight="900" fill="#1d52a8" text-anchor="middle">FLÁVIO</text>
+    const SVG_FLAVIO_BOLSONARO = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 200" width="100%" height="100%">
+      <rect width="160" height="200" fill="#1d52a8"/>
+      <circle cx="80" cy="72" r="38" fill="#ffdbac"/>
+      <!-- Cabelo -->
+      <path d="M 42 70 Q 45 32 80 30 Q 115 32 118 70 Q 100 45 80 46 Q 60 45 42 70 Z" fill="#3d2314"/>
+      <!-- Olhos e sobrancelhas -->
+      <ellipse cx="66" cy="70" rx="4" ry="3" fill="#2d1a0e"/>
+      <ellipse cx="94" cy="70" rx="4" ry="3" fill="#2d1a0e"/>
+      <path d="M 58 62 Q 66 58 74 62" fill="none" stroke="#2d1a0e" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M 86 62 Q 94 58 102 62" fill="none" stroke="#2d1a0e" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Nariz e Boca -->
+      <path d="M 80 70 L 77 82 L 83 82" fill="none" stroke="#d49b72" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M 68 94 Q 80 102 92 94" fill="none" stroke="#c47a58" stroke-width="3" stroke-linecap="round"/>
+      <!-- Terno e Gravata -->
+      <path d="M 20 200 L 45 125 L 115 125 L 140 200 Z" fill="#0f172a"/>
+      <path d="M 65 125 L 80 160 L 95 125 Z" fill="#ffffff"/>
+      <path d="M 76 135 L 84 135 L 86 195 L 80 200 L 74 195 Z" fill="#1d52a8"/>
+      <!-- Tarja 22 -->
+      <rect x="0" y="165" width="160" height="35" fill="rgba(15,23,42,0.85)"/>
+      <text x="80" y="190" font-size="20" font-weight="900" fill="#ffcc00" text-anchor="middle" font-family="Inter, sans-serif">22 • FLÁVIO</text>
     </svg>`;
 
-    const SVG_LULA_FALLBACK = `<svg viewBox="0 0 100 120" width="100%" height="100%">
-      <rect width="100" height="120" fill="#c81a27"/>
-      <circle cx="50" cy="48" r="24" fill="#fef08a"/>
-      <path d="M 20 110 Q 50 72 80 110 Z" fill="#ffffff"/>
-      <text x="50" y="53" font-size="20" font-weight="900" fill="#c81a27" text-anchor="middle">13</text>
-      <text x="50" y="105" font-size="11" font-weight="900" fill="#c81a27" text-anchor="middle">LULA</text>
+    const SVG_LULA = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 200" width="100%" height="100%">
+      <rect width="160" height="200" fill="#c81a27"/>
+      <circle cx="80" cy="74" r="38" fill="#f1c27d"/>
+      <!-- Cabelo e Barba Branca / Grisalha -->
+      <path d="M 42 72 Q 45 30 80 28 Q 115 30 118 72 Q 100 42 80 43 Q 60 42 42 72 Z" fill="#e2e8f0"/>
+      <path d="M 46 76 Q 40 105 58 116 Q 80 125 102 116 Q 120 105 114 76 Q 105 110 80 110 Q 55 110 46 76 Z" fill="#e2e8f0"/>
+      <!-- Olhos e Sobrancelhas -->
+      <ellipse cx="66" cy="68" rx="4" ry="3" fill="#2d1a0e"/>
+      <ellipse cx="94" cy="68" rx="4" ry="3" fill="#2d1a0e"/>
+      <path d="M 58 60 Q 66 56 74 61" fill="none" stroke="#cbd5e1" stroke-width="3" stroke-linecap="round"/>
+      <path d="M 86 61 Q 94 56 102 60" fill="none" stroke="#cbd5e1" stroke-width="3" stroke-linecap="round"/>
+      <!-- Nariz e Sorriso -->
+      <path d="M 80 67 L 75 80 L 85 80" fill="none" stroke="#c59b6c" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M 68 92 Q 80 102 92 92" fill="none" stroke="#b95d4b" stroke-width="3" stroke-linecap="round"/>
+      <!-- Paletó / Roupa -->
+      <path d="M 20 200 L 45 125 L 115 125 L 140 200 Z" fill="#1e293b"/>
+      <path d="M 65 125 L 80 155 L 95 125 Z" fill="#ffffff"/>
+      <path d="M 76 130 L 84 130 L 86 195 L 80 200 L 74 195 Z" fill="#c81a27"/>
+      <!-- Tarja 13 -->
+      <rect x="0" y="165" width="160" height="35" fill="rgba(15,23,42,0.85)"/>
+      <text x="80" y="190" font-size="20" font-weight="900" fill="#ffffff" text-anchor="middle" font-family="Inter, sans-serif">13 • LULA</text>
     </svg>`;
 
-    function getCandidatePhotoHTML(num, altText) {
-      if (num === '22') {
-        return `<img src="${URL_FOTO_BOLSONARO}" alt="${altText}" onerror="this.onerror=null; this.parentElement.innerHTML=SVG_BOLSONARO_FALLBACK;">`;
-      } else if (num === '13') {
-        return `<img src="${URL_FOTO_LULA}" alt="${altText}" onerror="this.onerror=null; this.parentElement.innerHTML=SVG_LULA_FALLBACK;">`;
-      }
+    function getCandidatePhoto(num) {
+      if (num === '22') return SVG_FLAVIO_BOLSONARO;
+      if (num === '13') return SVG_LULA;
       return '';
     }
 
     /* ===================================================
-       2. ÁUDIO AUTÊNTICO DA URNA ELETRÔNICA (TSE)
+       2. ÁUDIO AUTÊNTICO DA URNA ELETRÔNICA DO TSE
        =================================================== */
     let audioCtx = null;
 
@@ -1078,7 +1100,7 @@
       }
     }
 
-    // BIP DAS TECLAS (1200 Hz - FREQUÊNCIA EXATA DA URNA REAL)
+    // BIP TECLA DA URNA (FREQ 1200Hz - EXATO DA URNA REAL)
     function playBipSound() {
       try {
         initAudio();
@@ -1087,15 +1109,15 @@
         osc.type = 'sine';
         osc.frequency.setValueAtTime(1200, audioCtx.currentTime); 
         gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.07);
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         osc.start();
-        osc.stop(audioCtx.currentTime + 0.06);
+        osc.stop(audioCtx.currentTime + 0.07);
       } catch(e) {}
     }
 
-    // SOM "PILILILI" DE CONFIRMAÇÃO DO TSE
+    // SOM "PILILILI" DE CONFIRMAÇÃO OFICIAL DO TSE
     function playConfirmaSound() {
       try {
         initAudio();
@@ -1219,7 +1241,7 @@
                 <div class="candidate-name-large">${candInfo.name}</div>
                 <div class="candidate-party">${candInfo.party}</div>
               </div>
-              ${candInfo.num ? `<div class="candidate-screen-photo-box">${getCandidatePhotoHTML(candInfo.num, candInfo.name)}</div>` : ''}
+              ${candInfo.num ? `<div class="candidate-screen-photo-box">${getCandidatePhoto(candInfo.num)}</div>` : ''}
             </div>
           ` : ''}
         </div>
@@ -1443,8 +1465,8 @@
        =================================================== */
     window.addEventListener('DOMContentLoaded', () => {
       // Carregar fotos oficiais dos candidatos no cabeçalho de apuração
-      document.getElementById('avatar-bolsonaro-apuracao').innerHTML = getCandidatePhotoHTML('22', 'Flávio Bolsonaro');
-      document.getElementById('avatar-lula-apuracao').innerHTML = getCandidatePhotoHTML('13', 'Lula');
+      document.getElementById('avatar-bolsonaro-apuracao').innerHTML = getCandidatePhoto('22');
+      document.getElementById('avatar-lula-apuracao').innerHTML = getCandidatePhoto('13');
 
       loadState();
       renderScreen();
