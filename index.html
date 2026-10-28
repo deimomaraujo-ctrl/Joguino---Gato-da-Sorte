@@ -163,7 +163,7 @@
             <!-- BOTÃO MASTER SCANNER -->
             <button onclick="openOcrScannerModal()" class="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-white py-3 px-4 rounded-xl font-bold shadow-lg shadow-teal-500/25 transition-all transform hover:-translate-y-0.5">
                 <i data-lucide="camera" class="w-5 h-5"></i>
-                <span>📸 Escanear Foto com IA</span>
+                <span>📸 Escanear Foto / Galeria</span>
             </button>
 
             <button onclick="openNewRecordModal()" class="w-full flex items-center justify-center space-x-2 bg-slate-800 hover:bg-slate-700 text-slate-200 py-2.5 px-4 rounded-xl font-semibold border border-slate-700 transition-all text-xs">
@@ -242,11 +242,11 @@
                 <div class="relative z-10 max-w-xl">
                     <span class="px-3 py-1 bg-teal-500/20 text-teal-300 text-xs font-bold rounded-full border border-teal-500/30 uppercase tracking-wider">Leitor IA de Alta Precisão</span>
                     <h2 class="text-2xl font-black mt-2">Digitalize seus Laudos em Segundos</h2>
-                    <p class="text-slate-300 text-sm mt-1">Tire uma foto do laudo impresso. O leitor extrai fidedignamente o nome do exame, parâmetros, unidades, resultados e referências exatamente como estão impressos!</p>
+                    <p class="text-slate-300 text-sm mt-1">Tire uma foto ou escolha uma imagem da sua galeria. O leitor extrai fidedignamente o nome do exame, parâmetros, unidades, resultados e referências!</p>
                 </div>
                 <button onclick="openOcrScannerModal()" class="relative z-10 px-6 py-3.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-extrabold rounded-2xl shadow-lg shadow-teal-500/30 flex items-center gap-2 flex-shrink-0 transition-all transform hover:scale-105">
                     <i data-lucide="camera" class="w-5 h-5"></i>
-                    <span>Tirar Foto do Exame</span>
+                    <span>Tirar Foto / Escolher Galeria</span>
                 </button>
             </div>
 
@@ -352,7 +352,7 @@
                 <div class="flex items-center gap-2">
                     <button onclick="openOcrScannerModal()" class="bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-bold px-4 py-2.5 rounded-xl shadow-sm text-sm flex items-center space-x-2">
                         <i data-lucide="camera" class="w-4 h-4"></i>
-                        <span>Escanear por Foto</span>
+                        <span>Escanear Foto / Galeria</span>
                     </button>
                     <button onclick="openNewRecordModal('exam')" class="bg-slate-800 hover:bg-slate-700 text-white font-medium px-4 py-2.5 rounded-xl shadow-sm text-sm flex items-center space-x-2">
                         <i data-lucide="plus" class="w-4 h-4"></i>
@@ -418,7 +418,7 @@
             <div class="bg-slate-900 px-6 py-4 flex items-center justify-between text-white">
                 <h3 class="font-bold text-lg flex items-center gap-2">
                     <i data-lucide="camera" class="w-5 h-5 text-teal-400"></i>
-                    <span>Leitor IA de Exame por Foto</span>
+                    <span>Leitor IA de Exame por Foto / Galeria</span>
                 </h3>
                 <button onclick="closeModal('modal-ocr-scanner')" class="text-slate-400 hover:text-white">
                     <i data-lucide="x" class="w-6 h-6"></i>
@@ -428,18 +428,35 @@
             <div class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-5">
                 <div class="bg-teal-50 border border-teal-200 p-3 rounded-2xl flex items-start gap-3 text-xs text-teal-900">
                     <i data-lucide="sparkles" class="w-5 h-5 text-teal-600 flex-shrink-0 mt-0.5"></i>
-                    <p><strong>Dica de Precisão:</strong> Mantenha a foto bem iluminada e paralela ao papel. O leitor extrairá exatamente o que estiver escrito sem alterações.</p>
+                    <p><strong>Dica de Precisão:</strong> Mantenha a imagem bem iluminada e focado nos textos do laudo. Você pode tirar uma foto agora ou escolher uma imagem salva na sua galeria.</p>
                 </div>
 
-                <!-- ÁREA DE CAPTURA / ARQUIVO -->
-                <div class="border-2 border-dashed border-teal-400 bg-teal-50/30 rounded-2xl p-6 text-center hover:bg-teal-50 transition-all cursor-pointer relative" onclick="document.getElementById('ocr-file-input').click()">
-                    <input type="file" id="ocr-file-input" accept="image/*" capture="environment" class="hidden" onchange="processImageOCR(this)">
-                    <div id="ocr-upload-prompt" class="space-y-2">
+                <!-- ÁREA DE CAPTURA / GALERIA -->
+                <div class="border-2 border-dashed border-teal-400 bg-teal-50/30 rounded-2xl p-6 text-center hover:bg-teal-50 transition-all relative">
+                    <!-- INPUTS OCULTOS DE CÂMERA E GALERIA -->
+                    <input type="file" id="ocr-camera-input" accept="image/*" capture="environment" class="hidden" onchange="processImageOCR(this)">
+                    <input type="file" id="ocr-gallery-input" accept="image/*" class="hidden" onchange="processImageOCR(this)">
+
+                    <div id="ocr-upload-prompt" class="space-y-4">
                         <div class="w-14 h-14 bg-teal-500 text-white rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-teal-500/30">
                             <i data-lucide="camera" class="w-7 h-7"></i>
                         </div>
-                        <p class="font-bold text-sm text-slate-800">Tirar Foto ou Selecionar Imagem</p>
-                        <p class="text-xs text-slate-400">Suporta Hemogramas, Sorologias, Bioquímica, etc.</p>
+                        <div>
+                            <p class="font-bold text-sm text-slate-800">Como você deseja enviar o laudo?</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Selecione uma opção abaixo para processar</p>
+                        </div>
+
+                        <!-- BOTÕES EXPLÍCITOS DE CÂMERA E GALERIA -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                            <button type="button" onclick="document.getElementById('ocr-camera-input').click()" class="flex items-center justify-center gap-2 p-3 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-bold text-xs shadow-md transition-all">
+                                <i data-lucide="camera" class="w-4 h-4"></i>
+                                <span>Tirar Foto (Câmera)</span>
+                            </button>
+                            <button type="button" onclick="document.getElementById('ocr-gallery-input').click()" class="flex items-center justify-center gap-2 p-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold text-xs shadow-md transition-all">
+                                <i data-lucide="image" class="w-4 h-4"></i>
+                                <span>Escolher da Galeria</span>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- PREVIEW DA IMAGEM -->
@@ -619,10 +636,24 @@
                         </div>
                     </div>
 
-                    <!-- CAMPO DE ANEXO -->
+                    <!-- CAMPO DE ANEXO (OPÇÕES: CÂMERA OU GALERIA) -->
                     <div class="pt-4 border-t border-slate-100">
-                        <label class="block text-xs font-bold text-slate-600 mb-1">Anexo / Imagem do Laudo ou Foto</label>
-                        <input type="file" id="record-attachment-file" accept="image/*" onchange="convertFileToBase64(this)" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100">
+                        <label class="block text-xs font-bold text-slate-600 mb-2">Anexo / Imagem do Laudo ou Foto</label>
+                        
+                        <input type="file" id="record-attachment-camera" accept="image/*" capture="environment" onchange="convertFileToBase64(this)" class="hidden">
+                        <input type="file" id="record-attachment-gallery" accept="image/*" onchange="convertFileToBase64(this)" class="hidden">
+
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button type="button" onclick="document.getElementById('record-attachment-camera').click()" class="px-3 py-2 bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all">
+                                <i data-lucide="camera" class="w-4 h-4"></i>
+                                <span>Tirar Foto (Câmera)</span>
+                            </button>
+                            <button type="button" onclick="document.getElementById('record-attachment-gallery').click()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all">
+                                <i data-lucide="image" class="w-4 h-4"></i>
+                                <span>Escolher da Galeria</span>
+                            </button>
+                            <span id="attachment-filename-display" class="text-xs text-teal-700 font-medium italic hidden"></span>
+                        </div>
                         <input type="hidden" id="record-attachment-base64">
                     </div>
 
@@ -878,7 +909,7 @@
                     <div class="p-8 text-center bg-white rounded-2xl border border-slate-200">
                         <i data-lucide="folder-open" class="w-10 h-10 text-slate-300 mx-auto mb-2"></i>
                         <p class="text-sm font-semibold text-slate-600">Nenhum exame encontrado</p>
-                        <p class="text-xs text-slate-400">Tire uma foto do laudo impresso para incluir instantaneamente.</p>
+                        <p class="text-xs text-slate-400">Tire uma foto ou escolha uma imagem da galeria para incluir.</p>
                     </div>
                 `;
                 return;
@@ -1011,6 +1042,9 @@
 
             if (exam.attachment) {
                 document.getElementById('record-attachment-base64').value = exam.attachment;
+                const fileDisplay = document.getElementById('attachment-filename-display');
+                fileDisplay.textContent = "✓ Imagem do laudo já anexada";
+                fileDisplay.classList.remove('hidden');
             }
 
             document.getElementById('parameters-container').innerHTML = '';
@@ -1248,7 +1282,6 @@
                 });
 
                 if (editingId) {
-                    // ATUALIZA EXAME EXISTENTE
                     const index = appData.exams.findIndex(e => e.id === editingId);
                     if (index !== -1) {
                         appData.exams[index] = {
@@ -1263,7 +1296,6 @@
                         };
                     }
                 } else {
-                    // CRIA NOVO EXAME
                     const newExam = {
                         id: 'ex-' + Date.now(),
                         name,
@@ -1340,23 +1372,37 @@
             document.getElementById('form-editing-id').value = '';
             document.getElementById('modal-title').textContent = "Novo Registro Clínico";
             document.getElementById('record-attachment-base64').value = '';
+            
+            const fileDisplay = document.getElementById('attachment-filename-display');
+            if (fileDisplay) {
+                fileDisplay.textContent = '';
+                fileDisplay.classList.add('hidden');
+            }
+
             document.getElementById('parameters-container').innerHTML = '';
             addParameterRow();
         }
 
         function convertFileToBase64(input) {
             if (input.files && input.files[0]) {
+                const file = input.files[0];
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     document.getElementById('record-attachment-base64').value = e.target.result;
+                    const display = document.getElementById('attachment-filename-display');
+                    if (display) {
+                        display.textContent = `✓ Imagem Selecionada: ${file.name}`;
+                        display.classList.remove('hidden');
+                    }
                 }
-                reader.readAsDataURL(input.files[0]);
+                reader.readAsDataURL(file);
             }
         }
 
         // --- SISTEMA MASTER OCR (LEITURA MULTI-EXAMES AMPLIADA) ---
         function openOcrScannerModal() {
-            document.getElementById('ocr-file-input').value = '';
+            document.getElementById('ocr-camera-input').value = '';
+            document.getElementById('ocr-gallery-input').value = '';
             document.getElementById('ocr-upload-prompt').classList.remove('hidden');
             document.getElementById('ocr-preview-container').classList.add('hidden');
             document.getElementById('ocr-progress-container').classList.add('hidden');
@@ -1671,6 +1717,11 @@
 
             if (data.attachment) {
                 document.getElementById('record-attachment-base64').value = data.attachment;
+                const fileDisplay = document.getElementById('attachment-filename-display');
+                if (fileDisplay) {
+                    fileDisplay.textContent = "✓ Imagem do laudo anexada com sucesso";
+                    fileDisplay.classList.remove('hidden');
+                }
             }
 
             document.getElementById('parameters-container').innerHTML = '';
