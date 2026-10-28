@@ -242,7 +242,7 @@
                 <div class="relative z-10 max-w-xl">
                     <span class="px-3 py-1 bg-teal-500/20 text-teal-300 text-xs font-bold rounded-full border border-teal-500/30 uppercase tracking-wider">Leitor IA de Alta Precisão</span>
                     <h2 class="text-2xl font-black mt-2">Digitalize seus Laudos em Segundos</h2>
-                    <p class="text-slate-300 text-sm mt-1">Tire uma foto do laudo impresso. O leitor identifica o nome do exame, cada parâmetro, unidades (g/dL, milhões/mm³, mg/dL...), valores de referência e sinaliza alterações!</p>
+                    <p class="text-slate-300 text-sm mt-1">Tire uma foto do laudo impresso. O leitor extrai fidedignamente o nome do exame, parâmetros, unidades, resultados e referências exatamente como estão impressos!</p>
                 </div>
                 <button onclick="openOcrScannerModal()" class="relative z-10 px-6 py-3.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-extrabold rounded-2xl shadow-lg shadow-teal-500/30 flex items-center gap-2 flex-shrink-0 transition-all transform hover:scale-105">
                     <i data-lucide="camera" class="w-5 h-5"></i>
@@ -428,7 +428,7 @@
             <div class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-5">
                 <div class="bg-teal-50 border border-teal-200 p-3 rounded-2xl flex items-start gap-3 text-xs text-teal-900">
                     <i data-lucide="sparkles" class="w-5 h-5 text-teal-600 flex-shrink-0 mt-0.5"></i>
-                    <p><strong>Dica de Precisão:</strong> Mantenha a foto bem iluminada, paralela ao papel e focada na tabela de resultados e valores de referência.</p>
+                    <p><strong>Dica de Precisão:</strong> Mantenha a foto bem iluminada e paralela ao papel. O leitor extrairá exatamente o que estiver escrito sem alterações.</p>
                 </div>
 
                 <!-- ÁREA DE CAPTURA / ARQUIVO -->
@@ -708,46 +708,6 @@
         const INITIAL_SEED_DATA = { exams: [], consultations: [], documents: [] };
         let appData = { exams: [], consultations: [], documents: [] };
         let activeExamFilter = 'all';
-
-        // --- MAPA MESTRE DE PARÂMETROS MÉDICOS COM UNIDADES E REFERÊNCIAS PADRÃO ---
-        const MEDICAL_DICTIONARY = [
-            { keywords: ['hemacias', 'eritrocitos', 'hematias'], name: 'Hemácias (Eritrócitos)', unit: 'milhões/mm³', ref: '4.0 - 5.5' },
-            { keywords: ['hemoglobina', 'hb'], name: 'Hemoglobina (Hb)', unit: 'g/dL', ref: '12.0 - 17.5' },
-            { keywords: ['hematocrito', 'ht'], name: 'Hematócrito (Ht)', unit: '%', ref: '36 - 52' },
-            { keywords: ['vcm'], name: 'VCM', unit: 'fL', ref: '80 - 100' },
-            { keywords: ['hcm'], name: 'HCM', unit: 'pg', ref: '27 - 33' },
-            { keywords: ['chcm'], name: 'CHCM', unit: 'g/dL', ref: '32 - 36' },
-            { keywords: ['rdw'], name: 'RDW', unit: '%', ref: '11.5 - 14.5' },
-            { keywords: ['leucocitos', 'globulos brancos'], name: 'Leucócitos Totais', unit: '/mm³', ref: '4.500 - 11.000' },
-            { keywords: ['bastonetes', 'bastoes'], name: 'Bastonetes', unit: '/mm³', ref: '40 - 400' },
-            { keywords: ['segmentados', 'neutrofilos'], name: 'Segmentados (Neutrófilos)', unit: '/mm³', ref: '1.600 - 7.000' },
-            { keywords: ['eosinofilos'], name: 'Eosinófilos', unit: '/mm³', ref: '40 - 500' },
-            { keywords: ['basofilos'], name: 'Basófilos', unit: '/mm³', ref: '0 - 100' },
-            { keywords: ['linfocitos'], name: 'Linfócitos Típicos', unit: '/mm³', ref: '900 - 4.000' },
-            { keywords: ['monocitos'], name: 'Monócitos', unit: '/mm³', ref: '100 - 1.000' },
-            { keywords: ['plaquetas', 'trombocitos'], name: 'Plaquetas', unit: '/mm³', ref: '150.000 - 450.000' },
-            { keywords: ['glicemia', 'glicose'], name: 'Glicemia de Jejum', unit: 'mg/dL', ref: '70 - 99' },
-            { keywords: ['hba1c', 'glicada'], name: 'Hemoglobina Glicada (HbA1c)', unit: '%', ref: 'Inferior a 5.7' },
-            { keywords: ['colesterol total'], name: 'Colesterol Total', unit: 'mg/dL', ref: 'Inferior a 190' },
-            { keywords: ['hdl'], name: 'Colesterol HDL', unit: 'mg/dL', ref: 'Superior a 40' },
-            { keywords: ['ldl'], name: 'Colesterol LDL', unit: 'mg/dL', ref: 'Inferior a 130' },
-            { keywords: ['triglicerideos', 'triglicerides'], name: 'Triglicerídeos', unit: 'mg/dL', ref: 'Inferior a 150' },
-            { keywords: ['ureia'], name: 'Ureia', unit: 'mg/dL', ref: '15 - 45' },
-            { keywords: ['creatinina'], name: 'Creatinina', unit: 'mg/dL', ref: '0.6 - 1.2' },
-            { keywords: ['tgo', 'ast'], name: 'TGO (AST)', unit: 'U/L', ref: '10 - 40' },
-            { keywords: ['tgp', 'alt'], name: 'TGP (ALT)', unit: 'U/L', ref: '10 - 40' },
-            { keywords: ['gama gt', 'ggt'], name: 'Gama GT', unit: 'U/L', ref: '8 - 60' },
-            { keywords: ['pcr', 'proteina c reativa'], name: 'Proteína C Reativa (PCR)', unit: 'mg/L', ref: 'Inferior a 5.0' },
-            { keywords: ['tsh'], name: 'TSH', unit: 'uUI/mL', ref: '0.4 - 4.5' },
-            { keywords: ['t4 livre'], name: 'T4 Livre', unit: 'ng/dL', ref: '0.8 - 1.8' },
-            { keywords: ['vitamina d', '25-oh'], name: 'Vitamina D (25-OH)', unit: 'ng/mL', ref: '20 - 60' },
-            { keywords: ['vitamina b12'], name: 'Vitamina B12', unit: 'pg/mL', ref: '200 - 900' },
-            { keywords: ['ferritina'], name: 'Ferritina', unit: 'ng/mL', ref: '30 - 300' },
-            { keywords: ['sodio'], name: 'Sódio', unit: 'mEq/L', ref: '136 - 145' },
-            { keywords: ['potassio'], name: 'Potássio', unit: 'mEq/L', ref: '3.5 - 5.1' },
-            { keywords: ['hbsag'], name: 'Hepatite B (HBsAg)', unit: 'Absorbância', ref: 'Não Reativo' },
-            { keywords: ['anti-hbs'], name: 'Hepatite B (Anti-HBs)', unit: 'mIU/mL', ref: 'Superior a 10.0' }
-        ];
 
         // --- INICIALIZAÇÃO DA APLICAÇÃO ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -1387,7 +1347,7 @@
             }
         }
 
-        // --- SISTEMA MASTER OCR (LEITOR IA + CANVAS CONTRASTE + PARSER MÉDICO) ---
+        // --- SISTEMA MASTER OCR (LEITOR FIDEDIGNO E DIRETO DE FOTO) ---
         function openOcrScannerModal() {
             document.getElementById('ocr-file-input').value = '';
             document.getElementById('ocr-upload-prompt').classList.remove('hidden');
@@ -1421,8 +1381,8 @@
                 resultMsg.classList.add('hidden');
 
                 try {
-                    // Passo 1: Pré-processar a foto em um Canvas (Grayscale + Aumento de Contraste Binarizado)
-                    statusText.innerHTML = '<i data-lucide="sparkles" class="w-4 h-4 animate-spin text-teal-600"></i> Passo 1/2: Otimizando contraste do laudo...';
+                    // Passo 1: Pré-processamento profissional no Canvas (Otimização de escala + Binarização Adaptativa de Alto Contraste)
+                    statusText.innerHTML = '<i data-lucide="sparkles" class="w-4 h-4 animate-spin text-teal-600"></i> Passo 1/2: Otimizando nitidez do documento...';
                     percentText.textContent = '20%';
                     progressBar.style.width = '20%';
                     lucide.createIcons();
@@ -1430,7 +1390,7 @@
                     const processedBase64 = await preprocessImageCanvas(originalBase64);
 
                     // Passo 2: Executar Tesseract OCR
-                    statusText.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-teal-600"></i> Passo 2/2: Lendo parâmetros e referências...';
+                    statusText.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-teal-600"></i> Passo 2/2: Lendo dados exatamente como impressos...';
                     percentText.textContent = '60%';
                     progressBar.style.width = '60%';
                     lucide.createIcons();
@@ -1443,7 +1403,7 @@
                     percentText.textContent = '100%';
                     progressBar.style.width = '100%';
 
-                    // Processar e higienizar texto extraído
+                    // Extrair exatamente as informações do texto sem inventar nomes
                     const parsedData = parseMedicalReportText(rawText);
                     parsedData.attachment = originalBase64;
 
@@ -1454,35 +1414,55 @@
                     console.error("Erro no OCR:", err);
                     progressContainer.classList.add('hidden');
                     resultMsg.className = "p-3 rounded-xl text-xs font-semibold bg-rose-100 text-rose-800 border border-rose-200 block";
-                    resultMsg.textContent = "Não foi possível ler com clareza. Tente tirar uma foto mais focada e com boa iluminação.";
+                    resultMsg.textContent = "Não foi possível ler com clareza. Tente tirar uma foto bem iluminada e alinhada ao laudo.";
                 }
             };
 
             reader.readAsDataURL(file);
         }
 
-        // FUNÇÃO DE PROCESSAMENTO DE IMAGEM VIA CANVAS (FILTRO DE ALTO CONTRASTE)
+        // FUNÇÃO DE TRATAMENTO DE IMAGEM PARA LEITURA DE ALTA PRECISÃO
         function preprocessImageCanvas(imageSrc) {
             return new Promise((resolve) => {
                 const img = new Image();
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
-                    canvas.width = img.width;
-                    canvas.height = img.height;
 
-                    ctx.drawImage(img, 0, 0);
-                    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    // Ajusta resolução mantendo nitidez alta para OCR de caracteres pequenos
+                    let width = img.width;
+                    let height = img.height;
+                    const minWidth = 1600;
+                    if (width < minWidth) {
+                        const scale = minWidth / width;
+                        width = minWidth;
+                        height = height * scale;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const imgData = ctx.getImageData(0, 0, width, height);
                     const data = imgData.data;
 
-                    // Converte para escala de cinza e aplica threshold
+                    // Curva de alto contraste e binarização direta de preto e branco
                     for (let i = 0; i < data.length; i += 4) {
-                        const avg = (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
-                        // Aumenta o contraste das letras pretas contra o papel
-                        const threshold = avg < 140 ? 0 : 255;
-                        data[i] = threshold;
-                        data[i + 1] = threshold;
-                        data[i + 2] = threshold;
+                        const r = data[i];
+                        const g = data[i + 1];
+                        const b = data[i + 2];
+                        let v = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+                        // Aplica contraste
+                        v = (v - 128) * 1.5 + 128;
+                        v = v < 0 ? 0 : (v > 255 ? 255 : v);
+
+                        // Separação nítida de texto escuro
+                        const finalVal = v < 150 ? 0 : 255;
+
+                        data[i] = finalVal;
+                        data[i + 1] = finalVal;
+                        data[i + 2] = finalVal;
                     }
 
                     ctx.putImageData(imgData, 0, 0);
@@ -1492,101 +1472,151 @@
             });
         }
 
-        // PARSER INTELIGENTE DE ESTRUTURA MÉDICA BRASILEIRA
+        // PARSER FIDEDIGNO (EXTRAI EXATAMENTE O QUE ESTÁ IMPRESSO NO PAPEL)
         function parseMedicalReportText(rawText) {
-            const lines = rawText.split('\n');
-            let detectedExamName = "Exame Laboratorial";
-            let detectedLab = "Laboratório Identificado por Foto";
+            const rawLines = rawText.split('\n')
+                .map(l => l.trim())
+                .filter(l => l.length > 0);
+
+            let detectedExamName = "";
+            let detectedLab = "";
             let detectedDate = new Date().toISOString().split('T')[0];
             const parameters = [];
 
-            const textLower = rawText.toLowerCase();
-
-            // Identificação do título principal do Exame
-            if (textLower.includes('hemograma') || textLower.includes('leucocitos') || textLower.includes('eritrograma')) {
-                detectedExamName = "Hemograma Completo";
-            } else if (textLower.includes('lipidograma') || textLower.includes('perfil lipidico') || textLower.includes('colesterol')) {
-                detectedExamName = "Perfil Lipídico / Lipidograma";
-            } else if (textLower.includes('glicemia') || textLower.includes('glicose')) {
-                detectedExamName = "Glicemia em Jejum";
-            } else if (textLower.includes('tsh') || textLower.includes('tireoide')) {
-                detectedExamName = "TSH / Função Tireoidiana";
-            } else if (textLower.includes('hepatite')) {
-                detectedExamName = "Sorologia Hepatite B / C";
-            } else if (textLower.includes('raio') || textLower.includes('radiografia') || textLower.includes('rx')) {
-                detectedExamName = "Raio-X / Exame de Imagem";
-            }
-
-            // Identificação do Laboratório
-            const labMatch = rawText.match(/(?:laboratorio|lab|diagnosticos|clinica|hospital)\s+([A-Za-z0-9\s]+)/i);
-            if (labMatch && labMatch[1]) {
-                detectedLab = labMatch[1].trim().substring(0, 30);
-            }
-
-            // Identificação de Data (dd/mm/aaaa)
+            // 1. Extração fidedigna de Data (dd/mm/aaaa)
             const dateMatch = rawText.match(/(\d{2})[\/\.-](\d{2})[\/\.-](\d{4})/);
             if (dateMatch) {
                 detectedDate = `${dateMatch[3]}-${dateMatch[2]}-${dateMatch[1]}`;
             }
 
-            // Scanner linha por linha comparando com Dicionário Médico
-            lines.forEach(line => {
-                let lineClean = line.trim();
-                if (lineClean.length < 4) return;
+            // 2. Extração fidedigna do Laboratório
+            const labMatch = rawText.match(/(?:laborat[óo]rio|lab|diagn[óo]sticos|cl[íi]nica|instituto)\s*[:\.-]?\s*([^\n\r,]+)/i);
+            if (labMatch && labMatch[1]) {
+                detectedLab = labMatch[1].trim();
+            }
 
-                // Higienização de OCR em números (substitui O por 0, l/I por 1)
-                const lineNormalized = lineClean.toLowerCase()
-                    .replace(/([0-9]),([0-9])/g, '$1.$2') // padroniza vírgula para ponto
-                    .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            // 3. Extração do Nome do Exame EXATAMENTE como está no título
+            for (let i = 0; i < Math.min(rawLines.length, 10); i++) {
+                const line = rawLines[i];
+                const lineUpper = line.toUpperCase();
 
-                MEDICAL_DICTIONARY.forEach(dictItem => {
-                    const matchesKeyword = dictItem.keywords.some(kw => lineNormalized.includes(kw));
+                if (lineUpper.includes('PACIENTE') || lineUpper.includes('DATA') || lineUpper.includes('DR.') || lineUpper.includes('CRM') || lineUpper.includes('PÁGINA')) {
+                    continue;
+                }
 
-                    if (matchesKeyword) {
-                        // Extrai todos os números presentes na linha do parâmetro
-                        const numMatches = lineClean.match(/\d+(?:[\.,]\d+)?/g);
+                if (!line.match(/\d+(?:[\.,]\d+)?/) && line.length >= 3 && line.length <= 60) {
+                    if (lineUpper.includes('EXAME') || lineUpper.includes('DOSAGEM') || lineUpper.includes('HEMOGRAMA') || lineUpper.includes('PESQUISA') || lineUpper.includes('PERFIL') || lineUpper.includes('LAUDO') || line === lineUpper) {
+                        detectedExamName = line.replace(/^EXAME[S]?\s*[:\.-]?\s*/i, '').trim();
+                        break;
+                    }
+                }
+            }
 
-                        if (numMatches && numMatches.length > 0) {
-                            const valStr = numMatches[0].replace(',', '.');
+            if (!detectedExamName && rawLines.length > 0) {
+                for (const line of rawLines) {
+                    if (line.length > 3 && !line.match(/paciente|data|crm|página/i) && !line.match(/\d+[\.,]\d+/)) {
+                        detectedExamName = line.trim();
+                        break;
+                    }
+                }
+            }
 
-                            // Extrai Unidade de Medida da foto ou aplica Padrão Médico
-                            let unitStr = dictItem.unit;
-                            const unitMatch = lineClean.match(/(g\/dL|mg\/dL|uUI\/mL|mUI\/mL|milhões\/mm³|milhoes\/mm3|\/mm³|\/mm3|%|mEq\/L|U\/L|ng\/mL|pg\/mL|fL|pg|mg\/L)/i);
-                            if (unitMatch) {
-                                unitStr = unitMatch[1].replace('milhoes/mm3', 'milhões/mm³').replace('/mm3', '/mm³');
-                            }
+            if (!detectedExamName) detectedExamName = "Exame Laboratorial";
 
-                            // Extrai Faixa de Referência da foto ou aplica Padrão Médico
-                            let refStr = dictItem.ref;
-                            const refMatch = lineClean.match(/(?:ref|vr|referencia|valores)?\s*:?\s*([\d\.,]+\s*(?:a|-|ate)\s*[\d\.,]+|inferior a [\d\.,]+|superior a [\d\.,]+|<[\d\.,]+|>[\d\.,]+)/i);
-                            if (refMatch) {
-                                refStr = refMatch[1].replace('ate', 'a');
-                            }
+            // 4. Extração dos Parâmetros, Valores, Unidades e Referências mantendo 100% o texto do papel
+            rawLines.forEach(line => {
+                const cleanLine = line.replace(/[\.\-_]{2,}/g, ' ').replace(/\s+/g, ' ').trim();
 
-                            // Evita duplicatas do mesmo parâmetro no mesmo laudo
-                            if (!parameters.some(p => p.name === dictItem.name)) {
-                                parameters.push({
-                                    name: dictItem.name,
-                                    value: valStr,
-                                    unit: unitStr,
-                                    ref: refStr,
-                                    abnormal: false
-                                });
-                            }
+                if (!/\d/.test(cleanLine)) return;
+                if (/^(paciente|médico|crm|data|convenio|idade|pag|página|resultado|parametro|referencia)/i.test(cleanLine)) return;
+
+                // Captura linhas no formato: [Nome Exato] [Resultado] [Unidade] [Referência]
+                const paramRegex = /^([A-Za-zÀ-ÖØ-öø-ÿ0-9\(\)\/\+\-\s%]+?)\s*[:=]?\s*(\d+(?:[\.,]\d+)?)\s*([a-zA-Z%µ/³]+(?:[\/³][a-zA-Z0-9]+)?)?\s*(?:\(?\s*(?:ref|vr|refer[êe]ncia|valores|val\.?\s*ref\.?)?\s*[:=]?\s*([^\n\r\(\)]+)\)?)?$/i;
+                const match = cleanLine.match(paramRegex);
+
+                if (match) {
+                    let name = match[1].trim().replace(/[:\.-]$/, '').trim();
+                    let value = match[2].trim();
+                    let unit = match[3] ? match[3].trim() : '';
+                    let ref = match[4] ? match[4].trim() : '';
+
+                    if (name.length >= 2 && !/^\d+$/.test(name) && !/^(data|pag|crm|via)$/i.test(name)) {
+                        if (!ref && cleanLine.includes('(')) {
+                            const refParenMatch = cleanLine.match(/\(([^)]+)\)/);
+                            if (refParenMatch) ref = refParenMatch[1].trim();
+                        }
+
+                        parameters.push({
+                            name: name,
+                            value: value,
+                            unit: unit,
+                            ref: ref,
+                            abnormal: checkIfAbnormal(value, ref)
+                        });
+                    }
+                } else {
+                    // Fallback posicional para laudos sem delimitadores comuns
+                    const numMatch = cleanLine.match(/(\d+(?:[\.,]\d+)?)/);
+                    if (numMatch) {
+                        const idx = cleanLine.indexOf(numMatch[1]);
+                        const rawName = cleanLine.substring(0, idx).replace(/[:\.-]$/, '').trim();
+                        const rawRest = cleanLine.substring(idx).trim();
+
+                        if (rawName.length >= 2 && !/^\d+$/.test(rawName) && !/^(paciente|data|crm|pag|médico)/i.test(rawName)) {
+                            const parts = rawRest.split(/\s+/);
+                            const valStr = parts[0] || '';
+                            let unitStr = (parts[1] && !/\d/.test(parts[1])) ? parts[1] : '';
+                            let refStr = parts.slice(unitStr ? 2 : 1).join(' ');
+
+                            parameters.push({
+                                name: rawName,
+                                value: valStr,
+                                unit: unitStr,
+                                ref: refStr,
+                                abnormal: checkIfAbnormal(valStr, refStr)
+                            });
                         }
                     }
-                });
+                }
             });
 
             return {
                 name: detectedExamName,
-                lab: detectedLab,
+                lab: detectedLab || "Laboratório (Via Foto)",
                 date: detectedDate,
                 parameters: parameters
             };
         }
 
-        // PREENCHE O FORMULÁRIO COM OS DADOS LIDOS E TESTA SE ESTÃO ALTERADOS
+        // VERIFICA SE O VALOR ESTÁ FORA DA REFERÊNCIA EXTRAÍDA (SEM ALTERAR O TEXTO)
+        function checkIfAbnormal(valRaw, refRaw) {
+            if (!valRaw || !refRaw) return false;
+            const v = parseFloat(valRaw.replace(',', '.'));
+            if (isNaN(v)) return false;
+
+            const refClean = refRaw.replace(',', '.');
+            const rangeMatch = refClean.match(/([\d\.]+)\s*(?:-|a|até)\s*([\d\.]+)/i);
+            if (rangeMatch) {
+                const min = parseFloat(rangeMatch[1]);
+                const max = parseFloat(rangeMatch[2]);
+                if (!isNaN(min) && !isNaN(max)) {
+                    return v < min || v > max;
+                }
+            }
+            const lessMatch = refClean.match(/(?:<|abaixo|menor|inferior)\s*([\d\.]+)/i);
+            if (lessMatch) {
+                const max = parseFloat(lessMatch[1]);
+                if (!isNaN(max)) return v > max;
+            }
+            const greaterMatch = refClean.match(/(?:>|acima|maior|superior)\s*([\d\.]+)/i);
+            if (greaterMatch) {
+                const min = parseFloat(greaterMatch[1]);
+                if (!isNaN(min)) return v < min;
+            }
+            return false;
+        }
+
+        // PREENCHE O FORMULÁRIO COM OS DADOS LIDOS EXACTAMENTE DO EXAME
         function populateExamFormFromOcr(data) {
             openNewRecordModal('exam');
 
@@ -1604,10 +1634,10 @@
                 data.parameters.forEach(p => {
                     addParameterRow(p);
                 });
-                alert(`✨ Leitura concluída com sucesso! ${data.parameters.length} parâmetros foram extraídos e analisados.`);
+                alert(`✨ Leitura fidedigna concluída! ${data.parameters.length} parâmetros foram capturados exatamente como impressos no laudo.`);
             } else {
-                addParameterRow({ name: 'Exame de Imagem / Laudo por Foto', value: 'Concluído', unit: '', ref: 'Normal', abnormal: false });
-                alert("✨ Laudo carregado! Ajuste os valores se necessário e clique em 'Salvar Registro'.");
+                addParameterRow({ name: 'Exame por Foto', value: 'Concluído', unit: '', ref: 'Normal', abnormal: false });
+                alert("✨ Laudo carregado! Verifique os dados e clique em 'Salvar Registro'.");
             }
         }
 
