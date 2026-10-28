@@ -1,1443 +1,1363 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="h-full bg-slate-50">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simulação Eleições 2026 - 2º Turno</title>
-  
-  <!-- Fontes Google -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Rawline:wght@700&display=swap" rel="stylesheet">
-  
-  <!-- Chart.js para Gráfico da Linha do Tempo -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <style>
-    :root {
-      --bg-green-top: #0a703a;
-      --bg-yellow: #ffcc00;
-      --bg-page: #eaf1ea;
-      --card-bg: #ffffff;
-      --bolsonaro-blue: #1d52a8;
-      --lula-red: #c81a27;
-      --text-dark: #1f2937;
-      --text-muted: #6b7280;
-      --urna-body: #d1d5db;
-      --btn-confirm: #22c55e;
-      --btn-corrige: #f97316;
-      --btn-branco: #ffffff;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Inter', sans-serif;
-    }
-
-    body {
-      background-color: var(--bg-page);
-      color: var(--text-dark);
-      padding-bottom: 40px;
-    }
-
-    /* HEADER BANNER */
-    .header-banner {
-      background: linear-gradient(135deg, var(--bg-green-top) 0%, #064e27 100%);
-      color: white;
-      padding: 16px 16px 24px 16px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .header-banner::after {
-      content: '';
-      position: absolute;
-      top: -30px;
-      right: -30px;
-      width: 120px;
-      height: 120px;
-      background: var(--bg-yellow);
-      border-radius: 50%;
-      opacity: 0.8;
-      z-index: 1;
-    }
-
-    .header-content {
-      max-width: 500px;
-      margin: 0 auto;
-      position: relative;
-      z-index: 2;
-    }
-
-    .header-tag {
-      font-size: 0.75rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--bg-yellow);
-      margin-bottom: 4px;
-    }
-
-    .header-title {
-      font-size: 1.6rem;
-      font-weight: 900;
-      line-height: 1.1;
-      margin-bottom: 12px;
-    }
-
-    .header-title span {
-      color: var(--bg-yellow);
-    }
-
-    .timers-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    .timer-card {
-      background: rgba(255, 255, 255, 0.95);
-      color: #000;
-      border-radius: 12px;
-      padding: 8px 10px;
-      text-align: center;
-    }
-
-    .timer-title {
-      font-size: 0.7rem;
-      font-weight: 800;
-      margin-bottom: 4px;
-      color: #1f2937;
-    }
-
-    .timer-boxes {
-      display: flex;
-      justify-content: center;
-      gap: 4px;
-    }
-
-    .timer-box {
-      background: #f1f5f9;
-      border-radius: 4px;
-      padding: 2px 4px;
-      min-width: 26px;
-    }
-
-    .timer-num {
-      font-size: 0.9rem;
-      font-weight: 900;
-      color: #0369a1;
-      line-height: 1;
-    }
-
-    .timer-lbl {
-      font-size: 0.55rem;
-      color: #64748b;
-    }
-
-    .disclaimer-box {
-      background: rgba(0, 0, 0, 0.25);
-      border-left: 3px solid var(--bg-yellow);
-      padding: 8px 10px;
-      border-radius: 4px;
-      font-size: 0.72rem;
-      line-height: 1.3;
-      display: flex;
-      gap: 6px;
-      align-items: center;
-    }
-
-    /* CONTAINER PRINCIPAL */
-    .container {
-      max-width: 500px;
-      margin: 0 auto;
-      padding: 0 12px;
-    }
-
-    /* PIX PISCANTE */
-    .pix-alert-box {
-      background: #ffffff;
-      border: 2px solid #10b981;
-      border-radius: 14px;
-      padding: 12px;
-      margin: 14px 0;
-      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
-      animation: pulse-border 1.5s infinite alternate;
-    }
-
-    @keyframes pulse-border {
-      0% {
-        border-color: #10b981;
-        box-shadow: 0 0 5px rgba(16, 185, 129, 0.4);
-      }
-      100% {
-        border-color: #059669;
-        box-shadow: 0 0 18px rgba(16, 185, 129, 0.85);
-      }
-    }
-
-    .pix-title-blink {
-      font-weight: 900;
-      color: #047857;
-      font-size: 0.95rem;
-      text-align: center;
-      margin-bottom: 8px;
-      animation: blink-text 1s infinite alternate;
-    }
-
-    @keyframes blink-text {
-      0% { opacity: 1; transform: scale(1); }
-      100% { opacity: 0.85; transform: scale(1.02); }
-    }
-
-    .pix-field {
-      display: flex;
-      gap: 6px;
-      background: #f0fdf4;
-      border: 1px dashed #059669;
-      border-radius: 8px;
-      padding: 6px;
-      align-items: center;
-    }
-
-    .pix-key-text {
-      font-family: monospace;
-      font-size: 0.78rem;
-      word-break: break-all;
-      flex: 1;
-      color: #064e3b;
-      font-weight: 700;
-    }
-
-    .btn-copy-pix {
-      background: #059669;
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-weight: 700;
-      font-size: 0.75rem;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: background 0.2s;
-    }
-
-    .btn-copy-pix:active {
-      background: #047857;
-    }
-
-    /* CARD DA APURAÇÃO */
-    .apuracao-card {
-      background: var(--card-bg);
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-      margin-bottom: 14px;
-    }
-
-    .apuracao-header {
-      background: #0f172a;
-      color: white;
-      padding: 10px 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .apuracao-title {
-      font-weight: 800;
-      font-size: 0.95rem;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .live-dot {
-      width: 10px;
-      height: 10px;
-      background: #22c55e;
-      border-radius: 50%;
-      display: inline-block;
-      animation: blink 1s infinite;
-    }
-
-    @keyframes blink {
-      0% { opacity: 1; }
-      50% { opacity: 0.3; }
-      100% { opacity: 1; }
-    }
-
-    .votos-total-header {
-      font-size: 0.9rem;
-      font-weight: 800;
-      color: #38bdf8;
-    }
-
-    .recent-votos-sub {
-      background: #f8fafc;
-      padding: 6px 14px;
-      font-size: 0.75rem;
-      color: #059669;
-      font-weight: 700;
-      border-bottom: 1px solid #e2e8f0;
-    }
-
-    .candidates-comparison {
-      padding: 16px 12px;
-    }
-
-    .candidates-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-
-    .cand-box {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .cand-box.right {
-      flex-direction: row-reverse;
-      text-align: right;
-    }
-
-    /* FOTO AVATAR DOS CANDIDATOS */
-    .cand-photo-avatar {
-      width: 60px;
-      height: 75px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 2px solid #cbd5e1;
-      background: #e2e8f0;
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-
-    .cand-photo-avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: top center;
-      display: block;
-    }
-
-    .cand-box.bolsonaro .cand-photo-avatar {
-      border-color: var(--bolsonaro-blue);
-    }
-
-    .cand-box.lula .cand-photo-avatar {
-      border-color: var(--lula-red);
-    }
-
-    .cand-badge {
-      display: inline-block;
-      padding: 2px 6px;
-      border-radius: 4px;
-      color: white;
-      font-weight: 800;
-      font-size: 0.7rem;
-      margin-bottom: 2px;
-    }
-
-    .badge-22 { background: var(--bolsonaro-blue); }
-    .badge-13 { background: var(--lula-red); }
-
-    .cand-name-title {
-      font-weight: 800;
-      font-size: 0.85rem;
-      line-height: 1.1;
-    }
-
-    .cand-percent {
-      font-size: 1.4rem;
-      font-weight: 900;
-      line-height: 1;
-      margin-top: 4px;
-    }
-
-    .cand-box.bolsonaro .cand-percent { color: var(--bolsonaro-blue); }
-    .cand-box.lula .cand-percent { color: var(--lula-red); }
-
-    /* BARRA DE PROGRESSO */
-    .progress-bar-container {
-      height: 14px;
-      background: #e2e8f0;
-      border-radius: 7px;
-      overflow: hidden;
-      display: flex;
-      margin-bottom: 6px;
-    }
-
-    .progress-fill-22 {
-      height: 100%;
-      background: var(--bolsonaro-blue);
-      transition: width 0.5s ease;
-    }
-
-    .progress-fill-13 {
-      height: 100%;
-      background: var(--lula-red);
-      transition: width 0.5s ease;
-    }
-
-    .progress-subtext {
-      text-align: center;
-      font-size: 0.68rem;
-      color: var(--text-muted);
-    }
-
-    /* URNA ELETRÔNICA COMPONENT */
-    .urna-wrapper {
-      background: #c3c8cf;
-      border: 3px solid #94a3b8;
-      border-radius: 18px;
-      padding: 12px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-      margin-bottom: 16px;
-    }
-
-    .urna-top-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 4px 8px 4px;
-      font-weight: 800;
-      font-size: 0.75rem;
-      color: #334155;
-      letter-spacing: 1px;
-    }
-
-    .tse-seal-dot {
-      width: 10px;
-      height: 10px;
-      background: #22c55e;
-      border-radius: 50%;
-      box-shadow: 0 0 6px #22c55e;
-    }
-
-    .urna-body-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    /* TELA DA URNA */
-    .urna-screen {
-      background: #f8fafc;
-      border: 3px solid #334155;
-      border-radius: 10px;
-      min-height: 220px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      position: relative;
-    }
-
-    .screen-header-role {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: #64748b;
-      text-transform: uppercase;
-    }
-
-    .candidate-display-area {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      margin-top: 10px;
-      gap: 10px;
-    }
-
-    .candidate-text-info {
-      flex: 1;
-    }
-
-    .candidate-name-large {
-      font-size: 1.1rem;
-      font-weight: 900;
-      color: #0f172a;
-      margin-top: 4px;
-    }
-
-    .candidate-party {
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: #475569;
-    }
-
-    .number-boxes {
-      display: flex;
-      gap: 6px;
-      margin-top: 8px;
-    }
-
-    .num-digit-box {
-      width: 28px;
-      height: 36px;
-      border: 2px solid #0f172a;
-      font-size: 1.3rem;
-      font-weight: 900;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: white;
-    }
-
-    .num-digit-box.blink {
-      animation: cursor-blink 0.8s infinite;
-    }
-
-    @keyframes cursor-blink {
-      0%, 100% { border-color: #0f172a; }
-      50% { border-color: transparent; }
-    }
-
-    .candidate-screen-photo-box {
-      width: 85px;
-      height: 105px;
-      border: 2px solid #0f172a;
-      background: #ffffff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-
-    .candidate-screen-photo-box img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: top center;
-      display: block;
-    }
-
-    .screen-footer-instructions {
-      border-top: 1px solid #cbd5e1;
-      padding-top: 6px;
-      margin-top: 10px;
-      font-size: 0.65rem;
-      color: #475569;
-      line-height: 1.2;
-    }
-
-    .screen-voted-msg {
-      text-align: center;
-      padding: 30px 10px;
-    }
-
-    .screen-voted-msg h2 {
-      font-size: 1.4rem;
-      font-weight: 900;
-      color: #0f172a;
-      margin-bottom: 6px;
-    }
-
-    .screen-voted-msg p {
-      font-size: 0.85rem;
-      color: #475569;
-      font-weight: 700;
-    }
-
-    .screen-fim {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      min-height: 180px;
-      font-size: 3.2rem;
-      font-weight: 900;
-      letter-spacing: 4px;
-      color: #0f172a;
-    }
-
-    /* TECLADO DA URNA */
-    .urna-keypad {
-      background: #1e293b;
-      border-radius: 12px;
-      padding: 14px 10px;
-    }
-
-    .numeric-keys-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      max-width: 260px;
-      margin: 0 auto 12px auto;
-    }
-
-    .key-btn {
-      background: #0f172a;
-      color: white;
-      border: 1px solid #334155;
-      border-radius: 6px;
-      height: 42px;
-      font-size: 1.2rem;
-      font-weight: 800;
-      box-shadow: 0 4px 0 #000;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      user-select: none;
-    }
-
-    .key-btn:active {
-      transform: translateY(2px);
-      box-shadow: 0 2px 0 #000;
-    }
-
-    .key-btn.key-zero {
-      grid-column: 2;
-    }
-
-    .action-keys-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-    }
-
-    .btn-action {
-      height: 40px;
-      border: none;
-      border-radius: 6px;
-      font-weight: 800;
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      box-shadow: 0 3px 0 rgba(0,0,0,0.4);
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .btn-action:active {
-      transform: translateY(2px);
-      box-shadow: 0 1px 0 rgba(0,0,0,0.4);
-    }
-
-    .btn-branco { background: var(--btn-branco); color: #0f172a; }
-    .btn-corrige { background: var(--btn-corrige); color: white; }
-    .btn-confirma { background: var(--btn-confirm); color: #064e3b; font-size: 0.75rem; }
-
-    /* DETALHES DOS VOTOS */
-    .votos-breakdown-card {
-      background: white;
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-    }
-
-    .votos-breakdown-title {
-      font-size: 0.85rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 12px;
-      letter-spacing: 0.5px;
-    }
-
-    .voto-item-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 0;
-      border-bottom: 1px dashed #e2e8f0;
-    }
-
-    .voto-item-row:last-child {
-      border-bottom: none;
-    }
-
-    .voto-item-left {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .voto-badge-sq {
-      width: 28px;
-      height: 28px;
-      border-radius: 6px;
-      color: white;
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.8rem;
-    }
-
-    .badge-b { background: #64748b; }
-    .badge-n { background: #475569; }
-
-    .voto-item-name {
-      font-weight: 700;
-      font-size: 0.85rem;
-    }
-
-    .voto-item-sub {
-      font-size: 0.7rem;
-      color: var(--text-muted);
-    }
-
-    .voto-item-right {
-      text-align: right;
-    }
-
-    .voto-item-pct {
-      font-weight: 800;
-      font-size: 0.95rem;
-    }
-
-    .voto-item-count {
-      font-size: 0.7rem;
-      color: var(--text-muted);
-    }
-
-    /* LINHA DO TEMPO */
-    .chart-section-card {
-      background: white;
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-    }
-
-    .chart-section-title {
-      font-size: 1.1rem;
-      font-weight: 900;
-      margin-bottom: 4px;
-    }
-
-    .chart-section-sub {
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      margin-bottom: 12px;
-    }
-
-    .chart-container-box {
-      position: relative;
-      height: 180px;
-      width: 100%;
-    }
-
-    /* FOOTER DONATION CARD */
-    .footer-support-card {
-      background: white;
-      border-radius: 16px;
-      padding: 16px;
-      border-left: 5px solid #059669;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-      margin-bottom: 20px;
-    }
-
-    .support-title {
-      font-size: 1.1rem;
-      font-weight: 900;
-      color: #065f46;
-      margin-bottom: 6px;
-    }
-
-    .support-text {
-      font-size: 0.8rem;
-      color: #374151;
-      margin-bottom: 12px;
-      line-height: 1.3;
-    }
-
-    .contact-info-list {
-      margin-top: 12px;
-      padding-top: 10px;
-      border-top: 1px solid #e2e8f0;
-      font-size: 0.75rem;
-      color: #4b5563;
-    }
-
-    .contact-item {
-      margin-bottom: 4px;
-      display: flex;
-      gap: 6px;
-      align-items: center;
-    }
-
-    .contact-item a {
-      color: #0284c7;
-      text-decoration: none;
-      font-weight: 700;
-    }
-
-    .site-footer-bar {
-      background: #064e3b;
-      color: #a7f3d0;
-      padding: 14px;
-      text-align: center;
-      font-size: 0.7rem;
-      border-radius: 12px;
-    }
-
-    .site-footer-bar a {
-      color: #ffffff;
-      font-weight: 700;
-      text-decoration: none;
-    }
-  </style>
-</head>
-<body>
-
-  <!-- BANNER DE CABEÇALHO -->
-  <header class="header-banner">
-    <div class="header-content">
-      <div class="header-tag">Eleições 2026 • Presidente da República</div>
-      <h1 class="header-title">Simulação do <span>2º turno</span></h1>
-
-      <div class="timers-grid">
-        <div class="timer-card">
-          <div class="timer-title">2º turno • 25/10</div>
-          <div class="timer-boxes">
-            <div class="timer-box"><div class="timer-num" id="t1-d">0</div><div class="timer-lbl">dias</div></div>
-            <div class="timer-box"><div class="timer-num" id="t1-h">0</div><div class="timer-lbl">h</div></div>
-            <div class="timer-box"><div class="timer-num" id="t1-m">0</div><div class="timer-lbl">min</div></div>
-            <div class="timer-box"><div class="timer-num" id="t1-s">0</div><div class="timer-lbl">s</div></div>
-          </div>
-        </div>
-
-        <div class="timer-card">
-          <div class="timer-title">Debate Globo • 23/10</div>
-          <div class="timer-boxes">
-            <div class="timer-box"><div class="timer-num" id="t2-d">0</div><div class="timer-lbl">dias</div></div>
-            <div class="timer-box"><div class="timer-num" id="t2-h">0</div><div class="timer-lbl">h</div></div>
-            <div class="timer-box"><div class="timer-num" id="t2-m">0</div><div class="timer-lbl">min</div></div>
-            <div class="timer-box"><div class="timer-num" id="t2-s">0</div><div class="timer-lbl">s</div></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="disclaimer-box">
-        <span>⚠️</span>
-        <div>Brincadeira interativa. Não é pesquisa eleitoral, não tem registro no TSE e não tem valor estatístico.</div>
-      </div>
-    </div>
-  </header>
-
-  <div class="container">
-
-    <!-- CAIXA PIX PISCANTE DA PÁGINA -->
-    <div class="pix-alert-box">
-      <div class="pix-title-blink">⚡ Ajude a manter o site online com qualquer valor!</div>
-      <div class="pix-field">
-        <div class="pix-key-text" id="chave-pix-top">016b30ba-351a-41db-a411-dc5c58a5e948</div>
-        <button class="btn-copy-pix" onclick="copiarChavePix('016b30ba-351a-41db-a411-dc5c58a5e948')">Copiar chave</button>
-      </div>
-    </div>
-
-    <!-- CARD DA APURAÇÃO AO VIVO -->
-    <div class="apuracao-card">
-      <div class="apuracao-header">
-        <div class="apuracao-title">
-          <span class="live-dot"></span>
-          APURAÇÃO AO VIVO
-        </div>
-        <div class="votos-total-header" id="txt-votos-totais">0 votos</div>
-      </div>
-
-      <div class="recent-votos-sub" id="txt-votos-recentes">
-        🟢 0 votos registrados
-      </div>
-
-      <div class="candidates-comparison">
-        <div class="candidates-grid">
-          <!-- FLÁVIO BOLSONARO -->
-          <div class="cand-box bolsonaro">
-            <div class="cand-photo-avatar" id="avatar-bolsonaro-apuracao">
-              <!-- FOTO VIA JS -->
-            </div>
-            <div>
-              <span class="cand-badge badge-22">22</span>
-              <div class="cand-name-title">Flávio Bolsonaro</div>
-              <div class="cand-percent" id="pct-22">0,0%</div>
-            </div>
-          </div>
-
-          <!-- LULA -->
-          <div class="cand-box lula right">
-            <div class="cand-photo-avatar" id="avatar-lula-apuracao">
-              <!-- FOTO VIA JS -->
-            </div>
-            <div>
-              <span class="cand-badge badge-13">13</span>
-              <div class="cand-name-title">Lula</div>
-              <div class="cand-percent" id="pct-13">0,0%</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- BARRA DE PROGRESSO DUPLA -->
-        <div class="progress-bar-container">
-          <div class="progress-fill-22" id="bar-22" style="width: 50%;"></div>
-          <div class="progress-fill-13" id="bar-13" style="width: 50%;"></div>
-        </div>
-
-        <div class="progress-subtext">
-          Percentual de votos válidos, sem brancos e nulos, como o TSE calcula o resultado.
-        </div>
-      </div>
-    </div>
-
-    <!-- URNA ELETRÔNICA -->
-    <div class="urna-wrapper">
-      <div class="urna-top-header">
-        <span>JUSTIÇA ELEITORAL</span>
-        <span class="tse-seal-dot"></span>
-      </div>
-
-      <div class="urna-body-grid">
-        <!-- TELA -->
-        <div class="urna-screen" id="urna-screen-box">
-          <!-- CONTEÚDO DINÂMICO VIA JS -->
-        </div>
-
-        <!-- TECLADO -->
-        <div class="urna-keypad">
-          <div class="numeric-keys-grid">
-            <button class="key-btn" onclick="pressKey('1')">1</button>
-            <button class="key-btn" onclick="pressKey('2')">2</button>
-            <button class="key-btn" onclick="pressKey('3')">3</button>
-            <button class="key-btn" onclick="pressKey('4')">4</button>
-            <button class="key-btn" onclick="pressKey('5')">5</button>
-            <button class="key-btn" onclick="pressKey('6')">6</button>
-            <button class="key-btn" onclick="pressKey('7')">7</button>
-            <button class="key-btn" onclick="pressKey('8')">8</button>
-            <button class="key-btn" onclick="pressKey('9')">9</button>
-            <button class="key-btn key-zero" onclick="pressKey('0')">0</button>
-          </div>
-
-          <div class="action-keys-grid">
-            <button class="btn-action btn-branco" onclick="pressBranco()">BRANCO</button>
-            <button class="btn-action btn-corrige" onclick="pressCorrige()">CORRIGE</button>
-            <button class="btn-action btn-confirma" onclick="pressConfirma()">CONFIRMA</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- INSTRUÇÕES -->
-    <div style="background: white; border-radius: 12px; padding: 12px; font-size: 0.72rem; color: #4b5563; margin-bottom: 16px; line-height: 1.4;">
-      <strong>1 Digite 22 ou 13 &nbsp;•&nbsp; 2 Confira a foto e o nome &nbsp;•&nbsp; 3 Aperte CONFIRMA</strong>
-      <br><br>
-      Placar ao vivo. <strong>Um voto por pessoa.</strong> Para evitar votos repetidos, guardamos o código anônimo do navegador/dispositivo sem ligação pessoal.
-    </div>
-
-    <!-- DETALHE DOS VOTOS -->
-    <div class="votos-breakdown-card">
-      <div class="votos-breakdown-title">Todos os votos</div>
-
-      <!-- FLÁVIO BOLSONARO -->
-      <div class="voto-item-row">
-        <div class="voto-item-left">
-          <div class="voto-badge-sq badge-22">22</div>
-          <div>
-            <div class="voto-item-name">Flávio Bolsonaro</div>
-            <div class="voto-item-sub">PL</div>
-          </div>
-        </div>
-        <div class="voto-item-right">
-          <div class="voto-item-pct" id="list-pct-22">0,0%</div>
-          <div class="voto-item-count" id="list-count-22">0 votos</div>
-        </div>
-      </div>
-
-      <!-- LULA -->
-      <div class="voto-item-row">
-        <div class="voto-item-left">
-          <div class="voto-badge-sq badge-13">13</div>
-          <div>
-            <div class="voto-item-name">Lula</div>
-            <div class="voto-item-sub">PT</div>
-          </div>
-        </div>
-        <div class="voto-item-right">
-          <div class="voto-item-pct" id="list-pct-13">0,0%</div>
-          <div class="voto-item-count" id="list-count-13">0 votos</div>
-        </div>
-      </div>
-
-      <!-- BRANCOS -->
-      <div class="voto-item-row">
-        <div class="voto-item-left">
-          <div class="voto-badge-sq badge-b">B</div>
-          <div>
-            <div class="voto-item-name">Brancos</div>
-          </div>
-        </div>
-        <div class="voto-item-right">
-          <div class="voto-item-pct" id="list-pct-b">0,0%</div>
-          <div class="voto-item-count" id="list-count-b">0 votos</div>
-        </div>
-      </div>
-
-      <!-- NULOS -->
-      <div class="voto-item-row">
-        <div class="voto-item-left">
-          <div class="voto-badge-sq badge-n">N</div>
-          <div>
-            <div class="voto-item-name">Nulos</div>
-          </div>
-        </div>
-        <div class="voto-item-right">
-          <div class="voto-item-pct" id="list-pct-n">0,0%</div>
-          <div class="voto-item-count" id="list-count-n">0 votos</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- LINHA DO TEMPO DA VOTAÇÃO -->
-    <div class="chart-section-card">
-      <div class="chart-section-title">Linha do tempo</div>
-      <div class="chart-section-sub">Evolução dos votos registrados ao longo do tempo.</div>
-      <div class="chart-container-box">
-        <canvas id="votesChart"></canvas>
-      </div>
-    </div>
-
-    <!-- CARD APOIO PIX -->
-    <div class="footer-support-card">
-      <div class="support-title">Apoie a Urna 2026</div>
-      <div class="support-text">
-        O site é gratuito e sem cadastro. Se quiser ajudar a manter o servidor no ar, qualquer valor ajuda.
-      </div>
-
-      <div class="pix-field" style="margin-bottom: 10px;">
-        <div class="pix-key-text">016b30ba-351a-41db-a411-dc5c58a5e948</div>
-        <button class="btn-copy-pix" onclick="copiarChavePix('016b30ba-351a-41db-a411-dc5c58a5e948')">Copiar chave</button>
-      </div>
-
-      <div class="contact-info-list">
-        <div class="contact-item">📧 Contato: <a href="mailto:demoaraujo@gmail.com">demoaraujo@gmail.com</a></div>
-        <div class="contact-item">📷 Instagram: <a href="https://instagram.com/deimom_araujo" target="_blank">@deimom_araujo</a></div>
-      </div>
-    </div>
-
-    <div class="site-footer-bar">
-      Desenvolvido por <a href="https://github.com/deimomaraujo" target="_blank">github.com/deimomaraujo</a> • <a href="https://instagram.com/deimom_araujo" target="_blank">@deimom_araujo</a>
-    </div>
-
-  </div>
-
-  <script>
-    /* ===================================================
-       1. LINKS OFICIAIS DAS FOTOS DOS CANDIDATOS
-       =================================================== */
-    const FOTO_FLAVIO = "https://divulgacandcontas.tse.jus.br/divulga/rest/v1/candidatura/buscar/2018/RJ/280000600021/foto";
-    const FOTO_FLAVIO_ALT = "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Fl%C3%A1vio_Bolsonaro_em_2023.jpg/300px-Fl%C3%A1vio_Bolsonaro_em_2023.jpg";
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediCore - Prontuário Pessoal & Exames Laboratoriais</title>
     
-    const FOTO_LULA = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Lula_com_chap%C3%A9u_de_palha.jpg/480px-Lula_com_chap%C3%A9u_de_palha.jpg";
-    const FOTO_LULA_ALT = "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Luiz_In%C3%A1cio_Lula_da_Silva_in_2023.jpg/300px-Luiz_In%C3%A1cio_Lula_da_Silva_in_2023.jpg";
-
-    function getCandidatePhotoHTML(num, name) {
-      let mainUrl = (num === '22') ? FOTO_FLAVIO : FOTO_LULA;
-      let altUrl = (num === '22') ? FOTO_FLAVIO_ALT : FOTO_LULA_ALT;
-
-      return `<img src="${mainUrl}" alt="${name}" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${altUrl}';">`;
-    }
-
-    /* ===================================================
-       2. ÁUDIO AUTÊNTICO DA URNA ELETRÔNICA DO TSE
-       =================================================== */
-    let audioCtx = null;
-
-    function initAudio() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
-    }
-
-    // BIP TECLA DA URNA (FREQ 1200Hz - EXATO DA URNA REAL)
-    function playBipSound() {
-      try {
-        initAudio();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(1200, audioCtx.currentTime); 
-        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.07);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.07);
-      } catch(e) {}
-    }
-
-    // SOM "PILILILI" DE CONFIRMAÇÃO OFICIAL DO TSE
-    function playConfirmaSound() {
-      try {
-        initAudio();
-        const now = audioCtx.currentTime;
-        const notes = [
-          { freq: 523.25, duration: 0.10, time: 0 },
-          { freq: 659.25, duration: 0.10, time: 0.10 },
-          { freq: 783.99, duration: 0.10, time: 0.20 },
-          { freq: 1046.50, duration: 0.35, time: 0.30 }
-        ];
-
-        notes.forEach(note => {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = 'square';
-          osc.frequency.setValueAtTime(note.freq, now + note.time);
-          gain.gain.setValueAtTime(0.18, now + note.time);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + note.time + note.duration);
-          osc.connect(gain);
-          gain.connect(audioCtx.destination);
-          osc.start(now + note.time);
-          osc.stop(now + note.time + note.duration);
-        });
-      } catch(e) {}
-    }
-
-    /* ===================================================
-       3. ESTADO & PERSISTÊNCIA
-       =================================================== */
-    let state = {
-      voted: false,
-      userChoice: null,
-      digits: "",
-      isBranco: false,
-      votes: {
-        v22: 0,
-        v13: 0,
-        branco: 0,
-        nulo: 0
-      }
-    };
-
-    function loadState() {
-      const savedVotes = localStorage.getItem('urn_2026_votes_fixed');
-      if (savedVotes) {
-        state.votes = JSON.parse(savedVotes);
-      }
-
-      const hasVoted = localStorage.getItem('urn_2026_voted_flag');
-      const userChoice = localStorage.getItem('urn_2026_choice_val');
-
-      if (hasVoted) {
-        state.voted = true;
-        state.userChoice = userChoice;
-      }
-    }
-
-    function saveState() {
-      localStorage.setItem('urn_2026_votes_fixed', JSON.stringify(state.votes));
-    }
-
-    /* ===================================================
-       4. CONTROLE DA TELA DA URNA
-       =================================================== */
-    function renderScreen() {
-      const screen = document.getElementById('urna-screen-box');
-
-      if (state.voted) {
-        let choiceText = "";
-        if (state.userChoice === '22') choiceText = "Seu voto: 22 · Flávio Bolsonaro";
-        else if (state.userChoice === '13') choiceText = "Seu voto: 13 · Lula";
-        else if (state.userChoice === 'branco') choiceText = "Seu voto: Em Branco";
-        else choiceText = "Seu voto: Nulo";
-
-        screen.innerHTML = `
-          <div class="screen-voted-msg">
-            <h2>VOCÊ JÁ VOTOU</h2>
-            <p>${choiceText}</p>
-          </div>
-        `;
-        return;
-      }
-
-      if (state.isBranco) {
-        screen.innerHTML = `
-          <div>
-            <div class="screen-header-role">SEU VOTO VAI PARA</div>
-            <div class="candidate-name-large" style="font-size:1.5rem; margin-top:20px; text-align:center;">VOTO EM BRANCO</div>
-          </div>
-          <div class="screen-footer-instructions">
-            Aperte tecla:<br>
-            <strong>CONFIRMA</strong> para CONFIRMAR este voto<br>
-            <strong>CORRIGE</strong> para REINICIAR este voto
-          </div>
-        `;
-        return;
-      }
-
-      const d1 = state.digits[0] || "";
-      const d2 = state.digits[1] || "";
-
-      let candInfo = null;
-      if (state.digits === '22') {
-        candInfo = { name: "Flávio Bolsonaro", party: "PL", num: '22' };
-      } else if (state.digits === '13') {
-        candInfo = { name: "Lula", party: "PT", num: '13' };
-      } else if (state.digits.length === 2) {
-        candInfo = { name: "VOTO NULO", party: "Número Errado", num: null };
-      }
-
-      screen.innerHTML = `
-        <div>
-          <div class="screen-header-role">PRESIDENTE</div>
-          <div class="number-boxes">
-            <div class="num-digit-box ${state.digits.length === 0 ? 'blink' : ''}">${d1}</div>
-            <div class="num-digit-box ${state.digits.length === 1 ? 'blink' : ''}">${d2}</div>
-          </div>
-          ${candInfo ? `
-            <div class="candidate-display-area">
-              <div class="candidate-text-info">
-                <div class="candidate-name-large">${candInfo.name}</div>
-                <div class="candidate-party">${candInfo.party}</div>
-              </div>
-              ${candInfo.num ? `<div class="candidate-screen-photo-box">${getCandidatePhotoHTML(candInfo.num, candInfo.name)}</div>` : ''}
-            </div>
-          ` : ''}
-        </div>
-        <div class="screen-footer-instructions">
-          Aperte tecla:<br>
-          <strong>CONFIRMA</strong> para CONFIRMAR este voto<br>
-          <strong>CORRIGE</strong> para REINICIAR este voto
-        </div>
-      `;
-    }
-
-    function pressKey(num) {
-      if (state.voted || state.isBranco) return;
-      if (state.digits.length < 2) {
-        playBipSound();
-        state.digits += num;
-        renderScreen();
-      }
-    }
-
-    function pressBranco() {
-      if (state.voted) return;
-      playBipSound();
-      state.isBranco = true;
-      state.digits = "";
-      renderScreen();
-    }
-
-    function pressCorrige() {
-      if (state.voted) return;
-      playBipSound();
-      state.digits = "";
-      state.isBranco = false;
-      renderScreen();
-    }
-
-    function pressConfirma() {
-      if (state.voted) return;
-
-      let validVote = false;
-      let choice = "";
-
-      if (state.isBranco) {
-        validVote = true;
-        choice = 'branco';
-        state.votes.branco++;
-      } else if (state.digits === '22') {
-        validVote = true;
-        choice = '22';
-        state.votes.v22++;
-      } else if (state.digits === '13') {
-        validVote = true;
-        choice = '13';
-        state.votes.v13++;
-      } else if (state.digits.length === 2) {
-        validVote = true;
-        choice = 'nulo';
-        state.votes.nulo++;
-      }
-
-      if (validVote) {
-        playConfirmaSound();
-        state.voted = true;
-        state.userChoice = choice;
-
-        localStorage.setItem('urn_2026_voted_flag', 'true');
-        localStorage.setItem('urn_2026_choice_val', choice);
-        saveState();
-
-        const screen = document.getElementById('urna-screen-box');
-        screen.innerHTML = `<div class="screen-fim">FIM</div>`;
-
-        setTimeout(() => {
-          renderScreen();
-          updateDashboard();
-        }, 1600);
-      }
-    }
-
-    /* ===================================================
-       5. ATUALIZAÇÃO DA APURAÇÃO
-       =================================================== */
-    function updateDashboard() {
-      const v22 = state.votes.v22;
-      const v13 = state.votes.v13;
-      const vb = state.votes.branco;
-      const vn = state.votes.nulo;
-
-      const totalVotos = v22 + v13 + vb + vn;
-      const validos = v22 + v13;
-
-      document.getElementById('txt-votos-totais').textContent = `${totalVotos.toLocaleString('pt-BR')} votos`;
-      document.getElementById('txt-votos-recentes').textContent = `🟢 ${totalVotos.toLocaleString('pt-BR')} votos registrados ao todo`;
-
-      let pct22 = validos > 0 ? ((v22 / validos) * 100).toFixed(1) : "0,0";
-      let pct13 = validos > 0 ? ((v13 / validos) * 100).toFixed(1) : "0,0";
-
-      document.getElementById('pct-22').textContent = `${pct22.replace('.', ',')}%`;
-      document.getElementById('pct-13').textContent = `${pct13.replace('.', ',')}%`;
-
-      const fill22 = validos > 0 ? (v22 / validos) * 100 : 50;
-      const fill13 = validos > 0 ? (v13 / validos) * 100 : 50;
-      document.getElementById('bar-22').style.width = `${fill22}%`;
-      document.getElementById('bar-13').style.width = `${fill13}%`;
-
-      let totPct22 = totalVotos > 0 ? ((v22 / totalVotos) * 100).toFixed(1) : "0,0";
-      let totPct13 = totalVotos > 0 ? ((v13 / totalVotos) * 100).toFixed(1) : "0,0";
-      let totPctB = totalVotos > 0 ? ((vb / totalVotos) * 100).toFixed(1) : "0,0";
-      let totPctN = totalVotos > 0 ? ((vn / totalVotos) * 100).toFixed(1) : "0,0";
-
-      document.getElementById('list-pct-22').textContent = `${totPct22.replace('.', ',')}%`;
-      document.getElementById('list-count-22').textContent = `${v22.toLocaleString('pt-BR')} votos`;
-
-      document.getElementById('list-pct-13').textContent = `${totPct13.replace('.', ',')}%`;
-      document.getElementById('list-count-13').textContent = `${v13.toLocaleString('pt-BR')} votos`;
-
-      document.getElementById('list-pct-b').textContent = `${totPctB.replace('.', ',')}%`;
-      document.getElementById('list-count-b').textContent = `${vb.toLocaleString('pt-BR')} votos`;
-
-      document.getElementById('list-pct-n').textContent = `${totPctN.replace('.', ',')}%`;
-      document.getElementById('list-count-n').textContent = `${vn.toLocaleString('pt-BR')} votos`;
-
-      updateChart();
-    }
-
-    /* ===================================================
-       6. GRÁFICO DA LINHA DO TEMPO
-       =================================================== */
-    let chartInstance = null;
-
-    function initChart() {
-      const ctx = document.getElementById('votesChart').getContext('2d');
-      chartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: ['00h', '02h', '04h', '06h', '08h', 'Agora'],
-          datasets: [
-            {
-              label: 'Flávio Bolsonaro',
-              data: [0, 0, 0, 0, 0, state.votes.v22],
-              borderColor: '#1d52a8',
-              backgroundColor: 'rgba(29, 82, 168, 0.1)',
-              tension: 0.3,
-              fill: true
-            },
-            {
-              label: 'Lula',
-              data: [0, 0, 0, 0, 0, state.votes.v13],
-              borderColor: '#c81a27',
-              backgroundColor: 'rgba(200, 26, 39, 0.1)',
-              tension: 0.3,
-              fill: true
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        medical: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            700: '#0f766e',
+                            800: '#115e59',
+                            900: '#134e4a',
+                        }
+                    }
+                }
             }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: true, position: 'top' }
-          },
-          scales: {
-            y: { beginAtZero: true }
-          }
         }
-      });
-    }
+    </script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: #fff !important; color: #000 !important; }
+        }
+        .print-only { display: none; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="h-full font-sans text-slate-800 flex flex-col md:flex-row antialiased custom-scrollbar">
 
-    function updateChart() {
-      if (chartInstance) {
-        chartInstance.data.datasets[0].data[5] = state.votes.v22;
-        chartInstance.data.datasets[1].data[5] = state.votes.v13;
-        chartInstance.update();
-      }
-    }
+    <!-- BARRA LATERAL (NAVEGAÇÃO DESKTOP) -->
+    <aside class="no-print hidden md:flex flex-col w-64 bg-slate-900 text-slate-300 border-r border-slate-800 flex-shrink-0">
+        <div class="p-5 flex items-center space-x-3 border-b border-slate-800">
+            <div class="p-2 bg-teal-500 rounded-xl text-white shadow-lg shadow-teal-500/30">
+                <i data-lucide="activity" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-white text-lg tracking-tight">MediCore</h1>
+                <p class="text-xs text-slate-400">Gestão de Saúde Pessoal</p>
+            </div>
+        </div>
 
-    /* ===================================================
-       7. TIMERS
-       =================================================== */
-    function updateTimers() {
-      const now = new Date();
-      const target2nd = new Date('2026-10-25T08:00:00');
-      const targetDebate = new Date('2026-10-23T21:30:00');
+        <nav class="flex-1 p-4 space-y-1">
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all text-white bg-teal-600 shadow-sm">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <span>Dashboard</span>
+            </button>
+            <button onclick="switchTab('exams')" id="nav-exams" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800">
+                <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+                <span>Meus Exames</span>
+            </button>
+            <button onclick="switchTab('consultations')" id="nav-consultations" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800">
+                <i data-lucide="calendar" class="w-5 h-5"></i>
+                <span>Consultas & Retornos</span>
+            </button>
+            <button onclick="switchTab('documents')" id="nav-documents" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800">
+                <i data-lucide="file-text" class="w-5 h-5"></i>
+                <span>Atestados & Laudos</span>
+            </button>
+        </nav>
 
-      function calc(diff) {
-        if (diff <= 0) return { d: 0, h: 0, m: 0, s: 0 };
-        return {
-          d: Math.floor(diff / (1000 * 60 * 60 * 24)),
-          h: Math.floor((diff / (1000 * 60 * 60)) % 24),
-          m: Math.floor((diff / 1000 / 60) % 60),
-          s: Math.floor((diff / 1000) % 60)
+        <div class="p-4 border-t border-slate-800">
+            <button onclick="openNewRecordModal()" class="w-full flex items-center justify-center space-x-2 bg-teal-600 hover:bg-teal-500 text-white py-3 px-4 rounded-xl font-semibold shadow-lg shadow-teal-600/20 transition-all">
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                <span>Novo Registro</span>
+            </button>
+            <button onclick="exportDoctorReport()" class="w-full mt-2 flex items-center justify-center space-x-2 bg-slate-800 hover:bg-slate-700 text-slate-200 py-2.5 px-4 rounded-xl font-medium border border-slate-700 text-xs transition-all">
+                <i data-lucide="printer" class="w-4 h-4 text-teal-400"></i>
+                <span>Relatório Médico</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- CABEÇALHO MOBILE -->
+    <header class="no-print md:hidden bg-slate-900 text-white p-4 flex items-center justify-between sticky top-0 z-30 shadow-md">
+        <div class="flex items-center space-x-3">
+            <div class="p-1.5 bg-teal-500 rounded-lg text-white">
+                <i data-lucide="activity" class="w-5 h-5"></i>
+            </div>
+            <span class="font-bold text-lg">MediCore</span>
+        </div>
+        <div class="flex items-center space-x-2">
+            <button onclick="exportDoctorReport()" class="p-2 bg-slate-800 hover:bg-slate-700 text-teal-400 rounded-lg border border-slate-700">
+                <i data-lucide="printer" class="w-5 h-5"></i>
+            </button>
+            <button onclick="openNewRecordModal()" class="p-2 bg-teal-600 hover:bg-teal-500 text-white rounded-lg">
+                <i data-lucide="plus" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- NAVEGAÇÃO MOBILE (BOTTOM BAR) -->
+    <nav class="no-print md:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 z-30 flex justify-around p-2 text-slate-400">
+        <button onclick="switchTab('dashboard')" id="nav-mob-dashboard" class="nav-mob-btn flex flex-col items-center p-2 text-teal-400">
+            <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+            <span class="text-[10px] mt-1">Painel</span>
+        </button>
+        <button onclick="switchTab('exams')" id="nav-mob-exams" class="nav-mob-btn flex flex-col items-center p-2">
+            <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+            <span class="text-[10px] mt-1">Exames</span>
+        </button>
+        <button onclick="switchTab('consultations')" id="nav-mob-consultations" class="nav-mob-btn flex flex-col items-center p-2">
+            <i data-lucide="calendar" class="w-5 h-5"></i>
+            <span class="text-[10px] mt-1">Consultas</span>
+        </button>
+        <button onclick="switchTab('documents')" id="nav-mob-documents" class="nav-mob-btn flex flex-col items-center p-2">
+            <i data-lucide="file-text" class="w-5 h-5"></i>
+            <span class="text-[10px] mt-1">Documentos</span>
+        </button>
+    </nav>
+
+    <!-- ÁREA DE CONTEÚDO PRINCIPAL -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8 custom-scrollbar">
+
+        <!-- ALERTA GLOBAL DE EXAMES ALTERADOS -->
+        <div id="urgent-alert-banner" class="hidden mb-6 bg-rose-50 border-l-4 border-rose-500 p-4 rounded-r-2xl shadow-sm border border-rose-100">
+            <div class="flex items-start space-x-3">
+                <div class="p-2 bg-rose-500 text-white rounded-xl shadow-md flex-shrink-0">
+                    <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="font-bold text-rose-900 text-base">Atenção Médica: Resultados Alterados Detectados</h3>
+                    <p class="text-sm text-rose-700 mt-1" id="urgent-alert-text">
+                        Existem parâmetros laboratoriais recentes fora dos limites de referência recomendados.
+                    </p>
+                    <div id="urgent-alert-items" class="mt-2 flex flex-wrap gap-1.5"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 1: DASHBOARD -->
+        <section id="tab-dashboard" class="tab-content space-y-6">
+            <!-- Cabeçalho do Painel -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">Visão Geral da Saúde</h2>
+                    <p class="text-slate-500 text-sm">Resumo estatístico para consultas e acompanhamento clínico</p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="resetToDemoData()" class="text-xs text-slate-500 hover:text-slate-800 underline px-2 py-1">
+                        Restaurar Dados Demonstrativos
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cards de Métricas Estáticas -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                    <div class="flex items-center justify-between text-slate-500">
+                        <span class="text-xs font-semibold uppercase tracking-wider">Total de Exames</span>
+                        <div class="p-2 bg-teal-50 text-teal-600 rounded-lg">
+                            <i data-lucide="flask-conical" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span id="stat-total-exams" class="text-3xl font-extrabold text-slate-900">0</span>
+                        <span class="text-xs text-slate-400 block mt-0.5">cadastrados no histórico</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                    <div class="flex items-center justify-between text-slate-500">
+                        <span class="text-xs font-semibold uppercase tracking-wider">Itens Alterados</span>
+                        <div class="p-2 bg-rose-50 text-rose-600 rounded-lg">
+                            <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span id="stat-abnormal-exams" class="text-3xl font-extrabold text-rose-600">0</span>
+                        <span class="text-xs text-rose-500 block mt-0.5 font-medium">requerem atenção</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                    <div class="flex items-center justify-between text-slate-500">
+                        <span class="text-xs font-semibold uppercase tracking-wider">Consultas</span>
+                        <div class="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                            <i data-lucide="stethoscope" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span id="stat-consultations" class="text-3xl font-extrabold text-slate-900">0</span>
+                        <span class="text-xs text-slate-400 block mt-0.5">consultas registradas</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                    <div class="flex items-center justify-between text-slate-500">
+                        <span class="text-xs font-semibold uppercase tracking-wider">Próxima Consulta</span>
+                        <div class="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+                            <i data-lucide="calendar-clock" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span id="stat-next-consultation" class="text-sm font-bold text-indigo-900 block truncate">Nenhuma</span>
+                        <span id="stat-next-consultation-date" class="text-xs text-slate-400 block mt-0.5">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Painel Duplo: Últimos Exames + Próximos Compromissos -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Resumo dos Exames Recentes (2 Cols) -->
+                <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                            <i data-lucide="clock" class="w-4 h-4 text-teal-600"></i> Exames Mais Recentes
+                        </h3>
+                        <button onclick="switchTab('exams')" class="text-xs text-teal-600 font-semibold hover:underline">Ver todos →</button>
+                    </div>
+                    <div id="dashboard-recent-exams" class="space-y-3">
+                        <!-- Inserido dinamicamente pelo JS -->
+                    </div>
+                </div>
+
+                <!-- Próximas Consultas & Lembretes (1 Col) -->
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                            <i data-lucide="calendar-check" class="w-4 h-4 text-teal-600"></i> Próximos Retornos
+                        </h3>
+                        <button onclick="switchTab('consultations')" class="text-xs text-teal-600 font-semibold hover:underline">Gerenciar</button>
+                    </div>
+                    <div id="dashboard-upcoming-consultations" class="space-y-3">
+                        <!-- Inserido dinamicamente pelo JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: EXAMES LABORATORIAIS -->
+        <section id="tab-exams" class="tab-content hidden space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">Exames Laboratoriais</h2>
+                    <p class="text-slate-500 text-sm">Histórico cronológico detalhado por laudo e parâmetros</p>
+                </div>
+                <button onclick="openNewRecordModal('exam')" class="bg-teal-600 hover:bg-teal-500 text-white font-medium px-4 py-2.5 rounded-xl shadow-sm text-sm flex items-center space-x-2 self-start md:self-auto">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span>Cadastrar Exame</span>
+                </button>
+            </div>
+
+            <!-- Filtros e Busca -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
+                <div class="relative w-full md:w-96">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="exam-search-input" onkeyup="filterExams()" placeholder="Buscar por exame, médico ou laboratório..." class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-teal-500">
+                </div>
+                <div class="flex items-center gap-2 w-full md:w-auto">
+                    <button id="filter-all-btn" onclick="toggleExamFilter('all')" class="flex-1 md:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-600 text-white transition-all">Todos</button>
+                    <button id="filter-abnormal-btn" onclick="toggleExamFilter('abnormal')" class="flex-1 md:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-rose-50 hover:text-rose-600 border border-transparent transition-all">
+                        ⚠️ Apenas Alterados
+                    </button>
+                </div>
+            </div>
+
+            <!-- Lista de Exames -->
+            <div id="exams-container" class="space-y-4">
+                <!-- Renderizado via JavaScript -->
+            </div>
+        </section>
+
+        <!-- TAB 3: CONSULTAS E HISTÓRICO CLÍNICO -->
+        <section id="tab-consultations" class="tab-content hidden space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">Consultas & Histórico Clínico</h2>
+                    <p class="text-slate-500 text-sm">Registro de atendimentos médicos, diagnósticos e retornos</p>
+                </div>
+                <button onclick="openNewRecordModal('consultation')" class="bg-teal-600 hover:bg-teal-500 text-white font-medium px-4 py-2.5 rounded-xl shadow-sm text-sm flex items-center space-x-2 self-start md:self-auto">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span>Agendar/Registrar Consulta</span>
+                </button>
+            </div>
+
+            <div id="consultations-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Renderizado via JavaScript -->
+            </div>
+        </section>
+
+        <!-- TAB 4: ATESTADOS E LAUDOS -->
+        <section id="tab-documents" class="tab-content hidden space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">Atestados & Documentos Médicos</h2>
+                    <p class="text-slate-500 text-sm">Arquivo digital para receitas, licenças e declarações</p>
+                </div>
+                <button onclick="openNewRecordModal('document')" class="bg-teal-600 hover:bg-teal-500 text-white font-medium px-4 py-2.5 rounded-xl shadow-sm text-sm flex items-center space-x-2 self-start md:self-auto">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span>Anexar Documento</span>
+                </button>
+            </div>
+
+            <div id="documents-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Renderizado via JavaScript -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL 1: NOVO REGISTRO (DINÂMICO PARA EXAME, CONSULTA OU DOCUMENTO) -->
+    <div id="modal-new-record" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-slate-900 px-6 py-4 flex items-center justify-between text-white">
+                <h3 class="font-bold text-lg flex items-center gap-2">
+                    <i data-lucide="plus-circle" class="w-5 h-5 text-teal-400"></i>
+                    <span id="modal-title">Novo Registro Clínico</span>
+                </h3>
+                <button onclick="closeModal('modal-new-record')" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <!-- Seleção de Tipo -->
+            <div class="p-6 border-b border-slate-100 bg-slate-50/50">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tipo de Registro</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <button type="button" onclick="setRecordType('exam')" id="type-btn-exam" class="type-selector-btn py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all bg-teal-600 text-white border-teal-600">
+                        <i data-lucide="flask-conical" class="w-4 h-4"></i> Exame
+                    </button>
+                    <button type="button" onclick="setRecordType('consultation')" id="type-btn-consultation" class="type-selector-btn py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all bg-white text-slate-700 border-slate-200 hover:bg-slate-100">
+                        <i data-lucide="calendar" class="w-4 h-4"></i> Consulta
+                    </button>
+                    <button type="button" onclick="setRecordType('document')" id="type-btn-document" class="type-selector-btn py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all bg-white text-slate-700 border-slate-200 hover:bg-slate-100">
+                        <i data-lucide="file-text" class="w-4 h-4"></i> Atestado/Laudo
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-4">
+                <form id="form-record" onsubmit="handleFormSubmit(event)">
+                    <input type="hidden" id="form-record-type" value="exam">
+
+                    <!-- CAMPOS EXAME -->
+                    <div id="form-fields-exam" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Nome do Exame *</label>
+                                <input type="text" id="exam-name" required placeholder="Ex: Hemograma Completo" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Laboratório / Clínica *</label>
+                                <input type="text" id="exam-lab" required placeholder="Ex: Laboratório Central" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Médico Solicitante</label>
+                                <input type="text" id="exam-doctor" placeholder="Dr. Silva" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Convênio / Origem</label>
+                                <input type="text" id="exam-insurance" placeholder="Ex: HDT / Particular" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Data da Coleta *</label>
+                                <input type="date" id="exam-date" required class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                            </div>
+                        </div>
+
+                        <!-- Construtor Dinâmico de Parâmetros -->
+                        <div class="pt-2 border-t border-slate-100">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Parâmetros / Itens Medidos</label>
+                                <button type="button" onclick="addParameterRow()" class="text-xs font-semibold text-teal-600 hover:text-teal-700 flex items-center gap-1">
+                                    <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Add Parâmetro
+                                </button>
+                            </div>
+
+                            <div id="parameters-container" class="space-y-2">
+                                <!-- Linhas dinâmicas aqui -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CAMPOS CONSULTA -->
+                    <div id="form-fields-consultation" class="space-y-4 hidden">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Nome do Médico *</label>
+                                <input type="text" id="consultation-doctor" placeholder="Dra. Amanda Costa" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Especialidade *</label>
+                                <input type="text" id="consultation-specialty" placeholder="Ex: Infectologia, Clínica Geral" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Data e Hora *</label>
+                                <input type="datetime-local" id="consultation-date" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Local / Clínica</label>
+                                <input type="text" id="consultation-location" placeholder="UBS Central - Sala 4" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Status</label>
+                                <select id="consultation-status" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                                    <option value="Agendada">Agendada (Futura)</option>
+                                    <option value="Realizada">Realizada (Histórico)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Diagnóstico / Conduta Medica</label>
+                            <textarea id="consultation-diagnosis" rows="2" placeholder="Resumo do atendimento e recomendações..." class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- CAMPOS DOCUMENTO -->
+                    <div id="form-fields-document" class="space-y-4 hidden">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Título do Documento *</label>
+                                <input type="text" id="doc-title" placeholder="Ex: Atestado Médico - 3 dias" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Tipo de Documento</label>
+                                <select id="doc-type" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                                    <option value="Atestado Médico">Atestado Médico</option>
+                                    <option value="Licença Médica">Licença Médica</option>
+                                    <option value="Laudo Detalhado">Laudo Detalhado</option>
+                                    <option value="Receita / Prescrição">Receita / Prescrição</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Médico / Emissor</label>
+                                <input type="text" id="doc-doctor" placeholder="Dr. Roberto Silva" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Data da Emissão *</label>
+                                <input type="date" id="doc-date" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Observações</label>
+                            <input type="text" id="doc-notes" placeholder="Detalhes adicionais..." class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                        </div>
+                    </div>
+
+                    <!-- CAMPO DE ANEXO COMPARTILHADO -->
+                    <div class="pt-4 border-t border-slate-100">
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Anexo / Imagem do Laudo ou Foto</label>
+                        <input type="file" id="record-attachment-file" accept="image/*" onchange="convertFileToBase64(this)" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100">
+                        <input type="hidden" id="record-attachment-base64">
+                    </div>
+
+                    <div class="mt-6 flex justify-end space-x-3">
+                        <button type="button" onclick="closeModal('modal-new-record')" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100">Cancelar</button>
+                        <button type="submit" class="px-6 py-2 rounded-xl text-sm font-semibold bg-teal-600 text-white hover:bg-teal-500 shadow-md">Salvar Registro</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: VISUALIZADOR DE IMAGEM / ANEXO (LIGHTBOX ZOOM) -->
+    <div id="modal-lightbox" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-4 hidden">
+        <div class="absolute top-4 right-4 flex items-center space-x-3 z-10">
+            <a id="lightbox-download" download="anexo-medico.png" class="p-2.5 bg-slate-800 text-white hover:bg-slate-700 rounded-xl transition-all border border-slate-700 flex items-center gap-2 text-xs font-medium">
+                <i data-lucide="download" class="w-4 h-4"></i> Baixar Arquivo
+            </a>
+            <button onclick="closeModal('modal-lightbox')" class="p-2.5 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 rounded-xl transition-all border border-slate-700">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <div class="max-w-4xl max-h-[85vh] overflow-auto rounded-xl p-2 bg-slate-900 border border-slate-800 flex items-center justify-center">
+            <img id="lightbox-img" src="" alt="Exame Ampliado" class="max-w-full max-h-[80vh] object-contain rounded-lg">
+        </div>
+        <p id="lightbox-caption" class="text-slate-400 text-xs mt-3 font-mono"></p>
+    </div>
+
+    <!-- MODAL 3: EXPORTAÇÃO DE RELATÓRIO MÉDICO / CONSULTA -->
+    <div id="modal-report" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+            <div class="no-print bg-slate-900 px-6 py-4 flex items-center justify-between text-white">
+                <h3 class="font-bold text-lg flex items-center gap-2">
+                    <i data-lucide="file-check-2" class="w-5 h-5 text-teal-400"></i> Relatório de Resumo Clínico para Consulta
+                </h3>
+                <div class="flex items-center space-x-2">
+                    <button onclick="window.print()" class="bg-teal-600 hover:bg-teal-500 text-white text-xs px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5">
+                        <i data-lucide="printer" class="w-4 h-4"></i> Imprimir / PDF
+                    </button>
+                    <button onclick="closeModal('modal-report')" class="text-slate-400 hover:text-white">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-8 overflow-y-auto custom-scrollbar flex-1 space-y-6 bg-white text-slate-900">
+                <!-- Cabeçalho Impresso -->
+                <div class="border-b-2 border-slate-900 pb-4 flex justify-between items-end">
+                    <div>
+                        <h1 class="text-2xl font-black tracking-tight text-slate-900">MEDICORE - RESUMO DA SAÚDE</h1>
+                        <p class="text-xs text-slate-600 mt-1">Prontuário Consolidado e Exames com Alterações</p>
+                    </div>
+                    <div class="text-right text-xs text-slate-500">
+                        <p>Gerado em: <strong id="report-date"></strong></p>
+                        <p>Paciente: <strong>Usuário MediCore</strong></p>
+                    </div>
+                </div>
+
+                <!-- Seção 1: Exames com Parâmetros Alterados -->
+                <div>
+                    <h2 class="text-base font-bold text-rose-700 uppercase tracking-wide border-b border-rose-200 pb-1 mb-3">
+                        ⚠️ Alertas Clínicos (Parâmetros Alterados)
+                    </h2>
+                    <div id="report-abnormal-list" class="space-y-3">
+                        <!-- Inserido via JS -->
+                    </div>
+                </div>
+
+                <!-- Seção 2: Histórico Recente de Exames -->
+                <div>
+                    <h2 class="text-base font-bold text-slate-800 uppercase tracking-wide border-b border-slate-200 pb-1 mb-3">
+                        📋 Exames Laboratoriais Recentes
+                    </h2>
+                    <div id="report-exams-list" class="space-y-4">
+                        <!-- Inserido via JS -->
+                    </div>
+                </div>
+
+                <!-- Seção 3: Últimas Consultas Médicas -->
+                <div>
+                    <h2 class="text-base font-bold text-slate-800 uppercase tracking-wide border-b border-slate-200 pb-1 mb-3">
+                        🩺 Histórico de Consultas
+                    </h2>
+                    <div id="report-consultations-list" class="space-y-2 text-xs">
+                        <!-- Inserido via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT PRINCIPAL (ESTRUTURA ES6+) -->
+    <script>
+        // --- DADOS INICIAIS DEMONSTRATIVOS (PERSISTIDOS NO LOCALSTORAGE) ---
+        const INITIAL_SEED_DATA = {
+            exams: [
+                {
+                    id: 'ex-101',
+                    name: 'Hemograma Completo e Proteína C Reativa (PCR)',
+                    lab: 'Laboratório Central (HDT)',
+                    doctor: 'Dr. Roberto Silva (Infectologista)',
+                    insurance: 'HDT / SUS',
+                    date: '2023-11-24',
+                    protocol: 'LAB-98421',
+                    attachment: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80',
+                    parameters: [
+                        { name: 'Hemácias', value: 4.8, unit: 'terás/L', ref: '4.3 - 5.7', abnormal: false },
+                        { name: 'Hemoglobina', value: 14.2, unit: 'g/dL', ref: '13.5 - 17.5', abnormal: false },
+                        { name: 'Leucócitos Total', value: 12800, unit: '/mm³', ref: '4.500 - 11.000', abnormal: true },
+                        { name: 'Proteína C Reativa (PCR)', value: 18.5, unit: 'mg/L', ref: 'Abaixo de 5.0', abnormal: true }
+                    ]
+                },
+                {
+                    id: 'ex-102',
+                    name: 'Dosagem de Eletrólitos & Transaminases Hepáticas',
+                    lab: 'BioAnálise Diagnósticos',
+                    doctor: 'Dra. Amanda Costa (Clínica Geral)',
+                    insurance: 'Unimed',
+                    date: '2023-11-10',
+                    protocol: 'BIO-55109',
+                    attachment: null,
+                    parameters: [
+                        { name: 'Sódio (Na)', value: 139, unit: 'mEq/L', ref: '136 - 145', abnormal: false },
+                        { name: 'Potássio (K)', value: 5.8, unit: 'mEq/L', ref: '3.5 - 5.1', abnormal: true },
+                        { name: 'TGO (AST)', value: 28, unit: 'U/L', ref: '15 - 40', abnormal: false },
+                        { name: 'TGP (ALT)', value: 32, unit: 'U/L', ref: '10 - 40', abnormal: false }
+                    ]
+                },
+                {
+                    id: 'ex-103',
+                    name: 'Coagulograma Completo (TAP / TTPA)',
+                    lab: 'Laboratório São Lucas',
+                    doctor: 'Dr. Marcelo Alves (Hematologista)',
+                    insurance: 'Particular',
+                    date: '2023-09-15',
+                    protocol: 'SL-12003',
+                    attachment: null,
+                    parameters: [
+                        { name: 'Tempo de Protrombina (TAP)', value: 12.1, unit: 'seg', ref: '11.0 - 14.6', abnormal: false },
+                        { name: 'INR', value: 1.05, unit: '', ref: '0.8 - 1.2', abnormal: false },
+                        { name: 'TTPA', value: 30.5, unit: 'seg', ref: '25.0 - 35.0', abnormal: false }
+                    ]
+                }
+            ],
+            consultations: [
+                {
+                    id: 'cs-201',
+                    doctor: 'Dra. Amanda Costa',
+                    specialty: 'Clínica Geral',
+                    location: 'UBS Central - Sala 4',
+                    date: '2024-03-20T14:30',
+                    status: 'Agendada',
+                    diagnosis: 'Retorno para avaliação de potássio e exames de controle.',
+                    notes: 'Trazer resultados atualizados do laboratório.'
+                },
+                {
+                    id: 'cs-202',
+                    doctor: 'Dr. Roberto Silva',
+                    specialty: 'Infectologia / Clínica',
+                    location: 'Hospital Dia',
+                    date: '2023-11-25T10:00',
+                    status: 'Realizada',
+                    diagnosis: 'Quadro infeccioso agudo em resolução. Leucocitose leve e PCR elevada.',
+                    notes: 'Prescrito repouso e hidratação. Solicitar reavaliação em 30 dias.'
+                }
+            ],
+            documents: [
+                {
+                    id: 'doc-301',
+                    title: 'Atestado Médico - Repouso 3 dias',
+                    type: 'Atestado Médico',
+                    doctor: 'Dr. Roberto Silva',
+                    date: '2023-11-24',
+                    notes: 'Atestado de afastamento motivado por infecção tratada.',
+                    attachment: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=800&q=80'
+                },
+                {
+                    id: 'doc-302',
+                    title: 'Laudo de Ultrassonografia Abdominal Total',
+                    type: 'Laudo Detalhado',
+                    doctor: 'Dra. Fernanda Paes (Radiologista)',
+                    date: '2023-08-10',
+                    notes: 'Órgãos abdominais com dimensões e contornos dentro da normalidade.',
+                    attachment: null
+                }
+            ]
         };
-      }
 
-      const t1 = calc(target2nd - now);
-      document.getElementById('t1-d').textContent = t1.d;
-      document.getElementById('t1-h').textContent = t1.h;
-      document.getElementById('t1-m').textContent = t1.m;
-      document.getElementById('t1-s').textContent = t1.s;
+        // Estado da Aplicação
+        let appData = { exams: [], consultations: [], documents: [] };
+        let activeExamFilter = 'all';
 
-      const t2 = calc(targetDebate - now);
-      document.getElementById('t2-d').textContent = t2.d;
-      document.getElementById('t2-h').textContent = t2.h;
-      document.getElementById('t2-m').textContent = t2.m;
-      document.getElementById('t2-s').textContent = t2.s;
-    }
+        // --- INICIALIZAÇÃO DA APLICAÇÃO ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            renderAll();
+            lucide.createIcons();
+            addParameterRow(); // Adiciona uma linha inicial ao formulário de parâmetros
+        });
 
-    /* ===================================================
-       8. COPIAR PIX
-       =================================================== */
-    function copiarChavePix(key) {
-      navigator.clipboard.writeText(key).then(() => {
-        alert("Chave Pix copiada para a área de transferência!");
-      }).catch(() => {
-        prompt("Copie a chave Pix abaixo:", key);
-      });
-    }
+        // --- GERENCIAMENTO DE STORAGE ---
+        function loadData() {
+            const saved = localStorage.getItem('mediCoreData');
+            if (saved) {
+                try {
+                    appData = JSON.parse(saved);
+                } catch (e) {
+                    appData = INITIAL_SEED_DATA;
+                }
+            } else {
+                appData = INITIAL_SEED_DATA;
+                saveData();
+            }
+        }
 
-    /* ===================================================
-       9. INICIALIZAÇÃO
-       =================================================== */
-    window.addEventListener('DOMContentLoaded', () => {
-      // Carregar fotos dos candidatos no cabeçalho de apuração
-      document.getElementById('avatar-bolsonaro-apuracao').innerHTML = getCandidatePhotoHTML('22', 'Flávio Bolsonaro');
-      document.getElementById('avatar-lula-apuracao').innerHTML = getCandidatePhotoHTML('13', 'Lula');
+        function saveData() {
+            localStorage.setItem('mediCoreData', JSON.stringify(appData));
+        }
 
-      loadState();
-      renderScreen();
-      updateDashboard();
-      initChart();
-      updateTimers();
-      setInterval(updateTimers, 1000);
-    });
-  </script>
+        function resetToDemoData() {
+            if (confirm("Deseja restaurar os dados de exemplo clínicos? Quaisquer novos registros serão mantidos.")) {
+                appData = INITIAL_SEED_DATA;
+                saveData();
+                renderAll();
+            }
+        }
+
+        // --- RENDERIZAÇÃO GERAL ---
+        function renderAll() {
+            sortDataChronologically();
+            renderDashboard();
+            renderExams();
+            renderConsultations();
+            renderDocuments();
+            lucide.createIcons();
+        }
+
+        function sortDataChronologically() {
+            // Ordenação decrescente por data (mais recente no topo)
+            appData.exams.sort((a, b) => new Date(b.date) - new Date(a.date));
+            appData.consultations.sort((a, b) => new Date(b.date) - new Date(a.date));
+            appData.documents.sort((a, b) => new Date(b.date) - new Date(a.date));
+        }
+
+        // --- TAB 1: DASHBOARD ---
+        function renderDashboard() {
+            // Métricas
+            const totalExams = appData.exams.length;
+            
+            // Coletar todos os parâmetros alterados
+            let abnormalCount = 0;
+            let abnormalItems = [];
+
+            appData.exams.forEach(exam => {
+                exam.parameters.forEach(p => {
+                    if (p.abnormal) {
+                        abnormalCount++;
+                        abnormalItems.push({ examName: exam.name, paramName: p.name, val: p.value, unit: p.unit, ref: p.ref });
+                    }
+                });
+            });
+
+            document.getElementById('stat-total-exams').textContent = totalExams;
+            document.getElementById('stat-abnormal-exams').textContent = abnormalCount;
+            document.getElementById('stat-consultations').textContent = appData.consultations.length;
+
+            // Próxima Consulta
+            const upcoming = appData.consultations.filter(c => c.status === 'Agendada' && new Date(c.date) >= new Date());
+            upcoming.sort((a,b) => new Date(a.date) - new Date(b.date));
+
+            if (upcoming.length > 0) {
+                const next = upcoming[0];
+                const d = new Date(next.date);
+                document.getElementById('stat-next-consultation').textContent = next.doctor;
+                document.getElementById('stat-next-consultation-date').textContent = `${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}`;
+            } else {
+                document.getElementById('stat-next-consultation').textContent = 'Nenhuma pendente';
+                document.getElementById('stat-next-consultation-date').textContent = '-';
+            }
+
+            // Banner Alerta Urgente
+            const alertBanner = document.getElementById('urgent-alert-banner');
+            const alertItemsContainer = document.getElementById('urgent-alert-items');
+            alertItemsContainer.innerHTML = '';
+
+            if (abnormalCount > 0) {
+                alertBanner.classList.remove('hidden');
+                abnormalItems.slice(0, 5).forEach(item => {
+                    const tag = document.createElement('span');
+                    tag.className = 'px-2 py-1 bg-rose-100 text-rose-800 border border-rose-300 rounded-md text-xs font-semibold flex items-center gap-1';
+                    tag.innerHTML = `<i data-lucide="alert-circle" class="w-3 h-3"></i> ${item.paramName}: <strong>${item.val} ${item.unit}</strong> (Ref: ${item.ref})`;
+                    alertItemsContainer.appendChild(tag);
+                });
+            } else {
+                alertBanner.classList.add('hidden');
+            }
+
+            // Exames Recentes (Top 3)
+            const recentContainer = document.getElementById('dashboard-recent-exams');
+            recentContainer.innerHTML = '';
+            appData.exams.slice(0, 3).forEach(exam => {
+                const hasAbnormal = exam.parameters.some(p => p.abnormal);
+                const el = document.createElement('div');
+                el.className = `p-3 rounded-xl border flex items-center justify-between ${hasAbnormal ? 'bg-rose-50/50 border-rose-200' : 'bg-slate-50 border-slate-200'}`;
+                el.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 ${hasAbnormal ? 'bg-rose-500 text-white' : 'bg-teal-500 text-white'} rounded-lg">
+                            <i data-lucide="${hasAbnormal ? 'alert-triangle' : 'file-check'}" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-xs text-slate-800">${exam.name}</h4>
+                            <p class="text-[11px] text-slate-500">${exam.lab} • ${formatDate(exam.date)}</p>
+                        </div>
+                    </div>
+                    ${hasAbnormal ? '<span class="text-[10px] font-extrabold text-rose-600 bg-rose-100 border border-rose-200 px-2 py-0.5 rounded-md uppercase">Alterado</span>' : '<span class="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">Normal</span>'}
+                `;
+                recentContainer.appendChild(el);
+            });
+
+            // Próximas Consultas Sidebar
+            const upcomingContainer = document.getElementById('dashboard-upcoming-consultations');
+            upcomingContainer.innerHTML = '';
+            const nextConsultations = appData.consultations.slice(0, 3);
+
+            if(nextConsultations.length === 0) {
+                upcomingContainer.innerHTML = `<p class="text-xs text-slate-400">Nenhuma consulta cadastrada.</p>`;
+            } else {
+                nextConsultations.forEach(c => {
+                    const el = document.createElement('div');
+                    el.className = 'p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between';
+                    el.innerHTML = `
+                        <div>
+                            <p class="font-bold text-xs text-slate-900">${c.doctor}</p>
+                            <p class="text-[11px] text-teal-700 font-medium">${c.specialty}</p>
+                            <p class="text-[10px] text-slate-400 mt-1">${formatDateTime(c.date)}</p>
+                        </div>
+                        <span class="text-[10px] px-2 py-1 rounded-md font-semibold ${c.status === 'Agendada' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-slate-200 text-slate-600'}">${c.status}</span>
+                    `;
+                    upcomingContainer.appendChild(el);
+                });
+            }
+        }
+
+        // --- TAB 2: EXAMES ---
+        function renderExams(filterSearch = '') {
+            const container = document.getElementById('exams-container');
+            container.innerHTML = '';
+
+            let list = [...appData.exams];
+
+            // Filtro por Apenas Alterados
+            if (activeExamFilter === 'abnormal') {
+                list = list.filter(ex => ex.parameters.some(p => p.abnormal));
+            }
+
+            // Filtro por Busca Texto
+            if (filterSearch) {
+                const term = filterSearch.toLowerCase();
+                list = list.filter(ex => 
+                    ex.name.toLowerCase().includes(term) ||
+                    ex.lab.toLowerCase().includes(term) ||
+                    (ex.doctor && ex.doctor.toLowerCase().includes(term))
+                );
+            }
+
+            if (list.length === 0) {
+                container.innerHTML = `
+                    <div class="p-8 text-center bg-white rounded-2xl border border-slate-200">
+                        <i data-lucide="folder-open" class="w-10 h-10 text-slate-300 mx-auto mb-2"></i>
+                        <p class="text-sm font-semibold text-slate-600">Nenhum exame encontrado</p>
+                        <p class="text-xs text-slate-400">Ajuste os filtros ou adicione novos laudos.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.forEach(exam => {
+                const hasAbnormal = exam.parameters.some(p => p.abnormal);
+                const card = document.createElement('div');
+                card.className = `bg-white rounded-2xl border transition-all duration-200 overflow-hidden shadow-sm ${hasAbnormal ? 'border-rose-300 ring-1 ring-rose-200' : 'border-slate-200'}`;
+
+                // Parâmetros em Tabela
+                let paramRows = '';
+                exam.parameters.forEach(p => {
+                    paramRows += `
+                        <tr class="${p.abnormal ? 'bg-rose-50/80 text-rose-900 font-medium' : 'hover:bg-slate-50 text-slate-700'} text-xs border-b border-slate-100">
+                            <td class="py-2.5 px-4 font-semibold flex items-center gap-1.5">
+                                ${p.abnormal ? '<i data-lucide="alert-circle" class="w-3.5 h-3.5 text-rose-500 flex-shrink-0"></i>' : '<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-500 flex-shrink-0"></i>'}
+                                ${p.name}
+                            </td>
+                            <td class="py-2.5 px-4 font-bold ${p.abnormal ? 'text-rose-600 text-sm' : 'text-slate-900'}">${p.value} ${p.unit}</td>
+                            <td class="py-2.5 px-4 text-slate-500 text-[11px]">${p.ref}</td>
+                            <td class="py-2.5 px-4 text-right">
+                                ${p.abnormal ? '<span class="px-2 py-0.5 bg-rose-500 text-white text-[10px] font-extrabold rounded">ALTERADO</span>' : '<span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded">Normal</span>'}
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 ${hasAbnormal ? 'bg-rose-50/30' : 'bg-slate-50/50'}">
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <h3 class="font-bold text-base text-slate-900">${exam.name}</h3>
+                                ${hasAbnormal ? '<span class="px-2 py-0.5 bg-rose-600 text-white text-[10px] font-bold rounded-md uppercase tracking-wide">⚠️ Alterações Detectadas</span>' : ''}
+                            </div>
+                            <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-1">
+                                <span><i data-lucide="building-2" class="w-3.5 h-3.5 inline text-slate-400"></i> ${exam.lab}</span>
+                                <span><i data-lucide="calendar" class="w-3.5 h-3.5 inline text-slate-400"></i> Coleta: <strong>${formatDate(exam.date)}</strong></span>
+                                <span><i data-lucide="user-check" class="w-3.5 h-3.5 inline text-slate-400"></i> ${exam.doctor || 'Não informado'}</span>
+                                ${exam.protocol ? `<span class="font-mono text-[10px] bg-slate-200 px-1.5 py-0.5 rounded">Prot: ${exam.protocol}</span>` : ''}
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-2 flex-shrink-0">
+                            ${exam.attachment ? `
+                                <button onclick="openLightbox('${exam.attachment}', '${exam.name}')" class="px-3 py-1.5 bg-teal-50 text-teal-700 hover:bg-teal-100 border border-teal-200 rounded-xl text-xs font-semibold flex items-center space-x-1.5">
+                                    <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                                    <span>Ver Laudo Físico (Zoom)</span>
+                                </button>
+                            ` : ''}
+                            <button onclick="deleteExam('${exam.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all" title="Excluir">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tabela de Resultados -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100/70 text-slate-500 text-[10px] uppercase tracking-wider border-b border-slate-200">
+                                    <th class="py-2 px-4">Parâmetro Analisado</th>
+                                    <th class="py-2 px-4">Resultado Obtido</th>
+                                    <th class="py-2 px-4">Valores de Referência</th>
+                                    <th class="py-2 px-4 text-right">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${paramRows}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        function toggleExamFilter(type) {
+            activeExamFilter = type;
+            const btnAll = document.getElementById('filter-all-btn');
+            const btnAbnormal = document.getElementById('filter-abnormal-btn');
+
+            if (type === 'all') {
+                btnAll.className = "flex-1 md:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-600 text-white transition-all";
+                btnAbnormal.className = "flex-1 md:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition-all";
+            } else {
+                btnAbnormal.className = "flex-1 md:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-600 text-white shadow-sm transition-all";
+                btnAll.className = "flex-1 md:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-teal-50 transition-all";
+            }
+
+            renderExams(document.getElementById('exam-search-input').value);
+            lucide.createIcons();
+        }
+
+        function filterExams() {
+            const val = document.getElementById('exam-search-input').value;
+            renderExams(val);
+            lucide.createIcons();
+        }
+
+        function deleteExam(id) {
+            if (confirm("Excluir este exame do registro permanentemente?")) {
+                appData.exams = appData.exams.filter(e => e.id !== id);
+                saveData();
+                renderAll();
+            }
+        }
+
+        // --- TAB 3: CONSULTAS ---
+        function renderConsultations() {
+            const container = document.getElementById('consultations-container');
+            container.innerHTML = '';
+
+            if (appData.consultations.length === 0) {
+                container.innerHTML = `<p class="text-sm text-slate-500 col-span-2 text-center py-8">Nenhuma consulta registrada.</p>`;
+                return;
+            }
+
+            appData.consultations.forEach(c => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <h3 class="font-bold text-slate-900 text-base">${c.doctor}</h3>
+                                <p class="text-xs font-semibold text-teal-600">${c.specialty}</p>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full text-xs font-bold ${c.status === 'Agendada' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-slate-100 text-slate-700'}">${c.status}</span>
+                        </div>
+
+                        <div class="mt-4 space-y-1.5 text-xs text-slate-600">
+                            <p class="flex items-center gap-2">
+                                <i data-lucide="calendar" class="w-4 h-4 text-slate-400"></i>
+                                <strong>Data:</strong> ${formatDateTime(c.date)}
+                            </p>
+                            <p class="flex items-center gap-2">
+                                <i data-lucide="map-pin" class="w-4 h-4 text-slate-400"></i>
+                                <strong>Local:</strong> ${c.location || 'Não especificado'}
+                            </p>
+                        </div>
+
+                        ${c.diagnosis ? `
+                            <div class="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs">
+                                <p class="font-bold text-slate-800">Diagnóstico / Conduta:</p>
+                                <p class="text-slate-600 mt-0.5">${c.diagnosis}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                        <span class="text-[10px] text-slate-400">${c.notes ? 'Possui observações' : ''}</span>
+                        <button onclick="deleteConsultation('${c.id}')" class="text-xs text-rose-600 font-semibold hover:underline">Excluir</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function deleteConsultation(id) {
+            if (confirm("Excluir esta consulta?")) {
+                appData.consultations = appData.consultations.filter(c => c.id !== id);
+                saveData();
+                renderAll();
+            }
+        }
+
+        // --- TAB 4: DOCUMENTOS ---
+        function renderDocuments() {
+            const container = document.getElementById('documents-container');
+            container.innerHTML = '';
+
+            if (appData.documents.length === 0) {
+                container.innerHTML = `<p class="text-sm text-slate-500 col-span-3 text-center py-8">Nenhum documento ou atestado anexado.</p>`;
+                return;
+            }
+
+            appData.documents.forEach(doc => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="p-2.5 bg-teal-50 text-teal-600 rounded-xl">
+                                <i data-lucide="file-text" class="w-5 h-5"></i>
+                            </div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md">${doc.type}</span>
+                        </div>
+
+                        <h3 class="font-bold text-slate-900 text-sm leading-snug">${doc.title}</h3>
+                        <p class="text-xs text-slate-500 mt-1">Emissor: ${doc.doctor || 'Médico'}</p>
+                        <p class="text-xs text-slate-400">Data: ${formatDate(doc.date)}</p>
+
+                        ${doc.notes ? `<p class="text-xs text-slate-600 mt-3 p-2 bg-slate-50 rounded-lg border border-slate-100">${doc.notes}</p>` : ''}
+                    </div>
+
+                    <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+                        ${doc.attachment ? `
+                            <button onclick="openLightbox('${doc.attachment}', '${doc.title}')" class="text-xs font-semibold text-teal-600 hover:underline flex items-center gap-1">
+                                <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i> Visualizar Anexo
+                            </button>
+                        ` : '<span class="text-[10px] text-slate-400">Sem imagem anexada</span>'}
+                        <button onclick="deleteDocument('${doc.id}')" class="text-xs text-rose-600 hover:underline">Remover</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function deleteDocument(id) {
+            if (confirm("Excluir este documento?")) {
+                appData.documents = appData.documents.filter(d => d.id !== id);
+                saveData();
+                renderAll();
+            }
+        }
+
+        // --- CONSTRUTOR DINÂMICO DE PARÂMETROS DE EXAME ---
+        function addParameterRow(param = { name: '', value: '', unit: '', ref: '', abnormal: false }) {
+            const container = document.getElementById('parameters-container');
+            const rowId = 'param-' + Date.now() + Math.random().toString(36).substring(2, 4);
+
+            const row = document.createElement('div');
+            row.id = rowId;
+            row.className = "grid grid-cols-12 gap-2 items-center bg-slate-50 p-2 rounded-xl border border-slate-200 text-xs";
+
+            row.innerHTML = `
+                <div class="col-span-4">
+                    <input type="text" placeholder="Nome (ex: Leucócitos)" value="${param.name}" class="param-name w-full px-2 py-1.5 border rounded-lg border-slate-300 focus:outline-none focus:border-teal-500">
+                </div>
+                <div class="col-span-2">
+                    <input type="text" placeholder="Valor" value="${param.value}" class="param-val w-full px-2 py-1.5 border rounded-lg border-slate-300 focus:outline-none focus:border-teal-500">
+                </div>
+                <div class="col-span-2">
+                    <input type="text" placeholder="Unidade" value="${param.unit}" class="param-unit w-full px-2 py-1.5 border rounded-lg border-slate-300 focus:outline-none focus:border-teal-500">
+                </div>
+                <div class="col-span-3">
+                    <input type="text" placeholder="Referência" value="${param.ref}" class="param-ref w-full px-2 py-1.5 border rounded-lg border-slate-300 focus:outline-none focus:border-teal-500">
+                </div>
+                <div class="col-span-1 flex items-center justify-center">
+                    <button type="button" onclick="removeParameterRow('${rowId}')" class="text-rose-500 hover:text-rose-700">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <div class="col-span-12 flex items-center space-x-2 mt-1 px-1">
+                    <label class="flex items-center space-x-1 cursor-pointer text-[11px] text-rose-700 font-semibold">
+                        <input type="checkbox" ${param.abnormal ? 'checked' : ''} class="param-abnormal rounded text-rose-600 focus:ring-rose-500">
+                        <span>Marcar como Fora de Referência / Alterado</span>
+                    </label>
+                </div>
+            `;
+
+            container.appendChild(row);
+            lucide.createIcons();
+        }
+
+        function removeParameterRow(id) {
+            const row = document.getElementById(id);
+            if (row) row.remove();
+        }
+
+        // --- SUBMISSÃO DE FORMULÁRIOS (CRIAÇÃO DE REGISTROS) ---
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const type = document.getElementById('form-record-type').value;
+
+            if (type === 'exam') {
+                const name = document.getElementById('exam-name').value;
+                const lab = document.getElementById('exam-lab').value;
+                const doctor = document.getElementById('exam-doctor').value;
+                const insurance = document.getElementById('exam-insurance').value;
+                const date = document.getElementById('exam-date').value;
+                const attachment = document.getElementById('record-attachment-base64').value || null;
+
+                // Coletar parâmetros
+                const paramRows = document.querySelectorAll('#parameters-container > div');
+                const parameters = [];
+
+                paramRows.forEach(row => {
+                    const pName = row.querySelector('.param-name').value;
+                    const pVal = row.querySelector('.param-val').value;
+                    const pUnit = row.querySelector('.param-unit').value;
+                    const pRef = row.querySelector('.param-ref').value;
+                    const pAbnormal = row.querySelector('.param-abnormal').checked;
+
+                    if (pName && pVal) {
+                        parameters.push({
+                            name: pName,
+                            value: pVal,
+                            unit: pUnit,
+                            ref: pRef,
+                            abnormal: pAbnormal
+                        });
+                    }
+                });
+
+                const newExam = {
+                    id: 'ex-' + Date.now(),
+                    name,
+                    lab,
+                    doctor,
+                    insurance,
+                    date,
+                    attachment,
+                    parameters
+                };
+
+                appData.exams.unshift(newExam);
+
+            } else if (type === 'consultation') {
+                const doctor = document.getElementById('consultation-doctor').value;
+                const specialty = document.getElementById('consultation-specialty').value;
+                const date = document.getElementById('consultation-date').value;
+                const location = document.getElementById('consultation-location').value;
+                const status = document.getElementById('consultation-status').value;
+                const diagnosis = document.getElementById('consultation-diagnosis').value;
+
+                const newConsultation = {
+                    id: 'cs-' + Date.now(),
+                    doctor,
+                    specialty,
+                    date,
+                    location,
+                    status,
+                    diagnosis,
+                    notes: ''
+                };
+
+                appData.consultations.unshift(newConsultation);
+
+            } else if (type === 'document') {
+                const title = document.getElementById('doc-title').value;
+                const docType = document.getElementById('doc-type').value;
+                const doctor = document.getElementById('doc-doctor').value;
+                const date = document.getElementById('doc-date').value;
+                const notes = document.getElementById('doc-notes').value;
+                const attachment = document.getElementById('record-attachment-base64').value || null;
+
+                const newDoc = {
+                    id: 'doc-' + Date.now(),
+                    title,
+                    type: docType,
+                    doctor,
+                    date,
+                    notes,
+                    attachment
+                };
+
+                appData.documents.unshift(newDoc);
+            }
+
+            saveData();
+            renderAll();
+            closeModal('modal-new-record');
+            resetForm();
+        }
+
+        function resetForm() {
+            document.getElementById('form-record').reset();
+            document.getElementById('record-attachment-base64').value = '';
+            document.getElementById('parameters-container').innerHTML = '';
+            addParameterRow();
+        }
+
+        // --- MANIPULAÇÃO DE ANEXO E BASE64 ---
+        function convertFileToBase64(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('record-attachment-base64').value = e.target.result;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // --- RELATÓRIO MÉDICO IMPRESSO (EXPORT RESUME) ---
+        function exportDoctorReport() {
+            document.getElementById('report-date').textContent = new Date().toLocaleDateString('pt-BR');
+            
+            // 1. Alterados
+            const abnormalContainer = document.getElementById('report-abnormal-list');
+            abnormalContainer.innerHTML = '';
+            let abnormalCount = 0;
+
+            appData.exams.forEach(ex => {
+                ex.parameters.filter(p => p.abnormal).forEach(p => {
+                    abnormalCount++;
+                    const item = document.createElement('div');
+                    item.className = "p-2 bg-rose-50 border border-rose-200 rounded text-xs flex justify-between items-center";
+                    item.innerHTML = `
+                        <div>
+                            <strong class="text-rose-900">${p.name}</strong> (${ex.name} - ${formatDate(ex.date)})
+                            <span class="block text-slate-500">Ref: ${p.ref}</span>
+                        </div>
+                        <span class="text-sm font-bold text-rose-700">${p.value} ${p.unit}</span>
+                    `;
+                    abnormalContainer.appendChild(item);
+                });
+            });
+
+            if (abnormalCount === 0) {
+                abnormalContainer.innerHTML = `<p class="text-xs text-slate-500">Nenhum parâmetro alterado registrado.</p>`;
+            }
+
+            // 2. Exames Recentes
+            const examsContainer = document.getElementById('report-exams-list');
+            examsContainer.innerHTML = '';
+            appData.exams.slice(0, 5).forEach(ex => {
+                const el = document.createElement('div');
+                el.className = "text-xs border-b border-slate-200 pb-2";
+                
+                let pText = ex.parameters.map(p => `${p.name}: <strong>${p.value} ${p.unit}</strong> (${p.abnormal ? 'ALTERADO' : 'OK'})`).join(' | ');
+
+                el.innerHTML = `
+                    <div class="flex justify-between font-bold text-slate-900">
+                        <span>${ex.name} (${ex.lab})</span>
+                        <span>${formatDate(ex.date)}</span>
+                    </div>
+                    <p class="text-slate-600 text-[11px] mt-0.5">${pText}</p>
+                `;
+                examsContainer.appendChild(el);
+            });
+
+            // 3. Consultas
+            const csContainer = document.getElementById('report-consultations-list');
+            csContainer.innerHTML = '';
+            appData.consultations.slice(0, 4).forEach(c => {
+                const el = document.createElement('div');
+                el.className = "border-b border-slate-100 pb-1.5";
+                el.innerHTML = `
+                    <p class="font-semibold text-slate-800">${formatDate(c.date)} - ${c.doctor} (${c.specialty})</p>
+                    <p class="text-slate-600 text-[11px]">${c.diagnosis || 'Sem diagnóstico registrado'}</p>
+                `;
+                csContainer.appendChild(el);
+            });
+
+            openModal('modal-report');
+        }
+
+        // --- NAVEGAÇÃO ENTRE TABS ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            // Ajuste dos botões laterais desktop
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.className = "nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800";
+            });
+            const activeDesktop = document.getElementById(`nav-${tabId}`);
+            if(activeDesktop) activeDesktop.className = "nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all text-white bg-teal-600 shadow-sm";
+
+            // Ajuste dos botões mobile bottom
+            document.querySelectorAll('.nav-mob-btn').forEach(btn => btn.className = "nav-mob-btn flex flex-col items-center p-2 text-slate-400");
+            const activeMobile = document.getElementById(`nav-mob-${tabId}`);
+            if(activeMobile) activeMobile.className = "nav-mob-btn flex flex-col items-center p-2 text-teal-400";
+        }
+
+        // --- SELEÇÃO DE TIPO NO MODAL NOVO REGISTRO ---
+        function setRecordType(type) {
+            document.getElementById('form-record-type').value = type;
+
+            const examFields = document.getElementById('form-fields-exam');
+            const consFields = document.getElementById('form-fields-consultation');
+            const docFields = document.getElementById('form-fields-document');
+
+            examFields.classList.add('hidden');
+            consFields.classList.add('hidden');
+            docFields.classList.add('hidden');
+
+            document.querySelectorAll('.type-selector-btn').forEach(btn => {
+                btn.className = "type-selector-btn py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all bg-white text-slate-700 border-slate-200 hover:bg-slate-100";
+            });
+
+            if (type === 'exam') {
+                examFields.classList.remove('hidden');
+                document.getElementById('type-btn-exam').className = "type-selector-btn py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all bg-teal-600 text-white border-teal-600";
+            } else if (type === 'consultation') {
+                consFields.classList.remove('hidden');
+                document.getElementById('type-btn-consultation').className = "type-selector-btn py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all bg-teal-600 text-white border-teal-600";
+            } else if (type === 'document') {
+                docFields.classList.remove('hidden');
+                document.getElementById('type-btn-document').className = "type-selector-btn py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all bg-teal-600 text-white border-teal-600";
+            }
+        }
+
+        // --- CONTROLE DE MODAIS ---
+        function openNewRecordModal(type = 'exam') {
+            resetForm();
+            setRecordType(type);
+            openModal('modal-new-record');
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function openLightbox(imgSrc, title) {
+            document.getElementById('lightbox-img').src = imgSrc;
+            document.getElementById('lightbox-caption').textContent = title;
+            document.getElementById('lightbox-download').href = imgSrc;
+            openModal('modal-lightbox');
+        }
+
+        // --- UTILITÁRIOS DE DATA ---
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const [year, month, day] = dateStr.split('-');
+            return `${day}/${month}/${year}`;
+        }
+
+        function formatDateTime(dateTimeStr) {
+            if (!dateTimeStr) return '-';
+            const d = new Date(dateTimeStr);
+            return `${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}`;
+        }
+    </script>
 </body>
 </html>
