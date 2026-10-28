@@ -470,12 +470,12 @@
         </div>
     </div>
 
-    <!-- MODAL 1: NOVO REGISTRO -->
+    <!-- MODAL 1: NOVO REGISTRO OU EDIÇÃO -->
     <div id="modal-new-record" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div class="bg-slate-900 px-6 py-4 flex items-center justify-between text-white">
                 <h3 class="font-bold text-lg flex items-center gap-2">
-                    <i data-lucide="plus-circle" class="w-5 h-5 text-teal-400"></i>
+                    <i data-lucide="plus-circle" id="modal-icon-header" class="w-5 h-5 text-teal-400"></i>
                     <span id="modal-title">Novo Registro Clínico</span>
                 </h3>
                 <button onclick="closeModal('modal-new-record')" class="text-slate-400 hover:text-white">
@@ -502,6 +502,7 @@
             <div class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-4">
                 <form id="form-record" onsubmit="handleFormSubmit(event)">
                     <input type="hidden" id="form-record-type" value="exam">
+                    <input type="hidden" id="form-editing-id" value="">
 
                     <!-- CAMPOS EXAME -->
                     <div id="form-fields-exam" class="space-y-4">
@@ -535,7 +536,7 @@
                             <div class="flex items-center justify-between mb-2">
                                 <div>
                                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Parâmetros / Itens Medidos</label>
-                                    <p class="text-[11px] text-slate-400">Verifique os valores e unidades extraídas antes de salvar.</p>
+                                    <p class="text-[11px] text-slate-400">Verifique ou edite os valores, nomes e referências antes de salvar.</p>
                                 </div>
                                 <button type="button" onclick="addParameterRow()" class="text-xs font-semibold text-teal-600 hover:text-teal-700 flex items-center gap-1">
                                     <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Add Parâmetro
@@ -931,6 +932,11 @@
                                     <span>Ver Foto (Zoom)</span>
                                 </button>
                             ` : ''}
+                            <!-- BOTÃO EDITAR (CANETINHA) -->
+                            <button onclick="editExam('${exam.id}')" class="p-1.5 text-slate-500 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-all" title="Editar Exame e Parâmetros">
+                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                            </button>
+                            <!-- BOTÃO EXCLUIR (LIXEIRINHA) -->
                             <button onclick="deleteExam('${exam.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all" title="Excluir">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
@@ -985,6 +991,36 @@
                 saveData();
                 renderAll();
             }
+        }
+
+        // --- EDITAR EXAME SALVO (CANETINHA) ---
+        function editExam(id) {
+            const exam = appData.exams.find(e => e.id === id);
+            if (!exam) return;
+
+            resetForm();
+            setRecordType('exam');
+
+            document.getElementById('form-editing-id').value = exam.id;
+            document.getElementById('modal-title').textContent = "Editar Exame & Parâmetros";
+            document.getElementById('exam-name').value = exam.name || '';
+            document.getElementById('exam-lab').value = exam.lab || '';
+            document.getElementById('exam-doctor').value = exam.doctor || '';
+            document.getElementById('exam-insurance').value = exam.insurance || '';
+            document.getElementById('exam-date').value = exam.date || '';
+
+            if (exam.attachment) {
+                document.getElementById('record-attachment-base64').value = exam.attachment;
+            }
+
+            document.getElementById('parameters-container').innerHTML = '';
+            if (exam.parameters && exam.parameters.length > 0) {
+                exam.parameters.forEach(p => addParameterRow(p));
+            } else {
+                addParameterRow();
+            }
+
+            openModal('modal-new-record');
         }
 
         // --- TAB 3: CONSULTAS ---
@@ -1119,8 +1155,8 @@
                     <input type="text" placeholder="Ref (ex: 4.5 - 11.0)" value="${param.ref}" oninput="autoDetectAbnormal('${rowId}')" class="param-ref w-full px-2 py-1.5 border rounded-lg border-slate-300 focus:outline-none focus:border-teal-500">
                 </div>
                 <div class="col-span-1 flex items-center justify-center">
-                    <button type="button" onclick="removeParameterRow('${rowId}')" class="text-rose-500 hover:text-rose-700 p-1">
-                        <i data-lucide="x" class="w-4 h-4"></i>
+                    <button type="button" onclick="removeParameterRow('${rowId}')" class="text-rose-500 hover:text-rose-700 p-1" title="Remover este parâmetro">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
                     </button>
                 </div>
                 <div class="col-span-12 flex items-center justify-between mt-1 px-1">
@@ -1171,10 +1207,11 @@
             }
         }
 
-        // --- SUBMISSÃO DE FORMULÁRIO ---
+        // --- SUBMISSÃO DE FORMULÁRIO (NOVO OU EDIÇÃO) ---
         function handleFormSubmit(e) {
             e.preventDefault();
             const type = document.getElementById('form-record-type').value;
+            const editingId = document.getElementById('form-editing-id').value;
 
             if (type === 'exam') {
                 const name = document.getElementById('exam-name').value.trim();
@@ -1210,18 +1247,35 @@
                     }
                 });
 
-                const newExam = {
-                    id: 'ex-' + Date.now(),
-                    name,
-                    lab,
-                    doctor,
-                    insurance,
-                    date,
-                    attachment,
-                    parameters
-                };
-
-                appData.exams.unshift(newExam);
+                if (editingId) {
+                    // ATUALIZA EXAME EXISTENTE
+                    const index = appData.exams.findIndex(e => e.id === editingId);
+                    if (index !== -1) {
+                        appData.exams[index] = {
+                            ...appData.exams[index],
+                            name,
+                            lab,
+                            doctor,
+                            insurance,
+                            date,
+                            parameters,
+                            attachment: attachment || appData.exams[index].attachment
+                        };
+                    }
+                } else {
+                    // CRIA NOVO EXAME
+                    const newExam = {
+                        id: 'ex-' + Date.now(),
+                        name,
+                        lab,
+                        doctor,
+                        insurance,
+                        date,
+                        attachment,
+                        parameters
+                    };
+                    appData.exams.unshift(newExam);
+                }
 
             } else if (type === 'consultation') {
                 const doctor = document.getElementById('consultation-doctor').value.trim();
@@ -1283,6 +1337,8 @@
 
         function resetForm() {
             document.getElementById('form-record').reset();
+            document.getElementById('form-editing-id').value = '';
+            document.getElementById('modal-title').textContent = "Novo Registro Clínico";
             document.getElementById('record-attachment-base64').value = '';
             document.getElementById('parameters-container').innerHTML = '';
             addParameterRow();
@@ -1298,7 +1354,7 @@
             }
         }
 
-        // --- SISTEMA MASTER OCR (CORRIGIDO PARA LEITURA DE FOTO DE ALTA PRECISÃO) ---
+        // --- SISTEMA MASTER OCR (LEITURA MULTI-EXAMES AMPLIADA) ---
         function openOcrScannerModal() {
             document.getElementById('ocr-file-input').value = '';
             document.getElementById('ocr-upload-prompt').classList.remove('hidden');
@@ -1368,7 +1424,7 @@
             reader.readAsDataURL(file);
         }
 
-        // PROCESSAMENTO DE IMAGEM OTIMIZADO PARA REMOVER SOMBRAS E AUMENTAR CONTRASTE DE TEXTO
+        // PROCESSAMENTO DE IMAGEM OTIMIZADO PARA OCR DE ALTA NITIDEZ
         function preprocessImageCanvas(imageSrc) {
             return new Promise((resolve) => {
                 const img = new Image();
@@ -1392,14 +1448,12 @@
                     const imgData = ctx.getImageData(0, 0, width, height);
                     const data = imgData.data;
 
-                    // Ajuste de contraste inteligente sem apagar áreas sombreadas
                     for (let i = 0; i < data.length; i += 4) {
                         const r = data[i];
                         const g = data[i + 1];
                         const b = data[i + 2];
                         let v = 0.299 * r + 0.587 * g + 0.114 * b;
 
-                        // Contraste suave
                         v = (v - 128) * 1.6 + 128;
                         v = Math.min(255, Math.max(0, v));
 
@@ -1415,19 +1469,28 @@
             });
         }
 
-        // PARSER ESPECÍFICO PARA EXAMES BRASILEIROS E HEMOGRAMAS (EX: BIOLAB)
+        // PARSER COMPLETO: HEMOGRAMAS, BIOQUÍMICA, HORMÔNIOS E DEMAIS EXAMES
         function parseMedicalReportText(rawText) {
             const rawLines = rawText.split('\n')
                 .map(l => l.trim())
                 .filter(l => l.length > 0);
 
-            let detectedExamName = "Hemograma Completo";
+            let detectedExamName = "Exame Laboratorial";
             let detectedLab = "";
             let detectedDoctor = "";
             let detectedDate = new Date().toISOString().split('T')[0];
             const parameters = [];
 
-            // 1. Extração de Laboratório
+            // 1. Detecção Inteligente do Nome Principal do Exame
+            if (/hemograma/i.test(rawText)) detectedExamName = "Hemograma Completo";
+            else if (/glicemia|glicose/i.test(rawText)) detectedExamName = "Glicemia em Jejum";
+            else if (/lipid|colesterol|triglicer/i.test(rawText)) detectedExamName = "Perfil Lipídico / Lipidograma";
+            else if (/tireo|tsh|t4 livre/i.test(rawText)) detectedExamName = "Função Tireoidiana (TSH / T4)";
+            else if (/ureia|creatinina/i.test(rawText)) detectedExamName = "Função Renal (Ureia / Creatinina)";
+            else if (/tgo|tgp|gama gt/i.test(rawText)) detectedExamName = "Função Hepática (TGO / TGP)";
+            else if (/urina|eas/i.test(rawText)) detectedExamName = "EAS / Urina Tipo 1";
+
+            // 2. Extração de Laboratório
             if (/BioLab/i.test(rawText)) {
                 detectedLab = "BioLab - Laboratório de Análises Clínicas";
             } else {
@@ -1436,20 +1499,21 @@
                 else detectedLab = "Laboratório de Análises Clínicas";
             }
 
-            // 2. Extração de Data da Coleta
+            // 3. Extração de Data da Coleta
             const dateMatch = rawText.match(/(?:coleta|cadastro|emiss[ãa]o)?\s*[:\.-]?\s*(\d{2})\/(\d{2})\/(\d{4})/i);
             if (dateMatch) {
                 detectedDate = `${dateMatch[3]}-${dateMatch[2]}-${dateMatch[1]}`;
             }
 
-            // 3. Extração de Médico Solicitante
+            // 4. Extração de Médico Solicitante
             const docMatch = rawText.match(/(?:m[eé]dico\(a\)|m[eé]dico|dr\(a\)|dr\.)\s*[:\.-]?\s*([^\n\r\d]+)/i);
             if (docMatch && docMatch[1]) {
                 detectedDoctor = docMatch[1].replace(/CRM.*/i, '').trim();
             }
 
-            // 4. DICIONÁRIO E LEITURA DE PARÂMETROS
+            // 5. DICIONÁRIO EXPANDIDO DE PARÂMETROS
             const paramDictionary = [
+                // Hemograma
                 { key: 'hemacias', names: ['Hemácias', 'Hemacias', 'Eritrócitos'], unit: 'milhões/mm3', defaultRef: '4,10 a 5,30 milhões/mm3' },
                 { key: 'hemoglobina', names: ['Hemoglobina'], unit: 'g/dL', defaultRef: '12,0 a 15,5 g/dL' },
                 { key: 'hematocrito', names: ['Hematócrito', 'Hematocrito'], unit: '%', defaultRef: '36,0 a 45,0 %' },
@@ -1458,10 +1522,6 @@
                 { key: 'chcm', names: ['C.H.C.M', 'CHCM'], unit: 'g/dL', defaultRef: '31,0 a 36,0 g/dL' },
                 { key: 'rdw', names: ['R.D.W', 'RDW'], unit: '%', defaultRef: '11,6 a 14,8 %' },
                 { key: 'leucocitos', names: ['Leucócitos', 'Leucocitos'], unit: '/mm3', defaultRef: '3.600 a 10.000 /mm3' },
-                { key: 'blastos', names: ['Blastos'], unit: '%', defaultRef: '0 a 0 %' },
-                { key: 'promielocitos', names: ['Promielócitos', 'Promielocitos'], unit: '%', defaultRef: '0 a 0 %' },
-                { key: 'mielocitos', names: ['Mielócitos', 'Mielocitos'], unit: '%', defaultRef: '0 a 0 %' },
-                { key: 'metamielocitos', names: ['Metamielócitos', 'Metamielocitos'], unit: '%', defaultRef: '0 a 0 %' },
                 { key: 'bastonetes', names: ['Bastonetes'], unit: '%', defaultRef: '0 a 5 %' },
                 { key: 'segmentados', names: ['Segmentados'], unit: '%', defaultRef: '50 a 62 %' },
                 { key: 'eosinofilos', names: ['Eosinófilos', 'Eosinofilos'], unit: '%', defaultRef: '1 a 4 %' },
@@ -1469,28 +1529,45 @@
                 { key: 'linfocitos', names: ['Linfócitos Típicos', 'Linfocitos Tipicos', 'Linfócitos', 'Linfocitos'], unit: '%', defaultRef: '18 a 36 %' },
                 { key: 'monocitos', names: ['Monócitos', 'Monocitos'], unit: '%', defaultRef: '2 a 10 %' },
                 { key: 'plaquetas', names: ['Plaquetas'], unit: '/mm3', defaultRef: '150.000 a 450.000 /mm3' },
-                { key: 'vpm', names: ['VPM'], unit: 'fL', defaultRef: '7,4 a 11,4 fL' }
+                // Bioquímica & Hormônios
+                { key: 'glicemia', names: ['Glicemia em Jejum', 'Glicemia de Jejum', 'Glicemia'], unit: 'mg/dL', defaultRef: '70,0 a 99,0 mg/dL' },
+                { key: 'hba1c', names: ['Hemoglobina Glicada', 'HbA1c'], unit: '%', defaultRef: 'Abaixo de 5,7 %' },
+                { key: 'colesterol_total', names: ['Colesterol Total'], unit: 'mg/dL', defaultRef: 'Desejável: < 190 mg/dL' },
+                { key: 'colesterol_hdl', names: ['Colesterol HDL', 'HDL Colesterol', 'HDL'], unit: 'mg/dL', defaultRef: 'Desejável: > 40 mg/dL' },
+                { key: 'colesterol_ldl', names: ['Colesterol LDL', 'LDL Colesterol', 'LDL'], unit: 'mg/dL', defaultRef: 'Desejável: < 130 mg/dL' },
+                { key: 'colesterol_vldl', names: ['Colesterol VLDL', 'VLDL Colesterol', 'VLDL'], unit: 'mg/dL', defaultRef: 'Desejável: < 30 mg/dL' },
+                { key: 'triglicerideos', names: ['Triglicerídeos', 'Triglicérides', 'Triglicerideos'], unit: 'mg/dL', defaultRef: 'Desejável: < 150 mg/dL' },
+                { key: 'ureia', names: ['Ureia Sérica', 'Ureia'], unit: 'mg/dL', defaultRef: '15,0 a 45,0 mg/dL' },
+                { key: 'creatinina', names: ['Creatinina Sérica', 'Creatinina'], unit: 'mg/dL', defaultRef: '0,60 a 1,20 mg/dL' },
+                { key: 'tgo', names: ['TGO / AST', 'TGO', 'AST'], unit: 'U/L', defaultRef: '10,0 a 40,0 U/L' },
+                { key: 'tgp', names: ['TGP / ALT', 'TGP', 'ALT'], unit: 'U/L', defaultRef: '10,0 a 40,0 U/L' },
+                { key: 'gama_gt', names: ['Gama GT', 'GGT', 'Gama-Glutamil'], unit: 'U/L', defaultRef: '8,0 a 61,0 U/L' },
+                { key: 'tsh', names: ['TSH', 'TSH Ultra Sensível'], unit: 'µIU/mL', defaultRef: '0,40 a 4,50 µIU/mL' },
+                { key: 't4_livre', names: ['T4 Livre', 'Tiroxina Livre'], unit: 'ng/dL', defaultRef: '0,80 a 1,90 ng/dL' },
+                { key: 'pcr', names: ['Proteína C Reativa', 'PCR Ultra-Sensível', 'PCR'], unit: 'mg/L', defaultRef: 'Abaixo de 5,0 mg/L' },
+                { key: 'vhs', names: ['VHS', 'Velocidade de Hemossedimentação'], unit: 'mm/h', defaultRef: 'Abaixo de 15 mm/h' },
+                { key: 'vitamina_d', names: ['Vitamina D', '25-OH Vitamina D'], unit: 'ng/mL', defaultRef: '20,0 a 60,0 ng/mL' },
+                { key: 'vitamina_b12', names: ['Vitamina B12', 'Cobalamina'], unit: 'pg/mL', defaultRef: '211,0 a 911,0 pg/mL' },
+                { key: 'acido_urico', names: ['Ácido Úrico', 'Acido Urico'], unit: 'mg/dL', defaultRef: '2,5 a 7,0 mg/dL' }
             ];
 
+            // A: Leitura por dicionário
             rawLines.forEach(line => {
                 const cleanLine = line.replace(/[\.\-_]{2,}/g, ' ').replace(/\s+/g, ' ').trim();
                 
                 paramDictionary.forEach(item => {
                     const matchedName = item.names.find(n => new RegExp('\\b' + n + '\\b', 'i').test(cleanLine));
                     if (matchedName) {
-                        // Extrai todos os números da linha (suporta vírgulas e pontos)
                         const numbers = cleanLine.match(/(\d+(?:[\.,]\d+)?)/g);
                         if (numbers && numbers.length > 0) {
                             let valStr = numbers[0];
                             let refStr = item.defaultRef;
 
-                            // Tenta capturar referência personalizada da própria linha se houver intervalo impresso
                             const rangeMatch = cleanLine.match(/(\d+(?:[\.,]\d+)?)\s*(?:a|-)\s*(\d+(?:[\.,]\d+)?)/i);
                             if (rangeMatch && numbers.length >= 3) {
                                 refStr = `${rangeMatch[1]} a ${rangeMatch[2]} ${item.unit}`;
                             }
 
-                            // Evita duplicatas
                             if (!parameters.some(p => p.name === item.names[0])) {
                                 parameters.push({
                                     name: item.names[0],
@@ -1505,6 +1582,31 @@
                 });
             });
 
+            // B: Leitor Genérico de Linha (captura exames não previstos no dicionário)
+            if (parameters.length === 0) {
+                const ignoreWords = /página|telefone|paciente|data|crm|resultado|referência|valores|método|material|convenio|laboratorio|assinatura/i;
+                rawLines.forEach(line => {
+                    if (ignoreWords.test(line)) return;
+                    const match = line.match(/^([A-Za-zÀ-ÿ0-9\s\/\(\)\-\.]+?)\s+([\d]+(?:[\,\.]\d+)?)\s*([a-zA-Z\%\/µ\d]*)\s*(.*)$/);
+                    if (match && match[1].length > 2 && match[2]) {
+                        const pName = match[1].trim();
+                        const pVal = match[2].trim();
+                        const pUnit = match[3] || '';
+                        const pRef = match[4] || 'Ref: Consultar Laudo';
+
+                        if (!parameters.some(p => p.name.toLowerCase() === pName.toLowerCase())) {
+                            parameters.push({
+                                name: pName,
+                                value: pVal,
+                                unit: pUnit,
+                                ref: pRef,
+                                abnormal: checkIfAbnormal(pVal, pRef)
+                            });
+                        }
+                    }
+                });
+            }
+
             return {
                 name: detectedExamName,
                 lab: detectedLab,
@@ -1518,7 +1620,6 @@
         function checkIfAbnormal(valRaw, refRaw) {
             if (!valRaw || !refRaw) return false;
 
-            // Converter números do formato brasileiro (ex: 4.500 -> 4500 e 76,89 -> 76.89)
             const parseBR = (str) => {
                 if (!str) return NaN;
                 let s = str.trim();
@@ -1578,7 +1679,7 @@
                 data.parameters.forEach(p => {
                     addParameterRow(p);
                 });
-                alert(`✨ Leitura concluída com sucesso! ${data.parameters.length} parâmetros foram extraídos com precisão.`);
+                alert(`✨ Leitura concluída com sucesso! ${data.parameters.length} parâmetros foram extraídos com precisão. Caso precise, utilize os campos para corrigir algum valor antes de salvar.`);
             } else {
                 addParameterRow({ name: 'Exame por Foto', value: 'Concluído', unit: '', ref: 'Normal', abnormal: false });
                 alert("✨ Laudo carregado! Verifique os dados e clique em 'Salvar Registro'.");
