@@ -30,6 +30,9 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
+    <!-- Tesseract.js (OCR para Leitura de Fotos em Português) -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    
     <style>
         @media print {
             .no-print { display: none !important; }
@@ -43,6 +46,174 @@
     </style>
 </head>
 <body class="h-full font-sans text-slate-800 flex flex-col md:flex-row antialiased custom-scrollbar">
+
+    <!-- DATALISTS PARA AUTOCOMPLETE DE EXAMES E PARÂMETROS/SIGLAS -->
+    <datalist id="medical-exams-list">
+        <!-- Exames de Sangue e Bioquímica -->
+        <option value="Hemograma Completo"></option>
+        <option value="Glicemia em Jejum"></option>
+        <option value="Hemoglobina Glicada (HbA1c)"></option>
+        <option value="Perfil Lipídico / Lipidograma"></option>
+        <option value="Colesterol Total"></option>
+        <option value="Colesterol HDL"></option>
+        <option value="Colesterol LDL"></option>
+        <option value="Colesterol VLDL"></option>
+        <option value="Triglicerídeos"></option>
+        <option value="Ureia Sérica"></option>
+        <option value="Creatinina Sérica"></option>
+        <option value="TGO / AST (Transaminase Glutâmico-Oxalacética)"></option>
+        <option value="TGP / ALT (Transaminase Glutâmico-Pirúvica)"></option>
+        <option value="Gama GT (GGT)"></option>
+        <option value="Fosfatase Alcalina"></option>
+        <option value="Bilirrubinas Total e Frações"></option>
+        <option value="Ácido Úrico"></option>
+        <option value="Proteína C Reativa (PCR)"></option>
+        <option value="PCR Ultra-sensível"></option>
+        <option value="Velocidade de Hemossedimentação (VHS)"></option>
+        <option value="TSH (Hormônio Tireoestimulante)"></option>
+        <option value="T4 Livre (Tiroxina Livre)"></option>
+        <option value="T3 Livre / T3 Total"></option>
+        <option value="Vitamina D (25-OH Vitamina D)"></option>
+        <option value="Vitamina B12 (Cobalamina)"></option>
+        <option value="Ferritina Sérica"></option>
+        <option value="Ferro Sérico"></option>
+        <option value="Capacidade Total de Ligação do Ferro (TIBC)"></option>
+        <option value="Transferrina"></option>
+        <option value="Sódio (Na+)"></option>
+        <option value="Potássio (K+)"></option>
+        <option value="Cálcio Sérico / Cálcio Iônico"></option>
+        <option value="Magnésio Sérico"></option>
+        <option value="Fósforo Sérico"></option>
+        <option value="Coagulograma Completo (TAP, INR, TTPA)"></option>
+        <option value="D-Dímero"></option>
+
+        <!-- Sorologias e Infectologia -->
+        <option value="Hepatite B - HBsAg (Antígeno de Superfície)"></option>
+        <option value="Hepatite B - Anti-HBs"></option>
+        <option value="Hepatite B - Anti-HBc Total"></option>
+        <option value="Hepatite B - Anti-HBc IgM"></option>
+        <option value="Hepatite B - HBeAg / Anti-HBe"></option>
+        <option value="Hepatite A - Anti-HAV IgM / IgG"></option>
+        <option value="Hepatite C - Anti-HCV"></option>
+        <option value="HIV 1 e 2 (Sorologia Quimiolinescência / Teste Rápido)"></option>
+        <option value="Sífilis - VDRL"></option>
+        <option value="Sífilis - FTA-ABS IgG / IgM"></option>
+        <option value="Toxoplasmose IgG / IgM"></option>
+        <option value="Rubéola IgG / IgM"></option>
+        <option value="Citomegalovírus (CMV) IgG / IgM"></option>
+        <option value="Dengue NS1 / IgG / IgM"></option>
+        <option value="Chikungunya IgG / IgM"></option>
+        <option value="Zika Vírus IgG / IgM"></option>
+        <option value="Sorologia para Doença de Chagas"></option>
+        <option value="Carga Viral HIV (PCR Quantitativo)"></option>
+        <option value="Carga Viral Hepatite B / C"></option>
+
+        <!-- Urina e Fezes -->
+        <option value="EAS - Exame Anormal e Sedimentoscopia (Urina Tipo 1)"></option>
+        <option value="Urocultura com Antibiograma"></option>
+        <option value="Proteinúria de 24 Horas"></option>
+        <option value="Microalbuminúria"></option>
+        <option value="Parasitológico de Fezes (EPF)"></option>
+        <option value="Pesquisa de Sangue Oculto nas Fezes"></option>
+
+        <!-- Hormônios e Marcadores Tumorais -->
+        <option value="Beta HCG Quantitativo"></option>
+        <option value="Beta HCG Qualitativo"></option>
+        <option value="PSA Total e Livre"></option>
+        <option value="FSH (Hormônio Folículo Estimulante)"></option>
+        <option value="LH (Hormônio Luteinizante)"></option>
+        <option value="Estradiol (E2)"></option>
+        <option value="Progesterona"></option>
+        <option value="Testosterona Total e Livre"></option>
+        <option value="Prolactina"></option>
+        <option value="Cortisol Matinal (8h)"></option>
+        <option value="Insulina em Jejum"></option>
+        <option value="CEA (Antígeno Carcinoembrionário)"></option>
+        <option value="CA 125 / CA 15-3 / CA 19-9"></option>
+
+        <!-- Exames de Imagem -->
+        <option value="Raio-X de Tórax (PA e Perfil)"></option>
+        <option value="Raio-X de Coluna Cervical / Torácica / Lombossacra"></option>
+        <option value="Raio-X de Bacia / Quadril / Articulações"></option>
+        <option value="Histerossalpingografia (HSG)"></option>
+        <option value="Ultrassonografia Abdominal Total"></option>
+        <option value="Ultrassonografia Pélvica / Transvaginal"></option>
+        <option value="Ultrassonografia de Tireoide / Mamas"></option>
+        <option value="Ultrassonografia Doppler Arterial / Venoso"></option>
+        <option value="Tomografia Computadorizada de Crânio / Tórax / Abdômen"></option>
+        <option value="Ressonância Magnética de Encéfalo / Coluna / Articulação"></option>
+
+        <!-- Outros -->
+        <option value="Eletrocardiograma (ECG)"></option>
+        <option value="Ecocardiograma Transtorácico"></option>
+        <option value="Endoscopia Digestiva Alta"></option>
+        <option value="Colonoscopia Completa"></option>
+        <option value="Mamografia Bilateral"></option>
+        <option value="Densitometria Óssea"></option>
+        <option value="Papanicolau (Citopatológico)"></option>
+    </datalist>
+
+    <datalist id="medical-parameters-list">
+        <!-- Hemograma -->
+        <option value="Hemácias (Eritrócitos)"></option>
+        <option value="Hemoglobina (Hb)"></option>
+        <option value="Hematócrito (Ht)"></option>
+        <option value="VCM (Volume Corpuscular Médio)"></option>
+        <option value="HCM (Hemoglobina Corpuscular Média)"></option>
+        <option value="CHCM (Conc. de Hb Corpuscular Média)"></option>
+        <option value="RDW (Anisocitose)"></option>
+        <option value="Leucócitos Totais"></option>
+        <option value="Mielócitos"></option>
+        <option value="Metamielócitos"></option>
+        <option value="Bastonetes"></option>
+        <option value="Segmentados (Neutrófilos)"></option>
+        <option value="Eosinófilos"></option>
+        <option value="Basófilos"></option>
+        <option value="Linfócitos Típicos"></option>
+        <option value="Monócitos"></option>
+        <option value="Plaquetas (Trombócitos)"></option>
+
+        <!-- Bioquímica -->
+        <option value="Glicemia de Jejum"></option>
+        <option value="Hemoglobina Glicada (HbA1c)"></option>
+        <option value="Colesterol Total"></option>
+        <option value="Colesterol HDL"></option>
+        <option value="Colesterol LDL"></option>
+        <option value="Colesterol VLDL"></option>
+        <option value="Triglicerídeos"></option>
+        <option value="TGO / AST"></option>
+        <option value="TGP / ALT"></option>
+        <option value="Gama GT"></option>
+        <option value="Fosfatase Alcalina"></option>
+        <option value="Bilirrubina Total"></option>
+        <option value="Bilirrubina Direta"></option>
+        <option value="Bilirrubina Indireta"></option>
+        <option value="Ureia"></option>
+        <option value="Creatinina"></option>
+        <option value="Taxa de Filtração Glomerular (TFG)"></option>
+        <option value="Ácido Úrico"></option>
+        <option value="Proteína C Reativa (PCR)"></option>
+        <option value="VHS 1ª Hora"></option>
+        <option value="Sódio (Na+)"></option>
+        <option value="Potássio (K+)"></option>
+        <option value="Cálcio Total"></option>
+        <option value="Magnésio"></option>
+        <option value="Vitamina D 25-OH"></option>
+        <option value="Vitamina B12"></option>
+        <option value="Ferritina"></option>
+        <option value="Ferro Sérico"></option>
+
+        <!-- Sorologias e Hormônios -->
+        <option value="HBsAg"></option>
+        <option value="Anti-HBs"></option>
+        <option value="Anti-HCV"></option>
+        <option value="Anti-HIV 1 e 2"></option>
+        <option value="VDRL"></option>
+        <option value="TSH"></option>
+        <option value="T4 Livre"></option>
+        <option value="Beta HCG Quantitativo"></option>
+        <option value="PSA Total"></option>
+    </datalist>
 
     <!-- BARRA LATERAL (NAVEGAÇÃO DESKTOP) -->
     <aside class="no-print hidden md:flex flex-col w-64 bg-slate-900 text-slate-300 border-r border-slate-800 flex-shrink-0">
@@ -75,13 +246,19 @@
             </button>
         </nav>
 
-        <div class="p-4 border-t border-slate-800">
-            <button onclick="openNewRecordModal()" class="w-full flex items-center justify-center space-x-2 bg-teal-600 hover:bg-teal-500 text-white py-3 px-4 rounded-xl font-semibold shadow-lg shadow-teal-600/20 transition-all">
-                <i data-lucide="plus-circle" class="w-5 h-5"></i>
-                <span>Novo Registro</span>
+        <div class="p-4 border-t border-slate-800 space-y-2">
+            <!-- BOTÃO MASTER: ESCANEAR POR FOTO -->
+            <button onclick="openOcrScannerModal()" class="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-white py-3 px-4 rounded-xl font-bold shadow-lg shadow-teal-500/25 transition-all transform hover:-translate-y-0.5">
+                <i data-lucide="camera" class="w-5 h-5"></i>
+                <span>📸 Escanear por Foto (IA)</span>
             </button>
-            <button onclick="exportDoctorReport()" class="w-full mt-2 flex items-center justify-center space-x-2 bg-slate-800 hover:bg-slate-700 text-slate-200 py-2.5 px-4 rounded-xl font-medium border border-slate-700 text-xs transition-all">
-                <i data-lucide="printer" class="w-4 h-4 text-teal-400"></i>
+
+            <button onclick="openNewRecordModal()" class="w-full flex items-center justify-center space-x-2 bg-slate-800 hover:bg-slate-700 text-slate-200 py-2.5 px-4 rounded-xl font-semibold border border-slate-700 transition-all text-xs">
+                <i data-lucide="plus-circle" class="w-4 h-4 text-teal-400"></i>
+                <span>Novo Registro Manual</span>
+            </button>
+            <button onclick="exportDoctorReport()" class="w-full flex items-center justify-center space-x-2 bg-slate-800/60 hover:bg-slate-700/60 text-slate-400 hover:text-slate-200 py-2 px-4 rounded-xl font-medium border border-slate-800 text-xs transition-all">
+                <i data-lucide="printer" class="w-3.5 h-3.5"></i>
                 <span>Relatório Médico</span>
             </button>
         </div>
@@ -96,10 +273,11 @@
             <span class="font-bold text-lg">MediCore</span>
         </div>
         <div class="flex items-center space-x-2">
-            <button onclick="exportDoctorReport()" class="p-2 bg-slate-800 hover:bg-slate-700 text-teal-400 rounded-lg border border-slate-700">
-                <i data-lucide="printer" class="w-5 h-5"></i>
+            <button onclick="openOcrScannerModal()" class="p-2 bg-teal-600 text-white rounded-lg font-bold flex items-center gap-1 text-xs">
+                <i data-lucide="camera" class="w-4 h-4"></i>
+                <span>Foto IA</span>
             </button>
-            <button onclick="openNewRecordModal()" class="p-2 bg-teal-600 hover:bg-teal-500 text-white rounded-lg">
+            <button onclick="openNewRecordModal()" class="p-2 bg-slate-800 text-white rounded-lg">
                 <i data-lucide="plus" class="w-5 h-5"></i>
             </button>
         </div>
@@ -146,6 +324,19 @@
 
         <!-- TAB 1: DASHBOARD -->
         <section id="tab-dashboard" class="tab-content space-y-6">
+            <!-- BANNER DE ENTRADA MASTER SCANNER -->
+            <div class="bg-gradient-to-r from-slate-900 via-teal-950 to-slate-900 rounded-3xl p-6 text-white shadow-xl border border-teal-500/20 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="relative z-10 max-w-xl">
+                    <span class="px-3 py-1 bg-teal-500/20 text-teal-300 text-xs font-bold rounded-full border border-teal-500/30 uppercase tracking-wider">Modo Master IA</span>
+                    <h2 class="text-2xl font-black mt-2">Digitalize seus Laudos por Foto</h2>
+                    <p class="text-slate-300 text-sm mt-1">Tire uma foto do seu exame impresso (Hemograma, Sorologia, Raio-X...). O aplicativo lê os parâmetros, valores de referência e marca alterações automaticamente!</p>
+                </div>
+                <button onclick="openOcrScannerModal()" class="relative z-10 px-6 py-3.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-extrabold rounded-2xl shadow-lg shadow-teal-500/30 flex items-center gap-2 flex-shrink-0 transition-all transform hover:scale-105">
+                    <i data-lucide="camera" class="w-5 h-5"></i>
+                    <span>Escanear Exame Agora</span>
+                </button>
+            </div>
+
             <!-- Cabeçalho do Painel -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
@@ -153,8 +344,8 @@
                     <p class="text-slate-500 text-sm">Resumo estatístico para consultas e acompanhamento clínico</p>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <button onclick="resetToDemoData()" class="text-xs text-slate-500 hover:text-slate-800 underline px-2 py-1">
-                        Restaurar Dados Demonstrativos
+                    <button onclick="clearAllData()" class="text-xs text-rose-600 hover:text-rose-800 underline px-2 py-1">
+                        Limpar Todos os Registros
                     </button>
                 </div>
             </div>
@@ -251,10 +442,16 @@
                     <h2 class="text-2xl font-bold text-slate-900">Exames Laboratoriais</h2>
                     <p class="text-slate-500 text-sm">Histórico cronológico detalhado por laudo e parâmetros</p>
                 </div>
-                <button onclick="openNewRecordModal('exam')" class="bg-teal-600 hover:bg-teal-500 text-white font-medium px-4 py-2.5 rounded-xl shadow-sm text-sm flex items-center space-x-2 self-start md:self-auto">
-                    <i data-lucide="plus" class="w-4 h-4"></i>
-                    <span>Cadastrar Exame</span>
-                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="openOcrScannerModal()" class="bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-bold px-4 py-2.5 rounded-xl shadow-sm text-sm flex items-center space-x-2">
+                        <i data-lucide="camera" class="w-4 h-4"></i>
+                        <span>Escanear por Foto</span>
+                    </button>
+                    <button onclick="openNewRecordModal('exam')" class="bg-slate-800 hover:bg-slate-700 text-white font-medium px-4 py-2.5 rounded-xl shadow-sm text-sm flex items-center space-x-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span>Digitado Manual</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Filtros e Busca -->
@@ -315,6 +512,64 @@
 
     </main>
 
+    <!-- MODAL OCR SCANNER (MASTER FOTO LEITOR INTELIGENTE) -->
+    <div id="modal-ocr-scanner" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+            <div class="bg-slate-900 px-6 py-4 flex items-center justify-between text-white">
+                <h3 class="font-bold text-lg flex items-center gap-2">
+                    <i data-lucide="camera" class="w-5 h-5 text-teal-400"></i>
+                    <span>Leitor de Exame por Foto (IA)</span>
+                </h3>
+                <button onclick="closeModal('modal-ocr-scanner')" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <div class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-5">
+                <p class="text-xs text-slate-600">
+                    Tire uma foto nítida ou escolha uma imagem do seu exame impresso. Nosso sistema lerá automaticamente os exames, unidades, parâmetros e alterações para cadastrar no seu prontuário!
+                </p>
+
+                <!-- ÁREA DE CAPTURA / ARQUIVO -->
+                <div class="border-2 border-dashed border-teal-300 bg-teal-50/40 rounded-2xl p-6 text-center hover:bg-teal-50 transition-all cursor-pointer relative" onclick="document.getElementById('ocr-file-input').click()">
+                    <input type="file" id="ocr-file-input" accept="image/*" capture="environment" class="hidden" onchange="processImageOCR(this)">
+                    <div id="ocr-upload-prompt" class="space-y-2">
+                        <div class="w-12 h-12 bg-teal-500 text-white rounded-2xl flex items-center justify-center mx-auto shadow-md shadow-teal-500/30">
+                            <i data-lucide="camera" class="w-6 h-6"></i>
+                        </div>
+                        <p class="font-bold text-sm text-slate-800">Tirar Foto ou Escolher Imagem</p>
+                        <p class="text-xs text-slate-400">Suporta JPG, PNG (Hemograma, Sorologia, Raio-X...)</p>
+                    </div>
+
+                    <!-- PREVIEW DA IMAGEM -->
+                    <div id="ocr-preview-container" class="hidden space-y-3">
+                        <img id="ocr-preview-img" src="" class="max-h-56 mx-auto rounded-xl shadow-md border border-slate-200">
+                    </div>
+                </div>
+
+                <!-- BARRA DE PROGRESSO DO RECONHECIMENTO -->
+                <div id="ocr-progress-container" class="hidden space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+                        <span id="ocr-status-text" class="flex items-center gap-2">
+                            <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-teal-600"></i> Analisando laudo...
+                        </span>
+                        <span id="ocr-percent-text">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                        <div id="ocr-progress-bar" class="bg-teal-500 h-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- STATUS / RESULTADO DA EXTRAÇÃO -->
+                <div id="ocr-result-msg" class="hidden p-3 rounded-xl text-xs font-medium"></div>
+            </div>
+
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
+                <button type="button" onclick="closeModal('modal-ocr-scanner')" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL 1: NOVO REGISTRO (DINÂMICO PARA EXAME, CONSULTA OU DOCUMENTO) -->
     <div id="modal-new-record" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -353,11 +608,11 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-bold text-slate-600 mb-1">Nome do Exame *</label>
-                                <input type="text" id="exam-name" required placeholder="Ex: Hemograma Completo" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                                <input type="text" id="exam-name" list="medical-exams-list" placeholder="Digite para buscar exames (ex: Hemograma Completo, Raio-X...)" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-600 mb-1">Laboratório / Clínica *</label>
-                                <input type="text" id="exam-lab" required placeholder="Ex: Laboratório Central" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                                <input type="text" id="exam-lab" placeholder="Ex: Laboratório Central" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
                             </div>
                         </div>
 
@@ -368,18 +623,21 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-600 mb-1">Convênio / Origem</label>
-                                <input type="text" id="exam-insurance" placeholder="Ex: HDT / Particular" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                                <input type="text" id="exam-insurance" placeholder="Ex: Particular / SUS" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-600 mb-1">Data da Coleta *</label>
-                                <input type="date" id="exam-date" required class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                                <input type="date" id="exam-date" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
                             </div>
                         </div>
 
                         <!-- Construtor Dinâmico de Parâmetros -->
                         <div class="pt-2 border-t border-slate-100">
                             <div class="flex items-center justify-between mb-2">
-                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Parâmetros / Itens Medidos</label>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Parâmetros / Itens Medidos</label>
+                                    <p class="text-[11px] text-slate-400">Ao digitar o valor e a referência, a alteração é detectada automaticamente.</p>
+                                </div>
                                 <button type="button" onclick="addParameterRow()" class="text-xs font-semibold text-teal-600 hover:text-teal-700 flex items-center gap-1">
                                     <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Add Parâmetro
                                 </button>
@@ -423,7 +681,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 mb-1">Diagnóstico / Conduta Medica</label>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Diagnóstico / Conduta Médica</label>
                             <textarea id="consultation-diagnosis" rows="2" placeholder="Resumo do atendimento e recomendações..." class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500"></textarea>
                         </div>
                     </div>
@@ -513,7 +771,6 @@
             </div>
 
             <div class="p-8 overflow-y-auto custom-scrollbar flex-1 space-y-6 bg-white text-slate-900">
-                <!-- Cabeçalho Impresso -->
                 <div class="border-b-2 border-slate-900 pb-4 flex justify-between items-end">
                     <div>
                         <h1 class="text-2xl font-black tracking-tight text-slate-900">MEDICORE - RESUMO DA SAÚDE</h1>
@@ -525,137 +782,39 @@
                     </div>
                 </div>
 
-                <!-- Seção 1: Exames com Parâmetros Alterados -->
                 <div>
                     <h2 class="text-base font-bold text-rose-700 uppercase tracking-wide border-b border-rose-200 pb-1 mb-3">
                         ⚠️ Alertas Clínicos (Parâmetros Alterados)
                     </h2>
-                    <div id="report-abnormal-list" class="space-y-3">
-                        <!-- Inserido via JS -->
-                    </div>
+                    <div id="report-abnormal-list" class="space-y-3"></div>
                 </div>
 
-                <!-- Seção 2: Histórico Recente de Exames -->
                 <div>
                     <h2 class="text-base font-bold text-slate-800 uppercase tracking-wide border-b border-slate-200 pb-1 mb-3">
                         📋 Exames Laboratoriais Recentes
                     </h2>
-                    <div id="report-exams-list" class="space-y-4">
-                        <!-- Inserido via JS -->
-                    </div>
+                    <div id="report-exams-list" class="space-y-4"></div>
                 </div>
 
-                <!-- Seção 3: Últimas Consultas Médicas -->
                 <div>
                     <h2 class="text-base font-bold text-slate-800 uppercase tracking-wide border-b border-slate-200 pb-1 mb-3">
                         🩺 Histórico de Consultas
                     </h2>
-                    <div id="report-consultations-list" class="space-y-2 text-xs">
-                        <!-- Inserido via JS -->
-                    </div>
+                    <div id="report-consultations-list" class="space-y-2 text-xs"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- JAVASCRIPT PRINCIPAL (ESTRUTURA ES6+) -->
+    <!-- JAVASCRIPT PRINCIPAL -->
     <script>
-        // --- DADOS INICIAIS DEMONSTRATIVOS (PERSISTIDOS NO LOCALSTORAGE) ---
+        // --- ESTADO INICIAL ZERADO ---
         const INITIAL_SEED_DATA = {
-            exams: [
-                {
-                    id: 'ex-101',
-                    name: 'Hemograma Completo e Proteína C Reativa (PCR)',
-                    lab: 'Laboratório Central (HDT)',
-                    doctor: 'Dr. Roberto Silva (Infectologista)',
-                    insurance: 'HDT / SUS',
-                    date: '2023-11-24',
-                    protocol: 'LAB-98421',
-                    attachment: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80',
-                    parameters: [
-                        { name: 'Hemácias', value: 4.8, unit: 'terás/L', ref: '4.3 - 5.7', abnormal: false },
-                        { name: 'Hemoglobina', value: 14.2, unit: 'g/dL', ref: '13.5 - 17.5', abnormal: false },
-                        { name: 'Leucócitos Total', value: 12800, unit: '/mm³', ref: '4.500 - 11.000', abnormal: true },
-                        { name: 'Proteína C Reativa (PCR)', value: 18.5, unit: 'mg/L', ref: 'Abaixo de 5.0', abnormal: true }
-                    ]
-                },
-                {
-                    id: 'ex-102',
-                    name: 'Dosagem de Eletrólitos & Transaminases Hepáticas',
-                    lab: 'BioAnálise Diagnósticos',
-                    doctor: 'Dra. Amanda Costa (Clínica Geral)',
-                    insurance: 'Unimed',
-                    date: '2023-11-10',
-                    protocol: 'BIO-55109',
-                    attachment: null,
-                    parameters: [
-                        { name: 'Sódio (Na)', value: 139, unit: 'mEq/L', ref: '136 - 145', abnormal: false },
-                        { name: 'Potássio (K)', value: 5.8, unit: 'mEq/L', ref: '3.5 - 5.1', abnormal: true },
-                        { name: 'TGO (AST)', value: 28, unit: 'U/L', ref: '15 - 40', abnormal: false },
-                        { name: 'TGP (ALT)', value: 32, unit: 'U/L', ref: '10 - 40', abnormal: false }
-                    ]
-                },
-                {
-                    id: 'ex-103',
-                    name: 'Coagulograma Completo (TAP / TTPA)',
-                    lab: 'Laboratório São Lucas',
-                    doctor: 'Dr. Marcelo Alves (Hematologista)',
-                    insurance: 'Particular',
-                    date: '2023-09-15',
-                    protocol: 'SL-12003',
-                    attachment: null,
-                    parameters: [
-                        { name: 'Tempo de Protrombina (TAP)', value: 12.1, unit: 'seg', ref: '11.0 - 14.6', abnormal: false },
-                        { name: 'INR', value: 1.05, unit: '', ref: '0.8 - 1.2', abnormal: false },
-                        { name: 'TTPA', value: 30.5, unit: 'seg', ref: '25.0 - 35.0', abnormal: false }
-                    ]
-                }
-            ],
-            consultations: [
-                {
-                    id: 'cs-201',
-                    doctor: 'Dra. Amanda Costa',
-                    specialty: 'Clínica Geral',
-                    location: 'UBS Central - Sala 4',
-                    date: '2024-03-20T14:30',
-                    status: 'Agendada',
-                    diagnosis: 'Retorno para avaliação de potássio e exames de controle.',
-                    notes: 'Trazer resultados atualizados do laboratório.'
-                },
-                {
-                    id: 'cs-202',
-                    doctor: 'Dr. Roberto Silva',
-                    specialty: 'Infectologia / Clínica',
-                    location: 'Hospital Dia',
-                    date: '2023-11-25T10:00',
-                    status: 'Realizada',
-                    diagnosis: 'Quadro infeccioso agudo em resolução. Leucocitose leve e PCR elevada.',
-                    notes: 'Prescrito repouso e hidratação. Solicitar reavaliação em 30 dias.'
-                }
-            ],
-            documents: [
-                {
-                    id: 'doc-301',
-                    title: 'Atestado Médico - Repouso 3 dias',
-                    type: 'Atestado Médico',
-                    doctor: 'Dr. Roberto Silva',
-                    date: '2023-11-24',
-                    notes: 'Atestado de afastamento motivado por infecção tratada.',
-                    attachment: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=800&q=80'
-                },
-                {
-                    id: 'doc-302',
-                    title: 'Laudo de Ultrassonografia Abdominal Total',
-                    type: 'Laudo Detalhado',
-                    doctor: 'Dra. Fernanda Paes (Radiologista)',
-                    date: '2023-08-10',
-                    notes: 'Órgãos abdominais com dimensões e contornos dentro da normalidade.',
-                    attachment: null
-                }
-            ]
+            exams: [],
+            consultations: [],
+            documents: []
         };
 
-        // Estado da Aplicação
         let appData = { exams: [], consultations: [], documents: [] };
         let activeExamFilter = 'all';
 
@@ -664,10 +823,9 @@
             loadData();
             renderAll();
             lucide.createIcons();
-            addParameterRow(); // Adiciona uma linha inicial ao formulário de parâmetros
+            addParameterRow();
         });
 
-        // --- GERENCIAMENTO DE STORAGE ---
         function loadData() {
             const saved = localStorage.getItem('mediCoreData');
             if (saved) {
@@ -686,15 +844,14 @@
             localStorage.setItem('mediCoreData', JSON.stringify(appData));
         }
 
-        function resetToDemoData() {
-            if (confirm("Deseja restaurar os dados de exemplo clínicos? Quaisquer novos registros serão mantidos.")) {
-                appData = INITIAL_SEED_DATA;
+        function clearAllData() {
+            if (confirm("Tem certeza que deseja apagar TODOS os dados e zerar o aplicativo?")) {
+                appData = { exams: [], consultations: [], documents: [] };
                 saveData();
                 renderAll();
             }
         }
 
-        // --- RENDERIZAÇÃO GERAL ---
         function renderAll() {
             sortDataChronologically();
             renderDashboard();
@@ -705,7 +862,6 @@
         }
 
         function sortDataChronologically() {
-            // Ordenação decrescente por data (mais recente no topo)
             appData.exams.sort((a, b) => new Date(b.date) - new Date(a.date));
             appData.consultations.sort((a, b) => new Date(b.date) - new Date(a.date));
             appData.documents.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -713,27 +869,25 @@
 
         // --- TAB 1: DASHBOARD ---
         function renderDashboard() {
-            // Métricas
             const totalExams = appData.exams.length;
-            
-            // Coletar todos os parâmetros alterados
             let abnormalCount = 0;
             let abnormalItems = [];
 
             appData.exams.forEach(exam => {
-                exam.parameters.forEach(p => {
-                    if (p.abnormal) {
-                        abnormalCount++;
-                        abnormalItems.push({ examName: exam.name, paramName: p.name, val: p.value, unit: p.unit, ref: p.ref });
-                    }
-                });
+                if (exam.parameters) {
+                    exam.parameters.forEach(p => {
+                        if (p.abnormal) {
+                            abnormalCount++;
+                            abnormalItems.push({ examName: exam.name, paramName: p.name, val: p.value, unit: p.unit, ref: p.ref });
+                        }
+                    });
+                }
             });
 
             document.getElementById('stat-total-exams').textContent = totalExams;
             document.getElementById('stat-abnormal-exams').textContent = abnormalCount;
             document.getElementById('stat-consultations').textContent = appData.consultations.length;
 
-            // Próxima Consulta
             const upcoming = appData.consultations.filter(c => c.status === 'Agendada' && new Date(c.date) >= new Date());
             upcoming.sort((a,b) => new Date(a.date) - new Date(b.date));
 
@@ -747,7 +901,6 @@
                 document.getElementById('stat-next-consultation-date').textContent = '-';
             }
 
-            // Banner Alerta Urgente
             const alertBanner = document.getElementById('urgent-alert-banner');
             const alertItemsContainer = document.getElementById('urgent-alert-items');
             alertItemsContainer.innerHTML = '';
@@ -764,35 +917,37 @@
                 alertBanner.classList.add('hidden');
             }
 
-            // Exames Recentes (Top 3)
             const recentContainer = document.getElementById('dashboard-recent-exams');
             recentContainer.innerHTML = '';
-            appData.exams.slice(0, 3).forEach(exam => {
-                const hasAbnormal = exam.parameters.some(p => p.abnormal);
-                const el = document.createElement('div');
-                el.className = `p-3 rounded-xl border flex items-center justify-between ${hasAbnormal ? 'bg-rose-50/50 border-rose-200' : 'bg-slate-50 border-slate-200'}`;
-                el.innerHTML = `
-                    <div class="flex items-center space-x-3">
-                        <div class="p-2 ${hasAbnormal ? 'bg-rose-500 text-white' : 'bg-teal-500 text-white'} rounded-lg">
-                            <i data-lucide="${hasAbnormal ? 'alert-triangle' : 'file-check'}" class="w-4 h-4"></i>
+            if (appData.exams.length === 0) {
+                recentContainer.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center">Nenhum exame cadastrado no sistema.</p>`;
+            } else {
+                appData.exams.slice(0, 3).forEach(exam => {
+                    const hasAbnormal = exam.parameters && exam.parameters.some(p => p.abnormal);
+                    const el = document.createElement('div');
+                    el.className = `p-3 rounded-xl border flex items-center justify-between ${hasAbnormal ? 'bg-rose-50/50 border-rose-200' : 'bg-slate-50 border-slate-200'}`;
+                    el.innerHTML = `
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2 ${hasAbnormal ? 'bg-rose-500 text-white' : 'bg-teal-500 text-white'} rounded-lg">
+                                <i data-lucide="${hasAbnormal ? 'alert-triangle' : 'file-check'}" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-xs text-slate-800">${exam.name}</h4>
+                                <p class="text-[11px] text-slate-500">${exam.lab} • ${formatDate(exam.date)}</p>
+                            </div>
                         </div>
-                        <div>
-                            <h4 class="font-bold text-xs text-slate-800">${exam.name}</h4>
-                            <p class="text-[11px] text-slate-500">${exam.lab} • ${formatDate(exam.date)}</p>
-                        </div>
-                    </div>
-                    ${hasAbnormal ? '<span class="text-[10px] font-extrabold text-rose-600 bg-rose-100 border border-rose-200 px-2 py-0.5 rounded-md uppercase">Alterado</span>' : '<span class="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">Normal</span>'}
-                `;
-                recentContainer.appendChild(el);
-            });
+                        ${hasAbnormal ? '<span class="text-[10px] font-extrabold text-rose-600 bg-rose-100 border border-rose-200 px-2 py-0.5 rounded-md uppercase">Alterado</span>' : '<span class="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">Normal</span>'}
+                    `;
+                    recentContainer.appendChild(el);
+                });
+            }
 
-            // Próximas Consultas Sidebar
             const upcomingContainer = document.getElementById('dashboard-upcoming-consultations');
             upcomingContainer.innerHTML = '';
             const nextConsultations = appData.consultations.slice(0, 3);
 
             if(nextConsultations.length === 0) {
-                upcomingContainer.innerHTML = `<p class="text-xs text-slate-400">Nenhuma consulta cadastrada.</p>`;
+                upcomingContainer.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center">Nenhuma consulta cadastrada.</p>`;
             } else {
                 nextConsultations.forEach(c => {
                     const el = document.createElement('div');
@@ -817,12 +972,10 @@
 
             let list = [...appData.exams];
 
-            // Filtro por Apenas Alterados
             if (activeExamFilter === 'abnormal') {
-                list = list.filter(ex => ex.parameters.some(p => p.abnormal));
+                list = list.filter(ex => ex.parameters && ex.parameters.some(p => p.abnormal));
             }
 
-            // Filtro por Busca Texto
             if (filterSearch) {
                 const term = filterSearch.toLowerCase();
                 list = list.filter(ex => 
@@ -837,34 +990,37 @@
                     <div class="p-8 text-center bg-white rounded-2xl border border-slate-200">
                         <i data-lucide="folder-open" class="w-10 h-10 text-slate-300 mx-auto mb-2"></i>
                         <p class="text-sm font-semibold text-slate-600">Nenhum exame encontrado</p>
-                        <p class="text-xs text-slate-400">Ajuste os filtros ou adicione novos laudos.</p>
+                        <p class="text-xs text-slate-400">Tire uma foto do laudo para cadastrar instantaneamente.</p>
                     </div>
                 `;
                 return;
             }
 
             list.forEach(exam => {
-                const hasAbnormal = exam.parameters.some(p => p.abnormal);
+                const hasAbnormal = exam.parameters && exam.parameters.some(p => p.abnormal);
                 const card = document.createElement('div');
                 card.className = `bg-white rounded-2xl border transition-all duration-200 overflow-hidden shadow-sm ${hasAbnormal ? 'border-rose-300 ring-1 ring-rose-200' : 'border-slate-200'}`;
 
-                // Parâmetros em Tabela
                 let paramRows = '';
-                exam.parameters.forEach(p => {
-                    paramRows += `
-                        <tr class="${p.abnormal ? 'bg-rose-50/80 text-rose-900 font-medium' : 'hover:bg-slate-50 text-slate-700'} text-xs border-b border-slate-100">
-                            <td class="py-2.5 px-4 font-semibold flex items-center gap-1.5">
-                                ${p.abnormal ? '<i data-lucide="alert-circle" class="w-3.5 h-3.5 text-rose-500 flex-shrink-0"></i>' : '<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-500 flex-shrink-0"></i>'}
-                                ${p.name}
-                            </td>
-                            <td class="py-2.5 px-4 font-bold ${p.abnormal ? 'text-rose-600 text-sm' : 'text-slate-900'}">${p.value} ${p.unit}</td>
-                            <td class="py-2.5 px-4 text-slate-500 text-[11px]">${p.ref}</td>
-                            <td class="py-2.5 px-4 text-right">
-                                ${p.abnormal ? '<span class="px-2 py-0.5 bg-rose-500 text-white text-[10px] font-extrabold rounded">ALTERADO</span>' : '<span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded">Normal</span>'}
-                            </td>
-                        </tr>
-                    `;
-                });
+                if (exam.parameters && exam.parameters.length > 0) {
+                    exam.parameters.forEach(p => {
+                        paramRows += `
+                            <tr class="${p.abnormal ? 'bg-rose-50/80 text-rose-900 font-medium' : 'hover:bg-slate-50 text-slate-700'} text-xs border-b border-slate-100">
+                                <td class="py-2.5 px-4 font-semibold flex items-center gap-1.5">
+                                    ${p.abnormal ? '<i data-lucide="alert-circle" class="w-3.5 h-3.5 text-rose-500 flex-shrink-0"></i>' : '<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-500 flex-shrink-0"></i>'}
+                                    ${p.name}
+                                </td>
+                                <td class="py-2.5 px-4 font-bold ${p.abnormal ? 'text-rose-600 text-sm' : 'text-slate-900'}">${p.value} ${p.unit || ''}</td>
+                                <td class="py-2.5 px-4 text-slate-500 text-[11px]">${p.ref || '-'}</td>
+                                <td class="py-2.5 px-4 text-right">
+                                    ${p.abnormal ? '<span class="px-2 py-0.5 bg-rose-500 text-white text-[10px] font-extrabold rounded">ALTERADO</span>' : '<span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded">Normal</span>'}
+                                </td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    paramRows = `<tr><td colspan="4" class="py-3 text-center text-xs text-slate-400">Nenhum parâmetro cadastrado neste exame.</td></tr>`;
+                }
 
                 card.innerHTML = `
                     <div class="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 ${hasAbnormal ? 'bg-rose-50/30' : 'bg-slate-50/50'}">
@@ -877,7 +1033,7 @@
                                 <span><i data-lucide="building-2" class="w-3.5 h-3.5 inline text-slate-400"></i> ${exam.lab}</span>
                                 <span><i data-lucide="calendar" class="w-3.5 h-3.5 inline text-slate-400"></i> Coleta: <strong>${formatDate(exam.date)}</strong></span>
                                 <span><i data-lucide="user-check" class="w-3.5 h-3.5 inline text-slate-400"></i> ${exam.doctor || 'Não informado'}</span>
-                                ${exam.protocol ? `<span class="font-mono text-[10px] bg-slate-200 px-1.5 py-0.5 rounded">Prot: ${exam.protocol}</span>` : ''}
+                                ${exam.insurance ? `<span class="font-mono text-[10px] bg-slate-200 px-1.5 py-0.5 rounded">${exam.insurance}</span>` : ''}
                             </div>
                         </div>
 
@@ -885,7 +1041,7 @@
                             ${exam.attachment ? `
                                 <button onclick="openLightbox('${exam.attachment}', '${exam.name}')" class="px-3 py-1.5 bg-teal-50 text-teal-700 hover:bg-teal-100 border border-teal-200 rounded-xl text-xs font-semibold flex items-center space-x-1.5">
                                     <i data-lucide="eye" class="w-3.5 h-3.5"></i>
-                                    <span>Ver Laudo Físico (Zoom)</span>
+                                    <span>Ver Foto (Zoom)</span>
                                 </button>
                             ` : ''}
                             <button onclick="deleteExam('${exam.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all" title="Excluir">
@@ -894,7 +1050,6 @@
                         </div>
                     </div>
 
-                    <!-- Tabela de Resultados -->
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
@@ -990,7 +1145,7 @@
                     </div>
 
                     <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                        <span class="text-[10px] text-slate-400">${c.notes ? 'Possui observações' : ''}</span>
+                        <div></div>
                         <button onclick="deleteConsultation('${c.id}')" class="text-xs text-rose-600 font-semibold hover:underline">Excluir</button>
                     </div>
                 `;
@@ -1056,43 +1211,48 @@
             }
         }
 
-        // --- CONSTRUTOR DINÂMICO DE PARÂMETROS DE EXAME ---
+        // --- CONSTRUTOR DINÂMICO E DETECÇÃO AUTOMÁTICA DE PARÂMETROS ---
         function addParameterRow(param = { name: '', value: '', unit: '', ref: '', abnormal: false }) {
             const container = document.getElementById('parameters-container');
             const rowId = 'param-' + Date.now() + Math.random().toString(36).substring(2, 4);
 
             const row = document.createElement('div');
             row.id = rowId;
-            row.className = "grid grid-cols-12 gap-2 items-center bg-slate-50 p-2 rounded-xl border border-slate-200 text-xs";
+            row.className = "grid grid-cols-12 gap-2 items-center bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs";
 
             row.innerHTML = `
-                <div class="col-span-4">
-                    <input type="text" placeholder="Nome (ex: Leucócitos)" value="${param.name}" class="param-name w-full px-2 py-1.5 border rounded-lg border-slate-300 focus:outline-none focus:border-teal-500">
+                <div class="col-span-12 md:col-span-4">
+                    <input type="text" list="medical-parameters-list" placeholder="Nome / Sigla (ex: Leucócitos, Hb, TSH)" value="${param.name}" class="param-name w-full px-2 py-1.5 border rounded-lg border-slate-300 focus:outline-none focus:border-teal-500">
                 </div>
-                <div class="col-span-2">
-                    <input type="text" placeholder="Valor" value="${param.value}" class="param-val w-full px-2 py-1.5 border rounded-lg border-slate-300 focus:outline-none focus:border-teal-500">
+                <div class="col-span-4 md:col-span-2">
+                    <input type="text" placeholder="Valor" value="${param.value}" oninput="autoDetectAbnormal('${rowId}')" class="param-val w-full px-2 py-1.5 border rounded-lg border-slate-300 focus:outline-none focus:border-teal-500 font-bold">
                 </div>
-                <div class="col-span-2">
+                <div class="col-span-3 md:col-span-2">
                     <input type="text" placeholder="Unidade" value="${param.unit}" class="param-unit w-full px-2 py-1.5 border rounded-lg border-slate-300 focus:outline-none focus:border-teal-500">
                 </div>
-                <div class="col-span-3">
-                    <input type="text" placeholder="Referência" value="${param.ref}" class="param-ref w-full px-2 py-1.5 border rounded-lg border-slate-300 focus:outline-none focus:border-teal-500">
+                <div class="col-span-4 md:col-span-3">
+                    <input type="text" placeholder="Ref (ex: 4.5 - 11.0)" value="${param.ref}" oninput="autoDetectAbnormal('${rowId}')" class="param-ref w-full px-2 py-1.5 border rounded-lg border-slate-300 focus:outline-none focus:border-teal-500">
                 </div>
                 <div class="col-span-1 flex items-center justify-center">
-                    <button type="button" onclick="removeParameterRow('${rowId}')" class="text-rose-500 hover:text-rose-700">
+                    <button type="button" onclick="removeParameterRow('${rowId}')" class="text-rose-500 hover:text-rose-700 p-1">
                         <i data-lucide="x" class="w-4 h-4"></i>
                     </button>
                 </div>
-                <div class="col-span-12 flex items-center space-x-2 mt-1 px-1">
-                    <label class="flex items-center space-x-1 cursor-pointer text-[11px] text-rose-700 font-semibold">
+                <div class="col-span-12 flex items-center justify-between mt-1 px-1">
+                    <label class="flex items-center space-x-1.5 cursor-pointer text-[11px] text-rose-700 font-semibold">
                         <input type="checkbox" ${param.abnormal ? 'checked' : ''} class="param-abnormal rounded text-rose-600 focus:ring-rose-500">
-                        <span>Marcar como Fora de Referência / Alterado</span>
+                        <span>Marcar / Fora de Referência (Alterado)</span>
                     </label>
+                    <span id="${rowId}-status-badge" class="text-[10px] font-bold px-1.5 py-0.5 rounded hidden"></span>
                 </div>
             `;
 
             container.appendChild(row);
             lucide.createIcons();
+
+            if(param.value && param.ref) {
+                autoDetectAbnormal(rowId);
+            }
         }
 
         function removeParameterRow(id) {
@@ -1100,28 +1260,108 @@
             if (row) row.remove();
         }
 
-        // --- SUBMISSÃO DE FORMULÁRIOS (CRIAÇÃO DE REGISTROS) ---
+        // --- ALGORITMO DE DETECÇÃO AUTOMÁTICA DE PARÂMETRO ALTERADO ---
+        function autoDetectAbnormal(rowId) {
+            const row = document.getElementById(rowId);
+            if (!row) return;
+
+            const valInput = row.querySelector('.param-val');
+            const refInput = row.querySelector('.param-ref');
+            const checkInput = row.querySelector('.param-abnormal');
+            const badge = document.getElementById(`${rowId}-status-badge`);
+
+            if (!valInput || !refInput || !checkInput) return;
+
+            const valRaw = valInput.value.trim().replace(',', '.');
+            const refRaw = refInput.value.trim().replace(',', '.');
+
+            if (!valRaw || !refRaw) {
+                if(badge) badge.classList.add('hidden');
+                return;
+            }
+
+            const valNum = parseFloat(valRaw);
+            if (isNaN(valNum)) {
+                if(badge) badge.classList.add('hidden');
+                return;
+            }
+
+            let isAbnormal = false;
+            let evaluated = false;
+
+            const rangeMatch = refRaw.match(/([\d\.]+)\s*(?:-|a|até)\s*([\d\.]+)/i);
+            if (rangeMatch) {
+                const min = parseFloat(rangeMatch[1]);
+                const max = parseFloat(rangeMatch[2]);
+                if (!isNaN(min) && !isNaN(max)) {
+                    isAbnormal = valNum < min || valNum > max;
+                    evaluated = true;
+                }
+            }
+
+            if (!evaluated) {
+                const lessMatch = refRaw.match(/(?:<|abaixo|menor|até)\s*([\d\.]+)/i);
+                if (lessMatch) {
+                    const max = parseFloat(lessMatch[1]);
+                    if (!isNaN(max)) {
+                        isAbnormal = valNum > max;
+                        evaluated = true;
+                    }
+                }
+            }
+
+            if (!evaluated) {
+                const greaterMatch = refRaw.match(/(?:>|acima|maior)\s*([\d\.]+)/i);
+                if (greaterMatch) {
+                    const min = parseFloat(greaterMatch[1]);
+                    if (!isNaN(min)) {
+                        isAbnormal = valNum < min;
+                        evaluated = true;
+                    }
+                }
+            }
+
+            if (evaluated) {
+                checkInput.checked = isAbnormal;
+                if (badge) {
+                    badge.classList.remove('hidden');
+                    if (isAbnormal) {
+                        badge.className = "text-[10px] font-bold text-rose-700 bg-rose-100 border border-rose-300 px-2 py-0.5 rounded";
+                        badge.textContent = "⚡ Auto: Alterado";
+                    } else {
+                        badge.className = "text-[10px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded";
+                        badge.textContent = "✓ Auto: Normal";
+                    }
+                }
+            }
+        }
+
+        // --- SUBMISSÃO DE FORMULÁRIOS ---
         function handleFormSubmit(e) {
             e.preventDefault();
             const type = document.getElementById('form-record-type').value;
 
             if (type === 'exam') {
-                const name = document.getElementById('exam-name').value;
-                const lab = document.getElementById('exam-lab').value;
-                const doctor = document.getElementById('exam-doctor').value;
-                const insurance = document.getElementById('exam-insurance').value;
+                const name = document.getElementById('exam-name').value.trim();
+                const lab = document.getElementById('exam-lab').value.trim();
+                const doctor = document.getElementById('exam-doctor').value.trim();
+                const insurance = document.getElementById('exam-insurance').value.trim();
                 const date = document.getElementById('exam-date').value;
                 const attachment = document.getElementById('record-attachment-base64').value || null;
 
-                // Coletar parâmetros
+                if (!name || !lab || !date) {
+                    alert("Por favor, preencha o Nome do Exame, Laboratório e Data da Coleta.");
+                    return;
+                }
+
                 const paramRows = document.querySelectorAll('#parameters-container > div');
                 const parameters = [];
 
                 paramRows.forEach(row => {
-                    const pName = row.querySelector('.param-name').value;
-                    const pVal = row.querySelector('.param-val').value;
-                    const pUnit = row.querySelector('.param-unit').value;
-                    const pRef = row.querySelector('.param-ref').value;
+                    const pName = row.querySelector('.param-name').value.trim();
+                    const pVal = row.querySelector('.param-val').value.trim();
+                    const pUnit = row.querySelector('.param-unit').value.trim();
+                    const pRef = row.querySelector('.param-ref').value.trim();
                     const pAbnormal = row.querySelector('.param-abnormal').checked;
 
                     if (pName && pVal) {
@@ -1149,12 +1389,17 @@
                 appData.exams.unshift(newExam);
 
             } else if (type === 'consultation') {
-                const doctor = document.getElementById('consultation-doctor').value;
-                const specialty = document.getElementById('consultation-specialty').value;
+                const doctor = document.getElementById('consultation-doctor').value.trim();
+                const specialty = document.getElementById('consultation-specialty').value.trim();
                 const date = document.getElementById('consultation-date').value;
-                const location = document.getElementById('consultation-location').value;
+                const location = document.getElementById('consultation-location').value.trim();
                 const status = document.getElementById('consultation-status').value;
-                const diagnosis = document.getElementById('consultation-diagnosis').value;
+                const diagnosis = document.getElementById('consultation-diagnosis').value.trim();
+
+                if (!doctor || !specialty || !date) {
+                    alert("Por favor, preencha o Nome do Médico, Especialidade e Data/Hora da Consulta.");
+                    return;
+                }
 
                 const newConsultation = {
                     id: 'cs-' + Date.now(),
@@ -1170,12 +1415,17 @@
                 appData.consultations.unshift(newConsultation);
 
             } else if (type === 'document') {
-                const title = document.getElementById('doc-title').value;
+                const title = document.getElementById('doc-title').value.trim();
                 const docType = document.getElementById('doc-type').value;
-                const doctor = document.getElementById('doc-doctor').value;
+                const doctor = document.getElementById('doc-doctor').value.trim();
                 const date = document.getElementById('doc-date').value;
-                const notes = document.getElementById('doc-notes').value;
+                const notes = document.getElementById('doc-notes').value.trim();
                 const attachment = document.getElementById('record-attachment-base64').value || null;
+
+                if (!title || !date) {
+                    alert("Por favor, preencha o Título e a Data do Documento.");
+                    return;
+                }
 
                 const newDoc = {
                     id: 'doc-' + Date.now(),
@@ -1203,7 +1453,6 @@
             addParameterRow();
         }
 
-        // --- MANIPULAÇÃO DE ANEXO E BASE64 ---
         function convertFileToBase64(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -1214,89 +1463,274 @@
             }
         }
 
-        // --- RELATÓRIO MÉDICO IMPRESSO (EXPORT RESUME) ---
+        // --- SISTEMA MASTER OCR (LEITOR DE FOTO INTELIGENTE) ---
+        function openOcrScannerModal() {
+            document.getElementById('ocr-file-input').value = '';
+            document.getElementById('ocr-upload-prompt').classList.remove('hidden');
+            document.getElementById('ocr-preview-container').classList.add('hidden');
+            document.getElementById('ocr-progress-container').classList.add('hidden');
+            document.getElementById('ocr-result-msg').classList.add('hidden');
+            openModal('modal-ocr-scanner');
+        }
+
+        async function processImageOCR(input) {
+            if (!input.files || !input.files[0]) return;
+
+            const file = input.files[0];
+            const reader = new FileReader();
+
+            reader.onload = async function(e) {
+                const base64Img = e.target.result;
+
+                // Exibir preview
+                document.getElementById('ocr-preview-img').src = base64Img;
+                document.getElementById('ocr-preview-container').classList.remove('hidden');
+                document.getElementById('ocr-upload-prompt').classList.add('hidden');
+
+                // Exibir barras de progresso
+                const progressContainer = document.getElementById('ocr-progress-container');
+                const progressBar = document.getElementById('ocr-progress-bar');
+                const statusText = document.getElementById('ocr-status-text');
+                const percentText = document.getElementById('ocr-percent-text');
+                const resultMsg = document.getElementById('ocr-result-msg');
+
+                progressContainer.classList.remove('hidden');
+                resultMsg.classList.add('hidden');
+
+                try {
+                    // Executar Tesseract OCR no navegador em Português
+                    const worker = await Tesseract.createWorker('por');
+                    
+                    const ret = await worker.recognize(base64Img);
+                    const text = ret.data.text;
+                    await worker.terminate();
+
+                    // Processar Texto extraído com parser médico
+                    const parsedData = parseMedicalReportText(text);
+
+                    // Anexar foto original base64
+                    parsedData.attachment = base64Img;
+
+                    // Fechar modal do OCR e abrir formulário auto-preenchido
+                    closeModal('modal-ocr-scanner');
+                    populateExamFormFromOcr(parsedData);
+
+                } catch (err) {
+                    console.error("Erro no OCR:", err);
+                    progressContainer.classList.add('hidden');
+                    resultMsg.className = "p-3 rounded-xl text-xs font-semibold bg-rose-100 text-rose-800 border border-rose-200 block";
+                    resultMsg.textContent = "Não foi possível ler o texto da imagem. Tente uma foto mais legível ou cadastre manualmente.";
+                }
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        // PARSER INTELIGENTE DE LAUDOS MÉDICOS EM PORTUGUÊS
+        function parseMedicalReportText(rawText) {
+            const lines = rawText.split('\n');
+            let detectedExamName = "Exame Laboratorial / Laudo";
+            let detectedLab = "Laboratório Identificado por Foto";
+            let detectedDate = new Date().toISOString().split('T')[0];
+            const parameters = [];
+
+            // Tentar identificar o tipo de exame no texto
+            const textLower = rawText.toLowerCase();
+            if (textLower.includes('hemograma') || textLower.includes('leucócitos') || textLower.includes('hemoglobina')) {
+                detectedExamName = "Hemograma Completo";
+            } else if (textLower.includes('lipidograma') || textLower.includes('colesterol')) {
+                detectedExamName = "Perfil Lipídico / Lipidograma";
+            } else if (textLower.includes('glicemia') || textLower.includes('glicose')) {
+                detectedExamName = "Glicemia de Jejum";
+            } else if (textLower.includes('tsh') || textLower.includes('tireoide')) {
+                detectedExamName = "TSH / Função Tireoidiana";
+            } else if (textLower.includes('hepatite')) {
+                detectedExamName = "Sorologia Hepatite B / C";
+            } else if (textLower.includes('raio') || textLower.includes('rx')) {
+                detectedExamName = "Exame de Imagem / Raio-X";
+            }
+
+            // Tentar identificar laboratório
+            const labMatches = rawText.match(/(?:laboratório|lab|diagnósticos|clínica|hospital)\s+([A-Za-z0-9\s]+)/i);
+            if (labMatches && labMatches[1]) {
+                detectedLab = labMatches[1].trim().substring(0, 30);
+            }
+
+            // Tentar extrair datas (dd/mm/aaaa)
+            const dateMatch = rawText.match(/(\d{2})[\/\.-](\d{2})[\/\.-](\d{4})/);
+            if (dateMatch) {
+                detectedDate = `${dateMatch[3]}-${dateMatch[2]}-${dateMatch[1]}`;
+            }
+
+            // Dicionário de parâmetros conhecidos para busca rápida
+            const knownParams = [
+                'hemácias', 'hemoglobina', 'hematócrito', 'vcm', 'hcm', 'chcm', 'rdw',
+                'leucócitos', 'neutrófilos', 'bastonetes', 'bastões', 'segmentados', 'eosinófilos',
+                'basófilos', 'linfócitos', 'monócitos', 'plaquetas', 'glicose', 'glicemia',
+                'hba1c', 'colesterol', 'hdl', 'ldl', 'vldl', 'triglicerídeos', 'ureia',
+                'creatinina', 'tgo', 'ast', 'tgp', 'alt', 'gama gt', 'ggt', 'pcr', 'vhs',
+                'tsh', 't4 livre', 'vitamina d', 'vitamina b12', 'ferritina', 'ferro',
+                'sódio', 'potássio', 'cálcio', 'magnésio', 'tap', 'inr', 'ttpa', 'hbsag', 'anti-hbs'
+            ];
+
+            // Ler linha por linha
+            lines.forEach(line => {
+                const lineClean = line.trim();
+                if (lineClean.length < 5) return;
+
+                // Procurar por linhas que contenham um nome de parâmetro e números
+                knownParams.forEach(term => {
+                    if (lineClean.toLowerCase().includes(term)) {
+                        // Extrair números na linha (suportando vírgula/ponto)
+                        const numMatches = lineClean.match(/\d+(?:[\.,]\d+)?/g);
+                        if (numMatches && numMatches.length >= 1) {
+                            const valStr = numMatches[0];
+                            let refStr = '';
+                            if (numMatches.length >= 2) {
+                                refStr = numMatches.slice(1).join(' - ');
+                            }
+
+                            // Extrair unidade de medida se houver
+                            let unitStr = '';
+                            const unitMatch = lineClean.match(/(g\/dL|mg\/dL|uUI\/mL|\/mm3|%|mEq\/L|U\/L|ng\/mL|pg\/mL)/i);
+                            if (unitMatch) unitStr = unitMatch[1];
+
+                            // Nome do parâmetro formatado
+                            let paramName = term.charAt(0).toUpperCase() + term.slice(1);
+
+                            parameters.push({
+                                name: paramName,
+                                value: valStr,
+                                unit: unitStr,
+                                ref: refStr,
+                                abnormal: false
+                            });
+                        }
+                    }
+                });
+            });
+
+            return {
+                name: detectedExamName,
+                lab: detectedLab,
+                date: detectedDate,
+                parameters: parameters
+            };
+        }
+
+        // PREENCHER O FORMULÁRIO DO MODAL COM OS DADOS LIDOS PELO OCR
+        function populateExamFormFromOcr(data) {
+            openNewRecordModal('exam');
+
+            document.getElementById('exam-name').value = data.name;
+            document.getElementById('exam-lab').value = data.lab;
+            document.getElementById('exam-date').value = data.date;
+
+            if (data.attachment) {
+                document.getElementById('record-attachment-base64').value = data.attachment;
+            }
+
+            // Limpar linhas vazias
+            document.getElementById('parameters-container').innerHTML = '';
+
+            if (data.parameters && data.parameters.length > 0) {
+                data.parameters.forEach(p => {
+                    addParameterRow(p);
+                });
+            } else {
+                addParameterRow({ name: 'Resultado da Leitura da Foto', value: 'Verificado', unit: '', ref: '', abnormal: false });
+            }
+
+            alert("✨ Leitura concluída pela foto! Verifique os dados extraídos e clique em 'Salvar Registro'.");
+        }
+
+        // --- RELATÓRIO MÉDICO IMPRESSO ---
         function exportDoctorReport() {
             document.getElementById('report-date').textContent = new Date().toLocaleDateString('pt-BR');
             
-            // 1. Alterados
             const abnormalContainer = document.getElementById('report-abnormal-list');
             abnormalContainer.innerHTML = '';
             let abnormalCount = 0;
 
             appData.exams.forEach(ex => {
-                ex.parameters.filter(p => p.abnormal).forEach(p => {
-                    abnormalCount++;
-                    const item = document.createElement('div');
-                    item.className = "p-2 bg-rose-50 border border-rose-200 rounded text-xs flex justify-between items-center";
-                    item.innerHTML = `
-                        <div>
-                            <strong class="text-rose-900">${p.name}</strong> (${ex.name} - ${formatDate(ex.date)})
-                            <span class="block text-slate-500">Ref: ${p.ref}</span>
-                        </div>
-                        <span class="text-sm font-bold text-rose-700">${p.value} ${p.unit}</span>
-                    `;
-                    abnormalContainer.appendChild(item);
-                });
+                if (ex.parameters) {
+                    ex.parameters.filter(p => p.abnormal).forEach(p => {
+                        abnormalCount++;
+                        const item = document.createElement('div');
+                        item.className = "p-2 bg-rose-50 border border-rose-200 rounded text-xs flex justify-between items-center";
+                        item.innerHTML = `
+                            <div>
+                                <strong class="text-rose-900">${p.name}</strong> (${ex.name} - ${formatDate(ex.date)})
+                                <span class="block text-slate-500">Ref: ${p.ref || '-'}</span>
+                            </div>
+                            <span class="text-sm font-bold text-rose-700">${p.value} ${p.unit || ''}</span>
+                        `;
+                        abnormalContainer.appendChild(item);
+                    });
+                }
             });
 
             if (abnormalCount === 0) {
-                abnormalContainer.innerHTML = `<p class="text-xs text-slate-500">Nenhum parâmetro alterado registrado.</p>`;
+                abnormalContainer.innerHTML = `<p class="text-xs text-slate-500">Nenhum parâmetro alterado registrado até o momento.</p>`;
             }
 
-            // 2. Exames Recentes
             const examsContainer = document.getElementById('report-exams-list');
             examsContainer.innerHTML = '';
-            appData.exams.slice(0, 5).forEach(ex => {
-                const el = document.createElement('div');
-                el.className = "text-xs border-b border-slate-200 pb-2";
-                
-                let pText = ex.parameters.map(p => `${p.name}: <strong>${p.value} ${p.unit}</strong> (${p.abnormal ? 'ALTERADO' : 'OK'})`).join(' | ');
+            if(appData.exams.length === 0) {
+                examsContainer.innerHTML = `<p class="text-xs text-slate-400">Nenhum exame cadastrado.</p>`;
+            } else {
+                appData.exams.slice(0, 5).forEach(ex => {
+                    const el = document.createElement('div');
+                    el.className = "text-xs border-b border-slate-200 pb-2";
+                    
+                    let pText = ex.parameters ? ex.parameters.map(p => `${p.name}: <strong>${p.value} ${p.unit || ''}</strong> (${p.abnormal ? 'ALTERADO' : 'OK'})`).join(' | ') : 'Sem parâmetros';
 
-                el.innerHTML = `
-                    <div class="flex justify-between font-bold text-slate-900">
-                        <span>${ex.name} (${ex.lab})</span>
-                        <span>${formatDate(ex.date)}</span>
-                    </div>
-                    <p class="text-slate-600 text-[11px] mt-0.5">${pText}</p>
-                `;
-                examsContainer.appendChild(el);
-            });
+                    el.innerHTML = `
+                        <div class="flex justify-between font-bold text-slate-900">
+                            <span>${ex.name} (${ex.lab})</span>
+                            <span>${formatDate(ex.date)}</span>
+                        </div>
+                        <p class="text-slate-600 text-[11px] mt-0.5">${pText}</p>
+                    `;
+                    examsContainer.appendChild(el);
+                });
+            }
 
-            // 3. Consultas
             const csContainer = document.getElementById('report-consultations-list');
             csContainer.innerHTML = '';
-            appData.consultations.slice(0, 4).forEach(c => {
-                const el = document.createElement('div');
-                el.className = "border-b border-slate-100 pb-1.5";
-                el.innerHTML = `
-                    <p class="font-semibold text-slate-800">${formatDate(c.date)} - ${c.doctor} (${c.specialty})</p>
-                    <p class="text-slate-600 text-[11px]">${c.diagnosis || 'Sem diagnóstico registrado'}</p>
-                `;
-                csContainer.appendChild(el);
-            });
+            if(appData.consultations.length === 0) {
+                csContainer.innerHTML = `<p class="text-xs text-slate-400">Nenhuma consulta registrada.</p>`;
+            } else {
+                appData.consultations.slice(0, 4).forEach(c => {
+                    const el = document.createElement('div');
+                    el.className = "border-b border-slate-100 pb-1.5";
+                    el.innerHTML = `
+                        <p class="font-semibold text-slate-800">${formatDate(c.date)} - ${c.doctor} (${c.specialty})</p>
+                        <p class="text-slate-600 text-[11px]">${c.diagnosis || 'Sem diagnóstico registrado'}</p>
+                    `;
+                    csContainer.appendChild(el);
+                });
+            }
 
             openModal('modal-report');
         }
 
-        // --- NAVEGAÇÃO ENTRE TABS ---
+        // --- NAVEGAÇÃO DE TABS ---
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
 
-            // Ajuste dos botões laterais desktop
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.className = "nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800";
             });
             const activeDesktop = document.getElementById(`nav-${tabId}`);
             if(activeDesktop) activeDesktop.className = "nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all text-white bg-teal-600 shadow-sm";
 
-            // Ajuste dos botões mobile bottom
             document.querySelectorAll('.nav-mob-btn').forEach(btn => btn.className = "nav-mob-btn flex flex-col items-center p-2 text-slate-400");
             const activeMobile = document.getElementById(`nav-mob-${tabId}`);
             if(activeMobile) activeMobile.className = "nav-mob-btn flex flex-col items-center p-2 text-teal-400";
         }
 
-        // --- SELEÇÃO DE TIPO NO MODAL NOVO REGISTRO ---
         function setRecordType(type) {
             document.getElementById('form-record-type').value = type;
 
@@ -1346,10 +1780,9 @@
             openModal('modal-lightbox');
         }
 
-        // --- UTILITÁRIOS DE DATA ---
         function formatDate(dateStr) {
             if (!dateStr) return '-';
-            const [year, month, day] = dateStr.split('-');
+            const [year, month, day] = dateStr.split('T')[0].split('-');
             return `${day}/${month}/${year}`;
         }
 
