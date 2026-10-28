@@ -1,1315 +1,1849 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="h-full bg-slate-50">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MediCore - Registro e Histórico de Saúde Pessoal</title>
-  
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Lucide Icons CDN -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-  
-  <!-- Tesseract.js CDN (OCR Engine) -->
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-
-  <style>
-    @media print {
-      .no-print { display: none !important; }
-      .print-only { display: block !important; }
-      body { background-color: #fff !important; color: #000 !important; }
-      .card-print { break-inside: avoid; border: 1px solid #ccc !important; shadow: none !important; }
-    }
-    .print-only { display: none; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediCore - Prontuário Pessoal & Exames Laboratoriais</title>
     
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #f1f5f9;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 3px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #94a3b8;
-    }
-  </style>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        medical: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            700: '#0f766e',
+                            800: '#115e59',
+                            900: '#134e4a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Tesseract.js (OCR para Leitura de Fotos em Português) -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: #fff !important; color: #000 !important; }
+        }
+        .print-only { display: none; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
 </head>
-<body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col">
+<body class="h-full font-sans text-slate-800 flex flex-col md:flex-row antialiased custom-scrollbar">
 
-  <!-- TOP HEADER -->
-  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 no-print">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
+    <!-- DATALISTS PARA AUTOCOMPLETE DE EXAMES E PARÂMETROS/SIGLAS -->
+    <datalist id="medical-exams-list">
+        <option value="Hemograma Completo"></option>
+        <option value="Glicemia em Jejum"></option>
+        <option value="Hemoglobina Glicada (HbA1c)"></option>
+        <option value="Perfil Lipídico / Lipidograma"></option>
+        <option value="Colesterol Total"></option>
+        <option value="Colesterol HDL"></option>
+        <option value="Colesterol LDL"></option>
+        <option value="Colesterol VLDL"></option>
+        <option value="Triglicerídeos"></option>
+        <option value="Ureia Sérica"></option>
+        <option value="Creatinina Sérica"></option>
+        <option value="TGO / AST (Transaminase Glutâmico-Oxalacética)"></option>
+        <option value="TGP / ALT (Transaminase Glutâmico-Pirúvica)"></option>
+        <option value="Gama GT (GGT)"></option>
+        <option value="Fosfatase Alcalina"></option>
+        <option value="Bilirrubinas Total e Frações"></option>
+        <option value="Ácido Úrico"></option>
+        <option value="Proteína C Reativa (PCR)"></option>
+        <option value="PCR Ultra-sensível"></option>
+        <option value="Velocidade de Hemossedimentação (VHS)"></option>
+        <option value="TSH (Hormônio Tireoestimulante)"></option>
+        <option value="T4 Livre (Tiroxina Livre)"></option>
+        <option value="T3 Livre / T3 Total"></option>
+        <option value="Vitamina D (25-OH Vitamina D)"></option>
+        <option value="Vitamina B12 (Cobalamina)"></option>
+        <option value="Ferritina Sérica"></option>
+        <option value="Ferro Sérico"></option>
+        <option value="Sódio (Na+)"></option>
+        <option value="Potássio (K+)"></option>
+        <option value="Cálcio Sérico / Cálcio Iônico"></option>
+        <option value="Magnésio Sérico"></option>
+        <option value="Coagulograma Completo (TAP, INR, TTPA)"></option>
+        <option value="Hepatite B - HBsAg"></option>
+        <option value="Hepatite B - Anti-HBs"></option>
+        <option value="Hepatite C - Anti-HCV"></option>
+        <option value="HIV 1 e 2"></option>
+        <option value="Sífilis - VDRL"></option>
+        <option value="EAS - Urina Tipo 1"></option>
+        <option value="Urocultura com Antibiograma"></option>
+        <option value="Parasitológico de Fezes (EPF)"></option>
+        <option value="Beta HCG Quantitativo"></option>
+        <option value="PSA Total e Livre"></option>
+        <option value="Raio-X de Tórax"></option>
+        <option value="Histerossalpingografia (HSG)"></option>
+        <option value="Ultrassonografia Abdominal Total"></option>
+    </datalist>
+
+    <datalist id="medical-parameters-list">
+        <option value="Hemácias (Eritrócitos)"></option>
+        <option value="Hemoglobina (Hb)"></option>
+        <option value="Hematócrito (Ht)"></option>
+        <option value="VCM (Volume Corpuscular Médio)"></option>
+        <option value="HCM (Hemoglobina Corpuscular Média)"></option>
+        <option value="CHCM (Conc. de Hb Corpuscular Média)"></option>
+        <option value="RDW (Anisocitose)"></option>
+        <option value="Leucócitos Totais"></option>
+        <option value="Bastonetes"></option>
+        <option value="Segmentados (Neutrófilos)"></option>
+        <option value="Eosinófilos"></option>
+        <option value="Basófilos"></option>
+        <option value="Linfócitos Típicos"></option>
+        <option value="Monócitos"></option>
+        <option value="Plaquetas (Trombócitos)"></option>
+        <option value="Glicemia de Jejum"></option>
+        <option value="Hemoglobina Glicada (HbA1c)"></option>
+        <option value="Colesterol Total"></option>
+        <option value="Colesterol HDL"></option>
+        <option value="Colesterol LDL"></option>
+        <option value="Triglicerídeos"></option>
+        <option value="Ureia"></option>
+        <option value="Creatinina"></option>
+        <option value="TGO / AST"></option>
+        <option value="TGP / ALT"></option>
+        <option value="Gama GT"></option>
+        <option value="Proteína C Reativa (PCR)"></option>
+        <option value="TSH"></option>
+        <option value="T4 Livre"></option>
+    </datalist>
+
+    <!-- BARRA LATERAL (DESKTOP) -->
+    <aside class="no-print hidden md:flex flex-col w-64 bg-slate-900 text-slate-300 border-r border-slate-800 flex-shrink-0">
+        <div class="p-5 flex items-center space-x-3 border-b border-slate-800">
+            <div class="p-2 bg-teal-500 rounded-xl text-white shadow-lg shadow-teal-500/30">
+                <i data-lucide="activity" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-white text-lg tracking-tight">MediCore</h1>
+                <p class="text-xs text-slate-400">Gestão de Saúde Pessoal</p>
+            </div>
+        </div>
+
+        <nav class="flex-1 p-4 space-y-1">
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all text-white bg-teal-600 shadow-sm">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <span>Dashboard</span>
+            </button>
+            <button onclick="switchTab('exams')" id="nav-exams" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800">
+                <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+                <span>Meus Exames</span>
+            </button>
+            <button onclick="switchTab('consultations')" id="nav-consultations" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800">
+                <i data-lucide="calendar" class="w-5 h-5"></i>
+                <span>Consultas & Retornos</span>
+            </button>
+            <button onclick="switchTab('documents')" id="nav-documents" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800">
+                <i data-lucide="file-text" class="w-5 h-5"></i>
+                <span>Atestados & Laudos</span>
+            </button>
+        </nav>
+
+        <div class="p-4 border-t border-slate-800 space-y-2">
+            <!-- BOTÃO MASTER SCANNER -->
+            <button onclick="openOcrScannerModal()" class="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-white py-3 px-4 rounded-xl font-bold shadow-lg shadow-teal-500/25 transition-all transform hover:-translate-y-0.5">
+                <i data-lucide="camera" class="w-5 h-5"></i>
+                <span>📸 Escanear Foto com IA</span>
+            </button>
+
+            <button onclick="openNewRecordModal()" class="w-full flex items-center justify-center space-x-2 bg-slate-800 hover:bg-slate-700 text-slate-200 py-2.5 px-4 rounded-xl font-semibold border border-slate-700 transition-all text-xs">
+                <i data-lucide="plus-circle" class="w-4 h-4 text-teal-400"></i>
+                <span>Novo Registro Manual</span>
+            </button>
+            <button onclick="exportDoctorReport()" class="w-full flex items-center justify-center space-x-2 bg-slate-800/60 hover:bg-slate-700/60 text-slate-400 hover:text-slate-200 py-2 px-4 rounded-xl font-medium border border-slate-800 text-xs transition-all">
+                <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+                <span>Relatório Médico</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- CABEÇALHO MOBILE -->
+    <header class="no-print md:hidden bg-slate-900 text-white p-4 flex items-center justify-between sticky top-0 z-30 shadow-md">
         <div class="flex items-center space-x-3">
-          <div class="bg-teal-500 p-2 rounded-xl text-slate-950 flex items-center justify-center font-bold">
-            <i data-lucide="activity" class="w-6 h-6"></i>
-          </div>
-          <div>
-            <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-              MediCore <span class="text-xs bg-teal-500/20 text-teal-300 font-medium px-2 py-0.5 rounded-full border border-teal-500/30">v3.0</span>
-            </h1>
-            <p class="text-xs text-slate-400">Prontuário e Histórico de Saúde Pessoal</p>
-          </div>
+            <div class="p-1.5 bg-teal-500 rounded-lg text-white">
+                <i data-lucide="activity" class="w-5 h-5"></i>
+            </div>
+            <span class="font-bold text-lg">MediCore</span>
         </div>
-        
-        <div class="flex items-center space-x-2 sm:space-x-3">
-          <button onclick="exportDataJSON()" class="px-3 py-1.5 border border-slate-700 hover:bg-slate-800 text-slate-300 rounded-lg text-xs font-medium flex items-center gap-1.5 transition" title="Exportar Backup dos Dados">
-            <i data-lucide="download" class="w-3.5 h-3.5"></i>
-            <span class="hidden sm:inline">Exportar</span>
-          </button>
-          
-          <label class="px-3 py-1.5 border border-slate-700 hover:bg-slate-800 text-slate-300 rounded-lg text-xs font-medium flex items-center gap-1.5 transition cursor-pointer" title="Importar Backup dos Dados">
-            <i data-lucide="upload" class="w-3.5 h-3.5"></i>
-            <span class="hidden sm:inline">Importar</span>
-            <input type="file" accept=".json" onchange="importDataJSON(event)" class="hidden">
-          </label>
+        <div class="flex items-center space-x-2">
+            <button onclick="openOcrScannerModal()" class="p-2 bg-teal-600 text-white rounded-lg font-bold flex items-center gap-1 text-xs">
+                <i data-lucide="camera" class="w-4 h-4"></i>
+                <span>Foto IA</span>
+            </button>
+            <button onclick="openNewRecordModal()" class="p-2 bg-slate-800 text-white rounded-lg">
+                <i data-lucide="plus" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </header>
 
-          <button onclick="openConsultationModal()" class="bg-slate-800 hover:bg-slate-700 text-teal-300 border border-teal-500/30 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium flex items-center gap-1.5 transition">
-            <i data-lucide="stethoscope" class="w-4 h-4"></i>
-            <span>Nova Consulta</span>
-          </button>
-
-          <button onclick="openExamModal()" class="bg-teal-600 hover:bg-teal-500 text-white px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition shadow-sm">
-            <i data-lucide="plus-circle" class="w-4 h-4"></i>
-            <span>Novo Exame</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- MAIN CONTAINER -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    
-    <!-- DASHBOARD SUMMARY CARDS -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 no-print">
-      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-        <div>
-          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total de Exames</p>
-          <h3 id="statTotalExams" class="text-2xl font-bold text-slate-800 mt-1">0</h3>
-        </div>
-        <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
-          <i data-lucide="file-text" class="w-6 h-6"></i>
-        </div>
-      </div>
-
-      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-        <div>
-          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Parâmetros Alterados</p>
-          <h3 id="statAbnormalCount" class="text-2xl font-bold text-amber-600 mt-1">0</h3>
-        </div>
-        <div class="p-3 bg-amber-50 text-amber-600 rounded-lg">
-          <i data-lucide="alert-triangle" class="w-6 h-6"></i>
-        </div>
-      </div>
-
-      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-        <div>
-          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Consultas Registradas</p>
-          <h3 id="statConsultsCount" class="text-2xl font-bold text-slate-800 mt-1">0</h3>
-        </div>
-        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg">
-          <i data-lucide="user-check" class="w-6 h-6"></i>
-        </div>
-      </div>
-
-      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-        <div>
-          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Última Atualização</p>
-          <h3 id="statLastDate" class="text-base font-bold text-slate-800 mt-1">Nenhuma</h3>
-        </div>
-        <div class="p-3 bg-teal-50 text-teal-600 rounded-lg">
-          <i data-lucide="calendar" class="w-6 h-6"></i>
-        </div>
-      </div>
-    </div>
-
-    <!-- TABS NAVIGATION -->
-    <div class="border-b border-slate-200 mb-6 no-print">
-      <nav class="flex space-x-8" aria-label="Tabs">
-        <button onclick="switchTab('exams')" id="tabExams" class="tab-btn border-teal-500 text-teal-600 font-semibold py-4 px-1 border-b-2 text-sm flex items-center gap-2">
-          <i data-lucide="clipboard-list" class="w-4 h-4"></i>
-          Exames Laboratoriais
+    <!-- NAVEGAÇÃO MOBILE (BOTTOM BAR) -->
+    <nav class="no-print md:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 z-30 flex justify-around p-2 text-slate-400">
+        <button onclick="switchTab('dashboard')" id="nav-mob-dashboard" class="nav-mob-btn flex flex-col items-center p-2 text-teal-400">
+            <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+            <span class="text-[10px] mt-1">Painel</span>
         </button>
-        <button onclick="switchTab('consultations')" id="tabConsultations" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 font-medium py-4 px-1 border-b-2 text-sm flex items-center gap-2">
-          <i data-lucide="stethoscope" class="w-4 h-4"></i>
-          Consultas e Pareceres Médicos
+        <button onclick="switchTab('exams')" id="nav-mob-exams" class="nav-mob-btn flex flex-col items-center p-2">
+            <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+            <span class="text-[10px] mt-1">Exames</span>
         </button>
-        <button onclick="switchTab('timeline')" id="tabTimeline" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 font-medium py-4 px-1 border-b-2 text-sm flex items-center gap-2">
-          <i data-lucide="clock" class="w-4 h-4"></i>
-          Linha do Tempo de Saúde
+        <button onclick="switchTab('consultations')" id="nav-mob-consultations" class="nav-mob-btn flex flex-col items-center p-2">
+            <i data-lucide="calendar" class="w-5 h-5"></i>
+            <span class="text-[10px] mt-1">Consultas</span>
         </button>
-      </nav>
-    </div>
-
-    <!-- SECTION 1: EXAMS TAB -->
-    <div id="sectionExams" class="tab-content space-y-6">
-      
-      <!-- CONTROLS & SEARCH BAR -->
-      <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm no-print">
-        <div class="relative w-full sm:w-96">
-          <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-          <input type="text" id="searchInput" oninput="renderExamsList()" placeholder="Buscar por exame, paciente, parâmetro, médico..." class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none">
-        </div>
-        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-          <button onclick="toggleAbnormalFilter()" id="btnFilterAbnormal" class="px-3 py-2 border border-slate-300 rounded-lg text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 flex items-center gap-1.5 transition">
-            <i data-lucide="filter" class="w-3.5 h-3.5"></i>
-            <span>Apenas Alterados</span>
-          </button>
-          <button onclick="window.print()" class="px-3 py-2 border border-slate-300 rounded-lg text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 flex items-center gap-1.5 transition">
-            <i data-lucide="printer" class="w-3.5 h-3.5"></i>
-            <span>Imprimir Relatório</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- EXAMS LIST CONTAINER -->
-      <div id="examsContainer" class="space-y-4">
-        <!-- Renderizado dinamico dos cards de exames -->
-      </div>
-    </div>
-
-    <!-- SECTION 2: CONSULTATIONS TAB -->
-    <div id="sectionConsultations" class="tab-content space-y-6 hidden">
-      <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm no-print">
-        <div class="relative w-full sm:w-96">
-          <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-          <input type="text" id="searchConsultInput" oninput="renderConsultationsList()" placeholder="Buscar por médico, especialidade, diagnóstico..." class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none">
-        </div>
-        <button onclick="openConsultationModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition">
-          <i data-lucide="plus" class="w-4 h-4"></i>
-          <span>Cadastrar Consulta</span>
+        <button onclick="switchTab('documents')" id="nav-mob-documents" class="nav-mob-btn flex flex-col items-center p-2">
+            <i data-lucide="file-text" class="w-5 h-5"></i>
+            <span class="text-[10px] mt-1">Documentos</span>
         </button>
-      </div>
-
-      <div id="consultationsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Renderizado dinamico das consultas -->
-      </div>
-    </div>
-
-    <!-- SECTION 3: HEALTH TIMELINE TAB -->
-    <div id="sectionTimeline" class="tab-content space-y-6 hidden">
-      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-        <h3 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
-          <i data-lucide="history" class="w-5 h-5 text-teal-600"></i>
-          Histórico Unificado de Saúde
-        </h3>
-        <div id="timelineContainer" class="relative border-l-2 border-slate-200 ml-4 space-y-6 pl-6 py-2">
-          <!-- Renderizado dinamico da linha do tempo -->
-        </div>
-      </div>
-    </div>
-
-  </main>
-
-  <!-- MODAL: ADD / EDIT EXAM -->
-  <div id="examModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-100">
-      
-      <!-- MODAL HEADER -->
-      <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
-        <div class="flex items-center gap-2">
-          <i data-lucide="file-plus" class="w-5 h-5 text-teal-400"></i>
-          <h2 id="modalTitle" class="font-semibold text-lg">Cadastrar Exame Médico</h2>
-        </div>
-        <button onclick="closeExamModal()" class="text-slate-400 hover:text-white transition">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <!-- MODAL BODY -->
-      <div class="p-6 overflow-y-auto space-y-6 flex-1">
-        
-        <!-- OCR SCANNER DROPZONE -->
-        <div class="bg-slate-50 border-2 border-dashed border-teal-400/80 rounded-xl p-5 text-center relative hover:bg-teal-50/40 transition">
-          <input type="file" id="ocrFileInput" accept="image/*" onchange="handleOCRUpload(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
-          <div class="flex flex-col items-center justify-center space-y-2">
-            <div class="p-3 bg-teal-100 text-teal-700 rounded-full">
-              <i data-lucide="camera" class="w-6 h-6"></i>
-            </div>
-            <div>
-              <p class="text-sm font-semibold text-slate-800">Escanear Foto do Laudo (OCR Inteligente)</p>
-              <p class="text-xs text-slate-500 mt-0.5">Selecione uma foto do laudo físico. O sistema mapeará automaticamente Paciente, Médico, Convênio, Exame e os Parâmetros.</p>
-            </div>
-          </div>
-          
-          <!-- OCR PROGRESS BAR OVERLAY -->
-          <div id="ocrProgressOverlay" class="hidden absolute inset-0 bg-white/95 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center p-4 z-20">
-            <div class="w-full max-w-xs space-y-3">
-              <div class="flex items-center justify-between text-xs font-medium text-slate-600">
-                <span id="ocrStatusText">Otimizando e escaneando laudo...</span>
-                <span id="ocrPercentText">0%</span>
-              </div>
-              <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                <div id="ocrProgressBar" class="bg-teal-600 h-full w-0 transition-all duration-300"></div>
-              </div>
-              <p class="text-[11px] text-slate-400 text-center">Isolando campos e higienizando ruídos...</p>
-            </div>
-          </div>
-        </div>
-
-        <form id="examForm" onsubmit="saveExam(event)" class="space-y-4">
-          <input type="hidden" id="examId">
-          
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Data da Coleta *</label>
-              <input type="date" id="examDate" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none">
-            </div>
-            
-            <div class="md:col-span-2">
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Nome do Exame Exato *</label>
-              <input type="text" id="examTitle" required placeholder="Ex: Hemograma Completo, Parasitológico de Fezes, Urina Tipo 1..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none">
-            </div>
-          </div>
-
-          <!-- DEDICATED METADATA FIELDS (PATIENT, DOCTOR, HEALTH PLAN, LAB) -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 bg-slate-50 p-3 rounded-xl border border-slate-200">
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-600 uppercase mb-1">Nome do Paciente</label>
-              <input type="text" id="examPatient" placeholder="Ex: João da Silva" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-md text-xs focus:ring-1 focus:ring-teal-500 outline-none bg-white">
-            </div>
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-600 uppercase mb-1">Médico Solicitante / CRM</label>
-              <input type="text" id="examDoctor" placeholder="Ex: Dr. Carlos Silva (CRM 1234)" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-md text-xs focus:ring-1 focus:ring-teal-500 outline-none bg-white">
-            </div>
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-600 uppercase mb-1">Convênio / Plano</label>
-              <input type="text" id="examInsurance" placeholder="Ex: Unimed, Bradesco..." class="w-full px-2.5 py-1.5 border border-slate-300 rounded-md text-xs focus:ring-1 focus:ring-teal-500 outline-none bg-white">
-            </div>
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-600 uppercase mb-1">Laboratório / Clínica</label>
-              <input type="text" id="examLab" placeholder="Ex: Fleury, Pardini..." class="w-full px-2.5 py-1.5 border border-slate-300 rounded-md text-xs focus:ring-1 focus:ring-teal-500 outline-none bg-white">
-            </div>
-          </div>
-
-          <!-- DYNAMIC PARAMETERS SECTION -->
-          <div class="border-t border-slate-200 pt-4 mt-4">
-            <div class="flex items-center justify-between mb-3">
-              <div>
-                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Parâmetros e Resultados Analisados</h3>
-                <p class="text-[11px] text-slate-500">Isole o parâmetro, o valor obtido, a unidade exata e o valor de referência do laudo.</p>
-              </div>
-              <button type="button" onclick="addParameterRow()" class="text-xs text-teal-600 hover:text-teal-700 font-semibold flex items-center gap-1 bg-teal-50 px-2.5 py-1.5 rounded-lg border border-teal-200 transition">
-                <i data-lucide="plus" class="w-3.5 h-3.5"></i> Adicionar Parâmetro
-              </button>
-            </div>
-
-            <div id="parametersList" class="space-y-2 max-h-64 overflow-y-auto pr-1">
-              <!-- Linhas de parâmetros geradas dinamicamente -->
-            </div>
-          </div>
-
-          <div class="border-t border-slate-200 pt-4">
-            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Observações Gerais / Conclusão do Laudo</label>
-            <textarea id="examNotes" rows="2" placeholder="Notas de conclusão do médico, observações de laudo ou anotações pessoais..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none"></textarea>
-          </div>
-
-          <!-- MODAL ACTIONS -->
-          <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-            <button type="button" onclick="closeExamModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition">Cancelar</button>
-            <button type="submit" class="px-5 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-lg text-sm font-semibold shadow-sm transition">Salvar Registro</button>
-          </div>
-
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: ADD / EDIT CONSULTATION -->
-  <div id="consultationModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-100">
-      
-      <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
-        <div class="flex items-center gap-2">
-          <i data-lucide="stethoscope" class="w-5 h-5 text-indigo-400"></i>
-          <h2 id="consultModalTitle" class="font-semibold text-lg">Cadastrar Consulta Médica</h2>
-        </div>
-        <button onclick="closeConsultationModal()" class="text-slate-400 hover:text-white transition">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <div class="p-6 overflow-y-auto space-y-4 flex-1">
-        <form id="consultationForm" onsubmit="saveConsultation(event)" class="space-y-4">
-          <input type="hidden" id="consultId">
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Data da Consulta *</label>
-              <input type="date" id="consultDate" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Especialidade Médica *</label>
-              <input type="text" id="consultSpecialty" required placeholder="Ex: Cardiologia, Clinico Geral..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Nome do Médico / Profissional *</label>
-              <input type="text" id="consultDoctor" required placeholder="Ex: Dr. Roberto Alves" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Hospital / Clínica / Local</label>
-              <input type="text" id="consultClinic" placeholder="Ex: Hospital Albert Einstein" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Motivo / Diagnóstico Principal</label>
-            <input type="text" id="consultReason" placeholder="Ex: Acompanhamento de rotina, Hipertensão..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Prescrição e Conduta Médica</label>
-            <textarea id="consultPrescription" rows="3" placeholder="Medicamentos receitados, dosagens e orientações do médico..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Anotações e Parecer</label>
-            <textarea id="consultNotes" rows="2" placeholder="Notas e observações adicionais..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
-          </div>
-
-          <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-            <button type="button" onclick="closeConsultationModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition">Cancelar</button>
-            <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-semibold shadow-sm transition">Salvar Consulta</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- SCRIPT ENGINE -->
-  <script>
-    // Global Application State
-    let appState = {
-      activeTab: 'exams',
-      exams: [],
-      consultations: [],
-      filterAbnormalOnly: false
-    };
-
-    // Initialize application
-    document.addEventListener('DOMContentLoaded', () => {
-      loadLocalStorage();
-      renderAll();
-      lucide.createIcons();
-    });
-
-    function loadLocalStorage() {
-      const stored = localStorage.getItem('medicore_data');
-      if (stored) {
-        try {
-          appState = JSON.parse(stored);
-          if (!appState.exams) appState.exams = [];
-          if (!appState.consultations) appState.consultations = [];
-        } catch (e) {
-          console.error("Erro ao restaurar banco local", e);
-        }
-      }
-    }
-
-    function saveLocalStorage() {
-      localStorage.setItem('medicore_data', JSON.stringify(appState));
-    }
-
-    function switchTab(tabName) {
-      appState.activeTab = tabName;
-      
-      const tabExams = document.getElementById('tabExams');
-      const tabConsultations = document.getElementById('tabConsultations');
-      const tabTimeline = document.getElementById('tabTimeline');
-
-      const activeClass = "tab-btn border-teal-500 text-teal-600 font-semibold py-4 px-1 border-b-2 text-sm flex items-center gap-2";
-      const inactiveClass = "tab-btn border-transparent text-slate-500 hover:text-slate-700 font-medium py-4 px-1 border-b-2 text-sm flex items-center gap-2";
-
-      tabExams.className = tabName === 'exams' ? activeClass : inactiveClass;
-      tabConsultations.className = tabName === 'consultations' ? activeClass : inactiveClass;
-      tabTimeline.className = tabName === 'timeline' ? activeClass : inactiveClass;
-
-      document.getElementById('sectionExams').classList.toggle('hidden', tabName !== 'exams');
-      document.getElementById('sectionConsultations').classList.toggle('hidden', tabName !== 'consultations');
-      document.getElementById('sectionTimeline').classList.toggle('hidden', tabName !== 'timeline');
-
-      if (tabName === 'timeline') {
-        renderTimeline();
-      }
-    }
-
-    // =========================================================================
-    // ALGORITMO OCR E MAPEAMENTO EXATO DE CAMPOS
-    // =========================================================================
-
-    const KNOWN_EXAM_TITLES = [
-      "HEMOGRAMA COMPLETO", "HEMOGRAMA", "PARASITOLÓGICO DE FEZES", "PARASITOLOGICO DE FEZES",
-      "EXAME PARASITOLÓGICO", "URINA TIPO 1", "URINA TIPO I", "EAS", "EXAME DE URINA",
-      "SUMÁRIO DE URINA", "SUMARIO DE URINA", "GLICEMIA EM JEJUM", "GLICOSE", "PERFIL LIPÍDICO",
-      "COLESTEROL E FRAÇÕES", "DOSAGEM DE VITAMINA D", "VITAMINA D", "TSH ULTRASENSÍVEL", "TSH",
-      "T4 LIVRE", "COAGULOGRAMA", "GASOMETRIA ARTERIAL", "CULTURA DE URINA", "UROCULTURA",
-      "TGO / TGP", "URÉIA E CREATININA", "UREIA E CREATININA", "BIOQUÍMICA", "BIOQUIMICA"
-    ];
-
-    // REGRA DE SEGURANÇA NA DATA (Valida e força o ano correto <= 2026)
-    function extractAndValidateDate(rawText) {
-      const currentYear = new Date().getFullYear(); // 2026
-      const dateMatches = rawText.matchAll(/\b(\d{1,2})[\/\.\-](\d{1,2})[\/\.\-](\d{2,4})\b/g);
-
-      for (const match of dateMatches) {
-        let day = parseInt(match[1], 10);
-        let month = parseInt(match[2], 10);
-        let yearStr = match[3];
-        let year = parseInt(yearStr, 10);
-
-        if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
-          if (yearStr.length === 2) {
-            year = 2000 + year;
-          }
-
-          // Correção de falhas do OCR no ano (ex: 2036 -> 2026 / 2086 -> 2026)
-          if (year > currentYear) {
-            let sanitizedYearStr = yearStr.replace(/^203/, '202').replace(/^208/, '202').replace(/^209/, '202');
-            let sanitizedYear = parseInt(sanitizedYearStr, 10);
-            if (sanitizedYear <= currentYear && sanitizedYear >= 2000) {
-              year = sanitizedYear;
-            } else {
-              year = currentYear;
-            }
-          }
-
-          if (year >= 1990 && year <= currentYear) {
-            const padD = String(day).padStart(2, '0');
-            const padM = String(month).padStart(2, '0');
-            return `${year}-${padM}-${padD}`;
-          }
-        }
-      }
-
-      return new Date().toISOString().split('T')[0];
-    }
-
-    // EXTRAÇÃO DE METADADOS (PACIENTE, MÉDICO, CONVÊNIO, LAB)
-    function extractMetadata(rawText) {
-      const metadata = {
-        patient: '',
-        doctor: '',
-        insurance: '',
-        lab: ''
-      };
-
-      // Paciente
-      const patientMatch = rawText.match(/(?:paciente|nome|cliente)\s*[:\.]?\s*([A-Za-zÀ-ÖØ-öø-ÿ\s]{3,40})/i);
-      if (patientMatch) {
-        const p = patientMatch[1].split(/\n|data|idade|sexo|cpf|rg|dr|médico/i)[0].trim();
-        if (p.length > 2) metadata.patient = p;
-      }
-
-      // Médico / CRM
-      const doctorMatch = rawText.match(/(?:médico|medico|dr\.|dra\.|solicitante)\s*[:\.]?\s*([A-Za-zÀ-ÖØ-öø-ÿ\s\.\d\/CRM-]+)/i);
-      if (doctorMatch) {
-        const d = doctorMatch[1].split(/\n|data|convenio|convênio|paciente/i)[0].trim();
-        if (d.length > 3) metadata.doctor = d;
-      }
-
-      // Convênio
-      const insuranceMatch = rawText.match(/(?:convênio|convenio|plano)\s*[:\.]?\s*([A-Za-zÀ-ÖØ-öø-ÿ0-9\s]{3,30})/i);
-      if (insuranceMatch) {
-        const ins = insuranceMatch[1].split(/\n|data|médico|paciente/i)[0].trim();
-        if (ins.length > 2) metadata.insurance = ins;
-      }
-
-      // Laboratório
-      const labMatch = rawText.match(/(?:laboratório|laboratorio|lab|diagnósticos|análises|instituto)\s*[:\.]?\s*([A-Za-zÀ-ÖØ-öø-ÿ0-9\s]{3,30})/i);
-      if (labMatch) {
-        const l = labMatch[1].split(/\n|data|paciente/i)[0].trim();
-        if (l.length > 2) metadata.lab = l;
-      }
-
-      return metadata;
-    }
-
-    // EXTRAÇÃO DO NOME DO EXAME
-    function extractExamTitle(lines, rawText) {
-      const upper = rawText.toUpperCase();
-      for (const candidate of KNOWN_EXAM_TITLES) {
-        if (upper.includes(candidate)) {
-          return candidate.charAt(0) + candidate.slice(1).toLowerCase().replace(/(?:^|\s)\S/g, a => a.toUpperCase());
-        }
-      }
-
-      for (const line of lines) {
-        const clean = line.trim();
-        if (clean.length >= 4 && clean.length <= 50 && !clean.includes(':') && !/\d{2,}/.test(clean)) {
-          if (!/paciente|médico|idade|data|convenio|laudo|pagina/i.test(clean)) {
-            return clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase().replace(/(?:^|\s)\S/g, a => a.toUpperCase());
-          }
-        }
-      }
-
-      return "Exame Laboratorial";
-    }
-
-    // EXTRAÇÃO DE PARÂMETROS, VALORES, UNIDADES E REFERÊNCIAS
-    function parseParameterLine(line) {
-      let cleaned = line.replace(/[\._\–\-]{3,}/g, ' ').replace(/\s+/g, ' ').trim();
-      if (!cleaned) return null;
-
-      // Descarta linhas puras de cabeçalho
-      if (/^(paciente|médico|medico|idade|sexo|crm|convenio|convênio|solicitante|prontuário|cpf|rg|data|página|pagina)\b/i.test(cleaned)) {
-        return null;
-      }
-
-      // Regex para identificar unidades de medida médicas comuns
-      const UNITS_REGEX = `(g\\/dL|g\\/dl|g\\/L|mg\\/dL|mg\\/dl|mg\\/L|g%|%|milhões\\/mm³|milhoes\\/mm3|milhões\\/mm3|mil\\/mm³|mil\\/mm3|\\/mm³|\\/mm3|mm3|fL|fl|pg|mEq\\/L|U\\/L|u\\/l|UI\\/mL|µg\\/dL|ug\\/dL|ng\\/mL|mm\\/h|\\/campo|campo)`;
-
-      // A. Parâmetro Quantitativo
-      const quantRegex = new RegExp(`^(.*?)\\s+([<>≤≥]?\\s*\\d+(?:[\\.,]\\d+)?)\\s*${UNITS_REGEX}?(?:\\s+(.*))?$`, 'i');
-      const qMatch = cleaned.match(quantRegex);
-
-      if (qMatch) {
-        let paramName = qMatch[1].trim().replace(/^[\d\.\-\*\:\s]+/, '').replace(/[\:\-]+$/, '').trim();
-        let valStr = qMatch[2].trim();
-        let unitStr = qMatch[3] ? qMatch[3].trim() : '';
-        let refStr = qMatch[4] ? qMatch[4].trim() : '';
-
-        // Se a unidade veio colada no campo de referência
-        if (!unitStr && refStr) {
-          const unitInRef = refStr.match(new RegExp(`^${UNITS_REGEX}\\b`, 'i'));
-          if (unitInRef) {
-            unitStr = unitInRef[1];
-            refStr = refStr.substring(unitInRef[0].length).trim();
-          }
-        }
-
-        if (paramName.length >= 2 && !/^(paciente|médico|data|convenio|crm)/i.test(paramName)) {
-          return {
-            name: paramName,
-            value: valStr,
-            unit: unitStr,
-            ref: refStr || 'N/A'
-          };
-        }
-      }
-
-      // B. Parâmetro Qualitativo
-      const QUALITATIVE_WORDS = ["AUSENTE", "AUSENTES", "NEGATIVO", "NEGATIVA", "REATIVO", "NÃO REATIVO", "LÍMPIDO", "TURVO", "NORMAL", "PRESENTE"];
-      for (const qual of QUALITATIVE_WORDS) {
-        const qualRegex = new RegExp(`^(.*?)\\s+(${qual})\\b(?:\\s+(.*))?$`, 'i');
-        const qualMatch = cleaned.match(qualRegex);
-        if (qualMatch) {
-          let paramName = qualMatch[1].trim().replace(/^[\d\.\-\*\:\s]+/, '').replace(/[\:\-]+$/, '').trim();
-          let valStr = qualMatch[2].trim();
-          let refStr = qualMatch[3] ? qualMatch[3].trim() : 'Ausente';
-
-          if (paramName.length >= 2 && !/^(paciente|médico|data|convenio|crm)/i.test(paramName)) {
-            return {
-              name: paramName,
-              value: valStr,
-              unit: '',
-              ref: refStr
-            };
-          }
-        }
-      }
-
-      return null;
-    }
-
-    // PARSER GERAL DO LAUDO
-    function parseMedicalReportText(rawText) {
-      if (!rawText) return { title: 'Exame Laboratorial', date: new Date().toISOString().split('T')[0], items: [] };
-
-      const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-      const date = extractAndValidateDate(rawText);
-      const metadata = extractMetadata(rawText);
-      const title = extractExamTitle(lines, rawText);
-
-      const items = [];
-      lines.forEach(line => {
-        const parsed = parseParameterLine(line);
-        if (parsed) {
-          items.push({
-            name: parsed.name,
-            value: parsed.value,
-            unit: parsed.unit,
-            ref: parsed.ref,
-            abnormal: checkIfAbnormal(parsed.value, parsed.ref)
-          });
-        }
-      });
-
-      return {
-        title,
-        date,
-        patient: metadata.patient,
-        doctor: metadata.doctor,
-        insurance: metadata.insurance,
-        lab: metadata.lab,
-        items
-      };
-    }
-
-    // VERIFICAÇÃO DE VALORES FORA DA FAIXA (ALTERADOS)
-    function checkIfAbnormal(valRaw, refRaw) {
-      if (!valRaw || !refRaw || refRaw === 'N/A') return false;
-
-      const vLower = String(valRaw).toLowerCase().trim();
-      const rLower = String(refRaw).toLowerCase().trim();
-
-      if (vLower.includes('positivo') || vLower.includes('reativo') || vLower.includes('presente')) {
-        if (rLower.includes('negativo') || rLower.includes('não reativo') || rLower.includes('ausente')) return true;
-      }
-
-      const parseNum = (str) => {
-        if (!str) return NaN;
-        let s = str.replace(/[^\d,\.-]/g, '');
-        if (s.includes(',') && s.includes('.')) {
-          s = s.replace(/\./g, '').replace(',', '.');
-        } else if (s.includes(',')) {
-          s = s.replace(',', '.');
-        }
-        return parseFloat(s);
-      };
-
-      const numVal = parseNum(valRaw);
-      if (isNaN(numVal)) return false;
-
-      const rangeMatch = refRaw.match(/([\d\.,]+)\s*(?:a|-|até)\s*([\d\.,]+)/i);
-      if (rangeMatch) {
-        const min = parseNum(rangeMatch[1]);
-        const max = parseNum(rangeMatch[2]);
-        if (!isNaN(min) && !isNaN(max)) return numVal < min || numVal > max;
-      }
-
-      const lessMatch = refRaw.match(/(?:<|inferior a|até)\s*([\d\.,]+)/i);
-      if (lessMatch) {
-        const max = parseNum(lessMatch[1]);
-        if (!isNaN(max)) return numVal > max;
-      }
-
-      const greaterMatch = refRaw.match(/(?:>|superior a)\s*([\d\.,]+)/i);
-      if (greaterMatch) {
-        const min = parseNum(greaterMatch[1]);
-        if (!isNaN(min)) return numVal < min;
-      }
-
-      return false;
-    }
-
-    // FLUXO DE PROCESSAMENTO OCR
-    async function handleOCRUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const overlay = document.getElementById('ocrProgressOverlay');
-      const progressBar = document.getElementById('ocrProgressBar');
-      const statusText = document.getElementById('ocrStatusText');
-      const percentText = document.getElementById('ocrPercentText');
-
-      overlay.classList.remove('hidden');
-      progressBar.style.width = '10%';
-      statusText.innerText = 'Redimensionando imagem para leitura...';
-      percentText.innerText = '10%';
-
-      try {
-        const resizedCanvas = await preprocessImageCanvas(file);
-
-        statusText.innerText = 'Iniciando Tesseract OCR (Português)...';
-        progressBar.style.width = '30%';
-        percentText.innerText = '30%';
-
-        const worker = await Tesseract.createWorker('por');
-        
-        const ocrTimeout = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Tempo limite excedido na leitura.')), 25000)
-        );
-
-        const recognitionPromise = (async () => {
-          const res = await worker.recognize(resizedCanvas);
-          await worker.terminate();
-          return res;
-        })();
-
-        const result = await Promise.race([recognitionPromise, ocrTimeout]);
-        const rawText = result.data.text;
-
-        statusText.innerText = 'Mapeando paciente, médico, convênio e parâmetros...';
-        progressBar.style.width = '85%';
-        percentText.innerText = '85%';
-
-        const parsed = parseMedicalReportText(rawText);
-
-        // Preenche os campos do formulário
-        document.getElementById('examTitle').value = parsed.title;
-        document.getElementById('examDate').value = parsed.date;
-        if (parsed.patient) document.getElementById('examPatient').value = parsed.patient;
-        if (parsed.doctor) document.getElementById('examDoctor').value = parsed.doctor;
-        if (parsed.insurance) document.getElementById('examInsurance').value = parsed.insurance;
-        if (parsed.lab) document.getElementById('examLab').value = parsed.lab;
-
-        // Limpa e popula parâmetros
-        const paramContainer = document.getElementById('parametersList');
-        paramContainer.innerHTML = '';
-
-        if (parsed.items.length > 0) {
-          parsed.items.forEach(item => {
-            addParameterRow(item.name, item.value, item.unit, item.ref, item.abnormal);
-          });
-        } else {
-          addParameterRow();
-        }
-
-        progressBar.style.width = '100%';
-        percentText.innerText = '100%';
-
-        setTimeout(() => {
-          overlay.classList.add('hidden');
-        }, 400);
-
-      } catch (err) {
-        console.error('Falha no OCR:', err);
-        alert('Não foi possível ler os dados da foto: ' + err.message);
-        overlay.classList.add('hidden');
-      } finally {
-        event.target.value = '';
-      }
-    }
-
-    // CANVAS PRE-PROCESSING (MAX 1400PX)
-    function preprocessImageCanvas(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = new Image();
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const maxDim = 1400;
-            let width = img.width;
-            let height = img.height;
-
-            if (width > maxDim || height > maxDim) {
-              if (width > height) {
-                height = Math.round((height * maxDim) / width);
-                width = maxDim;
-              } else {
-                width = Math.round((width * maxDim) / height);
-                height = maxDim;
-              }
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-            ctx.drawImage(img, 0, 0, width, height);
-            resolve(canvas);
-          };
-          img.onerror = reject;
-          img.src = e.target.result;
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-    }
-
-    // =========================================================================
-    // EXAM MANAGEMENT & FORM CONTROLS
-    // =========================================================================
-
-    function openExamModal(examId = null) {
-      const modal = document.getElementById('examModal');
-      const form = document.getElementById('examForm');
-      form.reset();
-      document.getElementById('examId').value = '';
-      document.getElementById('parametersList').innerHTML = '';
-
-      if (examId) {
-        document.getElementById('modalTitle').innerText = 'Editar Exame Médico';
-        const exam = appState.exams.find(e => e.id === examId);
-        if (exam) {
-          document.getElementById('examId').value = exam.id;
-          document.getElementById('examTitle').value = exam.title;
-          document.getElementById('examDate').value = exam.date;
-          document.getElementById('examPatient').value = exam.patient || '';
-          document.getElementById('examDoctor').value = exam.doctor || '';
-          document.getElementById('examInsurance').value = exam.insurance || '';
-          document.getElementById('examLab').value = exam.lab || '';
-          document.getElementById('examNotes').value = exam.notes || '';
-
-          if (exam.items && exam.items.length > 0) {
-            exam.items.forEach(item => addParameterRow(item.name, item.value, item.unit, item.ref, item.abnormal));
-          } else {
-            addParameterRow();
-          }
-        }
-      } else {
-        document.getElementById('modalTitle').innerText = 'Cadastrar Exame Médico';
-        document.getElementById('examDate').value = new Date().toISOString().split('T')[0];
-        addParameterRow();
-      }
-
-      modal.classList.remove('hidden');
-    }
-
-    function closeExamModal() {
-      document.getElementById('examModal').classList.add('hidden');
-    }
-
-    function addParameterRow(name = '', value = '', unit = '', ref = '', abnormal = false) {
-      const container = document.getElementById('parametersList');
-      const rowId = 'param_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
-
-      const row = document.createElement('div');
-      row.id = rowId;
-      row.className = "grid grid-cols-12 gap-2 items-center bg-slate-50 p-2 rounded-lg border border-slate-200";
-      row.innerHTML = `
-        <div class="col-span-4">
-          <input type="text" placeholder="Parâmetro (ex: Hemoglobina)" value="${escapeHtml(name)}" class="param-name w-full px-2 py-1.5 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-teal-500 outline-none font-medium">
-        </div>
-        <div class="col-span-2">
-          <input type="text" placeholder="Resultado" value="${escapeHtml(value)}" class="param-value w-full px-2 py-1.5 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-teal-500 outline-none font-bold text-slate-800">
-        </div>
-        <div class="col-span-2">
-          <input type="text" placeholder="Unid. (g/dL)" value="${escapeHtml(unit)}" class="param-unit w-full px-2 py-1.5 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-teal-500 outline-none">
-        </div>
-        <div class="col-span-3">
-          <input type="text" placeholder="Referência (ex: 12-16)" value="${escapeHtml(ref)}" class="param-ref w-full px-2 py-1.5 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-teal-500 outline-none">
-        </div>
-        <div class="col-span-1 flex items-center justify-center">
-          <button type="button" onclick="document.getElementById('${rowId}').remove()" class="text-slate-400 hover:text-red-500 transition p-1">
-            <i data-lucide="trash-2" class="w-4 h-4"></i>
-          </button>
-        </div>
-      `;
-
-      container.appendChild(row);
-      lucide.createIcons();
-    }
-
-    function saveExam(event) {
-      event.preventDefault();
-
-      const id = document.getElementById('examId').value || 'exam_' + Date.now();
-      const title = document.getElementById('examTitle').value.trim();
-      const date = document.getElementById('examDate').value;
-      const patient = document.getElementById('examPatient').value.trim();
-      const doctor = document.getElementById('examDoctor').value.trim();
-      const insurance = document.getElementById('examInsurance').value.trim();
-      const lab = document.getElementById('examLab').value.trim();
-      const notes = document.getElementById('examNotes').value.trim();
-
-      const paramRows = document.querySelectorAll('#parametersList > div');
-      const items = [];
-
-      paramRows.forEach(row => {
-        const name = row.querySelector('.param-name').value.trim();
-        const value = row.querySelector('.param-value').value.trim();
-        const unit = row.querySelector('.param-unit').value.trim();
-        const ref = row.querySelector('.param-ref').value.trim();
-
-        if (name && value) {
-          items.push({
-            name,
-            value,
-            unit,
-            ref,
-            abnormal: checkIfAbnormal(value, ref)
-          });
-        }
-      });
-
-      const examData = { id, title, date, patient, doctor, insurance, lab, notes, items };
-      const existingIndex = appState.exams.findIndex(e => e.id === id);
-
-      if (existingIndex >= 0) {
-        appState.exams[existingIndex] = examData;
-      } else {
-        appState.exams.unshift(examData);
-      }
-
-      saveLocalStorage();
-      renderAll();
-      closeExamModal();
-    }
-
-    function deleteExam(id) {
-      if (confirm('Deseja realmente excluir este registro de exame?')) {
-        appState.exams = appState.exams.filter(e => e.id !== id);
-        saveLocalStorage();
-        renderAll();
-      }
-    }
-
-    function toggleAbnormalFilter() {
-      appState.filterAbnormalOnly = !appState.filterAbnormalOnly;
-      const btn = document.getElementById('btnFilterAbnormal');
-      btn.classList.toggle('bg-amber-100', appState.filterAbnormalOnly);
-      btn.classList.toggle('border-amber-400', appState.filterAbnormalOnly);
-      btn.classList.toggle('text-amber-800', appState.filterAbnormalOnly);
-      renderExamsList();
-    }
-
-    // =========================================================================
-    // CONSULTATION MANAGEMENT
-    // =========================================================================
-
-    function openConsultationModal(consultId = null) {
-      const modal = document.getElementById('consultationModal');
-      const form = document.getElementById('consultationForm');
-      form.reset();
-      document.getElementById('consultId').value = '';
-
-      if (consultId) {
-        document.getElementById('consultModalTitle').innerText = 'Editar Consulta Médica';
-        const consult = appState.consultations.find(c => c.id === consultId);
-        if (consult) {
-          document.getElementById('consultId').value = consult.id;
-          document.getElementById('consultDate').value = consult.date;
-          document.getElementById('consultSpecialty').value = consult.specialty;
-          document.getElementById('consultDoctor').value = consult.doctor;
-          document.getElementById('consultClinic').value = consult.clinic || '';
-          document.getElementById('consultReason').value = consult.reason || '';
-          document.getElementById('consultPrescription').value = consult.prescription || '';
-          document.getElementById('consultNotes').value = consult.notes || '';
-        }
-      } else {
-        document.getElementById('consultModalTitle').innerText = 'Cadastrar Consulta Médica';
-        document.getElementById('consultDate').value = new Date().toISOString().split('T')[0];
-      }
-
-      modal.classList.remove('hidden');
-    }
-
-    function closeConsultationModal() {
-      document.getElementById('consultationModal').classList.add('hidden');
-    }
-
-    function saveConsultation(event) {
-      event.preventDefault();
-
-      const id = document.getElementById('consultId').value || 'consult_' + Date.now();
-      const date = document.getElementById('consultDate').value;
-      const specialty = document.getElementById('consultSpecialty').value.trim();
-      const doctor = document.getElementById('consultDoctor').value.trim();
-      const clinic = document.getElementById('consultClinic').value.trim();
-      const reason = document.getElementById('consultReason').value.trim();
-      const prescription = document.getElementById('consultPrescription').value.trim();
-      const notes = document.getElementById('consultNotes').value.trim();
-
-      const consultData = { id, date, specialty, doctor, clinic, reason, prescription, notes };
-      const existingIndex = appState.consultations.findIndex(c => c.id === id);
-
-      if (existingIndex >= 0) {
-        appState.consultations[existingIndex] = consultData;
-      } else {
-        appState.consultations.unshift(consultData);
-      }
-
-      saveLocalStorage();
-      renderAll();
-      closeConsultationModal();
-    }
-
-    function deleteConsultation(id) {
-      if (confirm('Deseja remover este registro de consulta?')) {
-        appState.consultations = appState.consultations.filter(c => c.id !== id);
-        saveLocalStorage();
-        renderAll();
-      }
-    }
-
-    // =========================================================================
-    // UI RENDERING FUNCTIONS
-    // =========================================================================
-
-    function renderAll() {
-      updateDashboardStats();
-      renderExamsList();
-      renderConsultationsList();
-      if (appState.activeTab === 'timeline') renderTimeline();
-    }
-
-    function updateDashboardStats() {
-      document.getElementById('statTotalExams').innerText = appState.exams.length;
-      document.getElementById('statConsultsCount').innerText = appState.consultations.length;
-
-      let abnormalTotal = 0;
-      let latestDate = null;
-
-      appState.exams.forEach(e => {
-        if (e.items) {
-          abnormalTotal += e.items.filter(i => i.abnormal).length;
-        }
-        if (!latestDate || new Date(e.date) > new Date(latestDate)) {
-          latestDate = e.date;
-        }
-      });
-
-      appState.consultations.forEach(c => {
-        if (!latestDate || new Date(c.date) > new Date(latestDate)) {
-          latestDate = c.date;
-        }
-      });
-
-      document.getElementById('statAbnormalCount').innerText = abnormalTotal;
-      document.getElementById('statLastDate').innerText = latestDate ? formatDateBR(latestDate) : 'Nenhuma';
-    }
-
-    function renderExamsList() {
-      const container = document.getElementById('examsContainer');
-      const searchTerm = (document.getElementById('searchInput')?.value || '').toLowerCase();
-
-      let filtered = appState.exams.filter(exam => {
-        const matchSearch = exam.title.toLowerCase().includes(searchTerm) ||
-          (exam.patient && exam.patient.toLowerCase().includes(searchTerm)) ||
-          (exam.doctor && exam.doctor.toLowerCase().includes(searchTerm)) ||
-          (exam.lab && exam.lab.toLowerCase().includes(searchTerm)) ||
-          exam.items.some(i => i.name.toLowerCase().includes(searchTerm));
-
-        if (appState.filterAbnormalOnly) {
-          return matchSearch && exam.items.some(i => i.abnormal);
-        }
-        return matchSearch;
-      });
-
-      if (filtered.length === 0) {
-        container.innerHTML = `
-          <div class="bg-white rounded-xl p-8 text-center border border-slate-200">
-            <i data-lucide="file-x" class="w-10 h-10 text-slate-300 mx-auto mb-2"></i>
-            <p class="text-slate-600 font-medium text-sm">Nenhum exame encontrado.</p>
-            <p class="text-xs text-slate-400 mt-1">Clique em "Novo Exame" para cadastrar ou escanear um laudo físico.</p>
-          </div>
-        `;
-        lucide.createIcons();
-        return;
-      }
-
-      container.innerHTML = filtered.map(exam => {
-        const hasAbnormal = exam.items.some(i => i.abnormal);
-
-        return `
-          <div class="bg-white rounded-xl border ${hasAbnormal ? 'border-amber-300 shadow-sm' : 'border-slate-200'} overflow-hidden transition hover:shadow-md card-print">
-            <div class="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
-              <div class="flex items-center gap-3">
-                <div class="p-2 ${hasAbnormal ? 'bg-amber-100 text-amber-700' : 'bg-teal-100 text-teal-700'} rounded-lg">
-                  <i data-lucide="${hasAbnormal ? 'alert-triangle' : 'file-text'}" class="w-5 h-5"></i>
+    </nav>
+
+    <!-- ÁREA DE CONTEÚDO PRINCIPAL -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8 custom-scrollbar">
+
+        <!-- ALERTA GLOBAL DE EXAMES ALTERADOS -->
+        <div id="urgent-alert-banner" class="hidden mb-6 bg-rose-50 border-l-4 border-rose-500 p-4 rounded-r-2xl shadow-sm border border-rose-100">
+            <div class="flex items-start space-x-3">
+                <div class="p-2 bg-rose-500 text-white rounded-xl shadow-md flex-shrink-0">
+                    <i data-lucide="alert-triangle" class="w-6 h-6"></i>
                 </div>
+                <div class="flex-1">
+                    <h3 class="font-bold text-rose-900 text-base">Atenção Médica: Resultados Alterados Detectados</h3>
+                    <p class="text-sm text-rose-700 mt-1" id="urgent-alert-text">
+                        Existem parâmetros laboratoriais recentes fora dos limites de referência recomendados.
+                    </p>
+                    <div id="urgent-alert-items" class="mt-2 flex flex-wrap gap-1.5"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 1: DASHBOARD -->
+        <section id="tab-dashboard" class="tab-content space-y-6">
+            <!-- BANNER MASTER SCANNER -->
+            <div class="bg-gradient-to-r from-slate-900 via-teal-950 to-slate-900 rounded-3xl p-6 text-white shadow-xl border border-teal-500/20 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="relative z-10 max-w-xl">
+                    <span class="px-3 py-1 bg-teal-500/20 text-teal-300 text-xs font-bold rounded-full border border-teal-500/30 uppercase tracking-wider">Leitor IA Ultrarrápido & Dinâmico</span>
+                    <h2 class="text-2xl font-black mt-2">Digitalize seus Laudos em Segundos</h2>
+                    <p class="text-slate-300 text-sm mt-1">Tire uma foto do laudo impresso. O leitor extrai fidedignamente o nome do exame, parâmetros, unidades, resultados e referências exatamente como estão impressos!</p>
+                </div>
+                <button onclick="openOcrScannerModal()" class="relative z-10 px-6 py-3.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-extrabold rounded-2xl shadow-lg shadow-teal-500/30 flex items-center gap-2 flex-shrink-0 transition-all transform hover:scale-105">
+                    <i data-lucide="camera" class="w-5 h-5"></i>
+                    <span>Tirar Foto do Exame</span>
+                </button>
+            </div>
+
+            <!-- Cabeçalho do Painel -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
-                    ${escapeHtml(exam.title)}
-                    ${hasAbnormal ? '<span class="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full uppercase border border-amber-300">Alterado</span>' : ''}
-                  </h3>
-                  <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 mt-0.5">
-                    <span class="flex items-center gap-1"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> ${formatDateBR(exam.date)}</span>
-                    ${exam.patient ? `<span class="flex items-center gap-1 font-medium text-slate-700"><i data-lucide="user" class="w-3.5 h-3.5 text-slate-400"></i> ${escapeHtml(exam.patient)}</span>` : ''}
-                    ${exam.doctor ? `<span class="flex items-center gap-1"><i data-lucide="user-check" class="w-3.5 h-3.5"></i> ${escapeHtml(exam.doctor)}</span>` : ''}
-                    ${exam.insurance ? `<span class="flex items-center gap-1"><i data-lucide="shield" class="w-3.5 h-3.5"></i> ${escapeHtml(exam.insurance)}</span>` : ''}
-                    ${exam.lab ? `<span class="flex items-center gap-1"><i data-lucide="building" class="w-3.5 h-3.5"></i> ${escapeHtml(exam.lab)}</span>` : ''}
-                  </div>
+                    <h2 class="text-2xl font-bold text-slate-900">Visão Geral da Saúde</h2>
+                    <p class="text-slate-500 text-sm">Resumo estatístico para consultas e acompanhamento clínico</p>
                 </div>
-              </div>
-
-              <div class="flex items-center gap-2 no-print">
-                <button onclick="openExamModal('${exam.id}')" class="p-1.5 text-slate-400 hover:text-teal-600 rounded transition" title="Editar">
-                  <i data-lucide="edit-3" class="w-4 h-4"></i>
-                </button>
-                <button onclick="deleteExam('${exam.id}')" class="p-1.5 text-slate-400 hover:text-red-500 rounded transition" title="Excluir">
-                  <i data-lucide="trash-2" class="w-4 h-4"></i>
-                </button>
-              </div>
-            </div>
-
-            <div class="p-4 overflow-x-auto">
-              <table class="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr class="border-b border-slate-200 text-slate-400 uppercase font-semibold">
-                    <th class="py-2 px-3">Parâmetro Analisado</th>
-                    <th class="py-2 px-3">Resultado Obtido</th>
-                    <th class="py-2 px-3">Unidade</th>
-                    <th class="py-2 px-3">Intervalo de Referência</th>
-                    <th class="py-2 px-3 text-center">Status</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                  ${exam.items.map(item => `
-                    <tr class="${item.abnormal ? 'bg-amber-50/70 font-medium' : 'hover:bg-slate-50'} transition">
-                      <td class="py-2.5 px-3 font-semibold ${item.abnormal ? 'text-amber-900' : 'text-slate-800'}">${escapeHtml(item.name)}</td>
-                      <td class="py-2.5 px-3 font-bold ${item.abnormal ? 'text-amber-700 text-sm' : 'text-slate-700'}">${escapeHtml(item.value)}</td>
-                      <td class="py-2.5 px-3 text-slate-500 font-mono">${escapeHtml(item.unit || '-')}</td>
-                      <td class="py-2.5 px-3 text-slate-500">${escapeHtml(item.ref || 'N/A')}</td>
-                      <td class="py-2.5 px-3 text-center">
-                        ${item.abnormal 
-                          ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-200 text-amber-900 border border-amber-300">FORA DA FAIXA</span>' 
-                          : '<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">Normal</span>'}
-                      </td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-
-              ${exam.notes ? `
-                <div class="mt-3 p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-600">
-                  <span class="font-bold text-slate-700">Observações:</span> ${escapeHtml(exam.notes)}
+                <div class="flex items-center space-x-2">
+                    <button onclick="clearAllData()" class="text-xs text-rose-600 hover:text-rose-800 underline px-2 py-1">
+                        Limpar Todos os Registros
+                    </button>
                 </div>
-              ` : ''}
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      lucide.createIcons();
-    }
-
-    function renderConsultationsList() {
-      const container = document.getElementById('consultationsContainer');
-      const searchTerm = (document.getElementById('searchConsultInput')?.value || '').toLowerCase();
-
-      let filtered = appState.consultations.filter(c => 
-        c.specialty.toLowerCase().includes(searchTerm) ||
-        c.doctor.toLowerCase().includes(searchTerm) ||
-        (c.clinic && c.clinic.toLowerCase().includes(searchTerm)) ||
-        (c.reason && c.reason.toLowerCase().includes(searchTerm))
-      );
-
-      if (filtered.length === 0) {
-        container.innerHTML = `
-          <div class="col-span-2 bg-white rounded-xl p-8 text-center border border-slate-200">
-            <i data-lucide="stethoscope" class="w-10 h-10 text-slate-300 mx-auto mb-2"></i>
-            <p class="text-slate-600 font-medium text-sm">Nenhuma consulta médica registrada.</p>
-          </div>
-        `;
-        lucide.createIcons();
-        return;
-      }
-
-      container.innerHTML = filtered.map(c => `
-        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col justify-between">
-          <div>
-            <div class="flex justify-between items-start mb-3">
-              <div>
-                <span class="text-[10px] bg-indigo-50 text-indigo-700 font-bold px-2 py-0.5 rounded-full uppercase border border-indigo-200">${escapeHtml(c.specialty)}</span>
-                <h4 class="font-bold text-slate-800 text-base mt-1">${escapeHtml(c.doctor)}</h4>
-              </div>
-              <div class="flex items-center gap-1 no-print">
-                <button onclick="openConsultationModal('${c.id}')" class="p-1 text-slate-400 hover:text-indigo-600 rounded"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                <button onclick="deleteConsultation('${c.id}')" class="p-1 text-slate-400 hover:text-red-500 rounded"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-              </div>
             </div>
 
-            <div class="text-xs text-slate-500 space-y-1 mb-4">
-              <p class="flex items-center gap-1.5"><i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-400"></i> ${formatDateBR(c.date)}</p>
-              ${c.clinic ? `<p class="flex items-center gap-1.5"><i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-400"></i> ${escapeHtml(c.clinic)}</p>` : ''}
-              ${c.reason ? `<p class="flex items-center gap-1.5 font-medium text-slate-700"><i data-lucide="activity" class="w-3.5 h-3.5 text-indigo-500"></i> ${escapeHtml(c.reason)}</p>` : ''}
+            <!-- Cards de Métricas -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                    <div class="flex items-center justify-between text-slate-500">
+                        <span class="text-xs font-semibold uppercase tracking-wider">Total de Exames</span>
+                        <div class="p-2 bg-teal-50 text-teal-600 rounded-lg">
+                            <i data-lucide="flask-conical" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span id="stat-total-exams" class="text-3xl font-extrabold text-slate-900">0</span>
+                        <span class="text-xs text-slate-400 block mt-0.5">cadastrados no histórico</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                    <div class="flex items-center justify-between text-slate-500">
+                        <span class="text-xs font-semibold uppercase tracking-wider">Itens Alterados</span>
+                        <div class="p-2 bg-rose-50 text-rose-600 rounded-lg">
+                            <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span id="stat-abnormal-exams" class="text-3xl font-extrabold text-rose-600">0</span>
+                        <span class="text-xs text-rose-500 block mt-0.5 font-medium">requerem atenção</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                    <div class="flex items-center justify-between text-slate-500">
+                        <span class="text-xs font-semibold uppercase tracking-wider">Consultas</span>
+                        <div class="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                            <i data-lucide="stethoscope" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span id="stat-consultations" class="text-3xl font-extrabold text-slate-900">0</span>
+                        <span class="text-xs text-slate-400 block mt-0.5">consultas registradas</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                    <div class="flex items-center justify-between text-slate-500">
+                        <span class="text-xs font-semibold uppercase tracking-wider">Próxima Consulta</span>
+                        <div class="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+                            <i data-lucide="calendar-clock" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span id="stat-next-consultation" class="text-sm font-bold text-indigo-900 block truncate">Nenhuma</span>
+                        <span id="stat-next-consultation-date" class="text-xs text-slate-400 block mt-0.5">-</span>
+                    </div>
+                </div>
             </div>
 
-            ${c.prescription ? `
-              <div class="p-3 bg-indigo-50/50 rounded-lg border border-indigo-100 text-xs text-indigo-950 mb-3">
-                <span class="font-bold block text-indigo-900 mb-0.5">Prescrição / Receita:</span>
-                <p class="whitespace-pre-line">${escapeHtml(c.prescription)}</p>
-              </div>
-            ` : ''}
+            <!-- Painel Duplo -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                            <i data-lucide="clock" class="w-4 h-4 text-teal-600"></i> Exames Mais Recentes
+                        </h3>
+                        <button onclick="switchTab('exams')" class="text-xs text-teal-600 font-semibold hover:underline">Ver todos →</button>
+                    </div>
+                    <div id="dashboard-recent-exams" class="space-y-3"></div>
+                </div>
 
-            ${c.notes ? `
-              <p class="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
-                <span class="font-semibold text-slate-700">Anotações:</span> ${escapeHtml(c.notes)}
-              </p>
-            ` : ''}
-          </div>
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                            <i data-lucide="calendar-check" class="w-4 h-4 text-teal-600"></i> Próximos Retornos
+                        </h3>
+                        <button onclick="switchTab('consultations')" class="text-xs text-teal-600 font-semibold hover:underline">Gerenciar</button>
+                    </div>
+                    <div id="dashboard-upcoming-consultations" class="space-y-3"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: EXAMES -->
+        <section id="tab-exams" class="tab-content hidden space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">Exames Laboratoriais</h2>
+                    <p class="text-slate-500 text-sm">Histórico cronológico detalhado por laudo e parâmetros</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="openOcrScannerModal()" class="bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-bold px-4 py-2.5 rounded-xl shadow-sm text-sm flex items-center space-x-2">
+                        <i data-lucide="camera" class="w-4 h-4"></i>
+                        <span>Escanear por Foto</span>
+                    </button>
+                    <button onclick="openNewRecordModal('exam')" class="bg-slate-800 hover:bg-slate-700 text-white font-medium px-4 py-2.5 rounded-xl shadow-sm text-sm flex items-center space-x-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span>Digitado Manual</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filtros -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
+                <div class="relative w-full md:w-96">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="exam-search-input" onkeyup="filterExams()" placeholder="Buscar por exame, médico ou laboratório..." class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-teal-500">
+                </div>
+                <div class="flex items-center gap-2 w-full md:w-auto">
+                    <button id="filter-all-btn" onclick="toggleExamFilter('all')" class="flex-1 md:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-600 text-white transition-all">Todos</button>
+                    <button id="filter-abnormal-btn" onclick="toggleExamFilter('abnormal')" class="flex-1 md:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-rose-50 hover:text-rose-600 border border-transparent transition-all">
+                        ⚠️ Apenas Alterados
+                    </button>
+                </div>
+            </div>
+
+            <div id="exams-container" class="space-y-4"></div>
+        </section>
+
+        <!-- TAB 3: CONSULTAS -->
+        <section id="tab-consultations" class="tab-content hidden space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">Consultas & Histórico Clínico</h2>
+                    <p class="text-slate-500 text-sm">Registro de atendimentos médicos, diagnósticos e retornos</p>
+                </div>
+                <button onclick="openNewRecordModal('consultation')" class="bg-teal-600 hover:bg-teal-500 text-white font-medium px-4 py-2.5 rounded-xl shadow-sm text-sm flex items-center space-x-2 self-start md:self-auto">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span>Agendar/Registrar Consulta</span>
+                </button>
+            </div>
+
+            <div id="consultations-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </section>
+
+        <!-- TAB 4: DOCUMENTOS -->
+        <section id="tab-documents" class="tab-content hidden space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">Atestados & Documentos Médicos</h2>
+                    <p class="text-slate-500 text-sm">Arquivo digital para receitas, licenças e declarações</p>
+                </div>
+                <button onclick="openNewRecordModal('document')" class="bg-teal-600 hover:bg-teal-500 text-white font-medium px-4 py-2.5 rounded-xl shadow-sm text-sm flex items-center space-x-2 self-start md:self-auto">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span>Anexar Documento</span>
+                </button>
+            </div>
+
+            <div id="documents-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </section>
+
+    </main>
+
+    <!-- MODAL OCR SCANNER (MEGALITOR DE FOTO MASTER) -->
+    <div id="modal-ocr-scanner" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+            <div class="bg-slate-900 px-6 py-4 flex items-center justify-between text-white">
+                <h3 class="font-bold text-lg flex items-center gap-2">
+                    <i data-lucide="camera" class="w-5 h-5 text-teal-400"></i>
+                    <span>Leitor IA de Exame por Foto</span>
+                </h3>
+                <button onclick="closeModal('modal-ocr-scanner')" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <div class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-5">
+                <div class="bg-teal-50 border border-teal-200 p-3 rounded-2xl flex items-start gap-3 text-xs text-teal-900">
+                    <i data-lucide="sparkles" class="w-5 h-5 text-teal-600 flex-shrink-0 mt-0.5"></i>
+                    <p><strong>Dica de Precisão:</strong> Mantenha a foto bem iluminada e paralela ao papel. O leitor extrairá dinamicamente qualquer tipo de exame exatamente como impresso.</p>
+                </div>
+
+                <!-- ÁREA DE CAPTURA / ARQUIVO -->
+                <div class="border-2 border-dashed border-teal-400 bg-teal-50/30 rounded-2xl p-6 text-center hover:bg-teal-50 transition-all cursor-pointer relative" onclick="document.getElementById('ocr-file-input').click()">
+                    <input type="file" id="ocr-file-input" accept="image/*" capture="environment" class="hidden" onchange="processImageOCR(this)">
+                    <div id="ocr-upload-prompt" class="space-y-2">
+                        <div class="w-14 h-14 bg-teal-500 text-white rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-teal-500/30">
+                            <i data-lucide="camera" class="w-7 h-7"></i>
+                        </div>
+                        <p class="font-bold text-sm text-slate-800">Tirar Foto ou Selecionar Imagem</p>
+                        <p class="text-xs text-slate-400">Suporta Hemogramas, Fezes, Urina, Sorologias, Bioquímica, etc.</p>
+                    </div>
+
+                    <!-- PREVIEW DA IMAGEM -->
+                    <div id="ocr-preview-container" class="hidden space-y-3">
+                        <img id="ocr-preview-img" src="" class="max-h-52 mx-auto rounded-xl shadow-md border border-slate-200">
+                    </div>
+                </div>
+
+                <!-- BARRA DE PROGRESSO -->
+                <div id="ocr-progress-container" class="hidden space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+                        <span id="ocr-status-text" class="flex items-center gap-2">
+                            <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-teal-600"></i> Processando Imagem...
+                        </span>
+                        <span id="ocr-percent-text">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                        <div id="ocr-progress-bar" class="bg-teal-500 h-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div id="ocr-result-msg" class="hidden p-3 rounded-xl text-xs font-medium"></div>
+            </div>
+
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
+                <button type="button" onclick="closeModal('modal-ocr-scanner')" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200">Cancelar</button>
+            </div>
         </div>
-      `).join('');
+    </div>
 
-      lucide.createIcons();
-    }
-
-    function renderTimeline() {
-      const container = document.getElementById('timelineContainer');
-      
-      const timelineEvents = [
-        ...appState.exams.map(e => ({ type: 'exam', date: e.date, title: e.title, data: e })),
-        ...appState.consultations.map(c => ({ type: 'consultation', date: c.date, title: c.specialty + ' - ' + c.doctor, data: c }))
-      ];
-
-      timelineEvents.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-      if (timelineEvents.length === 0) {
-        container.innerHTML = `<p class="text-xs text-slate-400">Nenhum evento no histórico.</p>`;
-        return;
-      }
-
-      container.innerHTML = timelineEvents.map(evt => {
-        const isExam = evt.type === 'exam';
-        return `
-          <div class="relative">
-            <span class="absolute -left-[31px] top-1 w-4 h-4 rounded-full ${isExam ? 'bg-teal-500' : 'bg-indigo-500'} ring-4 ring-white"></span>
-            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs">
-              <span class="text-[10px] font-bold uppercase ${isExam ? 'text-teal-700' : 'text-indigo-700'}">${formatDateBR(evt.date)} • ${isExam ? 'Exame Laboratorial' : 'Consulta Médica'}</span>
-              <h4 class="font-bold text-slate-800 text-sm mt-0.5">${escapeHtml(evt.title)}</h4>
-              ${isExam ? `<p class="text-slate-500 mt-1">${evt.data.items.length} parâmetro(s) analisado(s)</p>` : `<p class="text-slate-500 mt-1">${escapeHtml(evt.data.reason || 'Consulta de rotina')}</p>`}
+    <!-- MODAL 1: NOVO REGISTRO -->
+    <div id="modal-new-record" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-slate-900 px-6 py-4 flex items-center justify-between text-white">
+                <h3 class="font-bold text-lg flex items-center gap-2">
+                    <i data-lucide="plus-circle" class="w-5 h-5 text-teal-400"></i>
+                    <span id="modal-title">Novo Registro Clínico</span>
+                </h3>
+                <button onclick="closeModal('modal-new-record')" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
             </div>
-          </div>
-        `;
-      }).join('');
 
-      lucide.createIcons();
-    }
+            <!-- Seleção de Tipo -->
+            <div class="p-6 border-b border-slate-100 bg-slate-50/50">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tipo de Registro</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <button type="button" onclick="setRecordType('exam')" id="type-btn-exam" class="type-selector-btn py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all bg-teal-600 text-white border-teal-600">
+                        <i data-lucide="flask-conical" class="w-4 h-4"></i> Exame
+                    </button>
+                    <button type="button" onclick="setRecordType('consultation')" id="type-btn-consultation" class="type-selector-btn py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all bg-white text-slate-700 border-slate-200 hover:bg-slate-100">
+                        <i data-lucide="calendar" class="w-4 h-4"></i> Consulta
+                    </button>
+                    <button type="button" onclick="setRecordType('document')" id="type-btn-document" class="type-selector-btn py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all bg-white text-slate-700 border-slate-200 hover:bg-slate-100">
+                        <i data-lucide="file-text" class="w-4 h-4"></i> Atestado/Laudo
+                    </button>
+                </div>
+            </div>
 
-    // =========================================================================
-    // EXPORT & IMPORT DATA JSON
-    // =========================================================================
+            <div class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-4">
+                <form id="form-record" onsubmit="handleFormSubmit(event)">
+                    <input type="hidden" id="form-record-type" value="exam">
 
-    function exportDataJSON() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
-      const dlAnchor = document.createElement('a');
-      dlAnchor.setAttribute("href", dataStr);
-      dlAnchor.setAttribute("download", `medicore_backup_${new Date().toISOString().split('T')[0]}.json`);
-      document.body.appendChild(dlAnchor);
-      dlAnchor.click();
-      dlAnchor.remove();
-    }
+                    <!-- CAMPOS EXAME -->
+                    <div id="form-fields-exam" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Nome do Exame *</label>
+                                <input type="text" id="exam-name" list="medical-exams-list" placeholder="Ex: Hemograma Completo" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Laboratório / Clínica *</label>
+                                <input type="text" id="exam-lab" placeholder="Ex: Laboratório Central" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                            </div>
+                        </div>
 
-    function importDataJSON(event) {
-      const file = event.target.files[0];
-      if (!file) return;
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Médico Solicitante</label>
+                                <input type="text" id="exam-doctor" placeholder="Dr. Silva" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Convênio / Origem</label>
+                                <input type="text" id="exam-insurance" placeholder="Ex: Particular / SUS" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Data da Coleta *</label>
+                                <input type="date" id="exam-date" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                            </div>
+                        </div>
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const imported = JSON.parse(e.target.result);
-          if (imported && (imported.exams || imported.consultations)) {
-            appState = imported;
-            saveLocalStorage();
+                        <div class="pt-2 border-t border-slate-100">
+                            <div class="flex items-center justify-between mb-2">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Parâmetros / Itens Medidos</label>
+                                    <p class="text-[11px] text-slate-400">Verifique os valores e unidades extraídas antes de salvar.</p>
+                                </div>
+                                <button type="button" onclick="addParameterRow()" class="text-xs font-semibold text-teal-600 hover:text-teal-700 flex items-center gap-1">
+                                    <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Add Parâmetro
+                                </button>
+                            </div>
+
+                            <div id="parameters-container" class="space-y-2"></div>
+                        </div>
+                    </div>
+
+                    <!-- CAMPOS CONSULTA -->
+                    <div id="form-fields-consultation" class="space-y-4 hidden">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Nome do Médico *</label>
+                                <input type="text" id="consultation-doctor" placeholder="Dra. Amanda Costa" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Especialidade *</label>
+                                <input type="text" id="consultation-specialty" placeholder="Ex: Infectologia, Clínica Geral" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Data e Hora *</label>
+                                <input type="datetime-local" id="consultation-date" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Local / Clínica</label>
+                                <input type="text" id="consultation-location" placeholder="UBS Central - Sala 4" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Status</label>
+                                <select id="consultation-status" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                                    <option value="Agendada">Agendada (Futura)</option>
+                                    <option value="Realizada">Realizada (Histórico)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Diagnóstico / Conduta Médica</label>
+                            <textarea id="consultation-diagnosis" rows="2" placeholder="Resumo do atendimento..." class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- CAMPOS DOCUMENTO -->
+                    <div id="form-fields-document" class="space-y-4 hidden">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Título do Documento *</label>
+                                <input type="text" id="doc-title" placeholder="Ex: Atestado Médico - 3 dias" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Tipo de Documento</label>
+                                <select id="doc-type" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                                    <option value="Atestado Médico">Atestado Médico</option>
+                                    <option value="Licença Médica">Licença Médica</option>
+                                    <option value="Laudo Detalhado">Laudo Detalhado</option>
+                                    <option value="Receita / Prescrição">Receita / Prescrição</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Médico / Emissor</label>
+                                <input type="text" id="doc-doctor" placeholder="Dr. Roberto Silva" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Data da Emissão *</label>
+                                <input type="date" id="doc-date" class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Observações</label>
+                            <input type="text" id="doc-notes" placeholder="Detalhes adicionais..." class="w-full px-3 py-2 border rounded-xl text-sm border-slate-300 focus:outline-none focus:border-teal-500">
+                        </div>
+                    </div>
+
+                    <!-- CAMPO DE ANEXO -->
+                    <div class="pt-4 border-t border-slate-100">
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Anexo / Imagem do Laudo ou Foto</label>
+                        <input type="file" id="record-attachment-file" accept="image/*" onchange="convertFileToBase64(this)" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100">
+                        <input type="hidden" id="record-attachment-base64">
+                    </div>
+
+                    <div class="mt-6 flex justify-end space-x-3">
+                        <button type="button" onclick="closeModal('modal-new-record')" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100">Cancelar</button>
+                        <button type="submit" class="px-6 py-2 rounded-xl text-sm font-semibold bg-teal-600 text-white hover:bg-teal-500 shadow-md">Salvar Registro</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: LIGHTBOX ZOOM -->
+    <div id="modal-lightbox" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-4 hidden">
+        <div class="absolute top-4 right-4 flex items-center space-x-3 z-10">
+            <a id="lightbox-download" download="anexo-medico.png" class="p-2.5 bg-slate-800 text-white hover:bg-slate-700 rounded-xl transition-all border border-slate-700 flex items-center gap-2 text-xs font-medium">
+                <i data-lucide="download" class="w-4 h-4"></i> Baixar Arquivo
+            </a>
+            <button onclick="closeModal('modal-lightbox')" class="p-2.5 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 rounded-xl transition-all border border-slate-700">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <div class="max-w-4xl max-h-[85vh] overflow-auto rounded-xl p-2 bg-slate-900 border border-slate-800 flex items-center justify-center">
+            <img id="lightbox-img" src="" alt="Exame Ampliado" class="max-w-full max-h-[80vh] object-contain rounded-lg">
+        </div>
+        <p id="lightbox-caption" class="text-slate-400 text-xs mt-3 font-mono"></p>
+    </div>
+
+    <!-- MODAL 3: RELATÓRIO MÉDICO IMPRESSO -->
+    <div id="modal-report" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+            <div class="no-print bg-slate-900 px-6 py-4 flex items-center justify-between text-white">
+                <h3 class="font-bold text-lg flex items-center gap-2">
+                    <i data-lucide="file-check-2" class="w-5 h-5 text-teal-400"></i> Relatório de Resumo Clínico para Consulta
+                </h3>
+                <div class="flex items-center space-x-2">
+                    <button onclick="window.print()" class="bg-teal-600 hover:bg-teal-500 text-white text-xs px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5">
+                        <i data-lucide="printer" class="w-4 h-4"></i> Imprimir / PDF
+                    </button>
+                    <button onclick="closeModal('modal-report')" class="text-slate-400 hover:text-white">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-8 overflow-y-auto custom-scrollbar flex-1 space-y-6 bg-white text-slate-900">
+                <div class="border-b-2 border-slate-900 pb-4 flex justify-between items-end">
+                    <div>
+                        <h1 class="text-2xl font-black tracking-tight text-slate-900">MEDICORE - RESUMO DA SAÚDE</h1>
+                        <p class="text-xs text-slate-600 mt-1">Prontuário Consolidado e Exames com Alterações</p>
+                    </div>
+                    <div class="text-right text-xs text-slate-500">
+                        <p>Gerado em: <strong id="report-date"></strong></p>
+                        <p>Paciente: <strong>Usuário MediCore</strong></p>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="text-base font-bold text-rose-700 uppercase tracking-wide border-b border-rose-200 pb-1 mb-3">
+                        ⚠️ Alertas Clínicos (Parâmetros Alterados)
+                    </h2>
+                    <div id="report-abnormal-list" class="space-y-3"></div>
+                </div>
+
+                <div>
+                    <h2 class="text-base font-bold text-slate-800 uppercase tracking-wide border-b border-slate-200 pb-1 mb-3">
+                        📋 Exames Laboratoriais Recentes
+                    </h2>
+                    <div id="report-exams-list" class="space-y-4"></div>
+                </div>
+
+                <div>
+                    <h2 class="text-base font-bold text-slate-800 uppercase tracking-wide border-b border-slate-200 pb-1 mb-3">
+                        🩺 Histórico de Consultas
+                    </h2>
+                    <div id="report-consultations-list" class="space-y-2 text-xs"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT PRINCIPAL -->
+    <script>
+        const INITIAL_SEED_DATA = { exams: [], consultations: [], documents: [] };
+        let appData = { exams: [], consultations: [], documents: [] };
+        let activeExamFilter = 'all';
+
+        // --- INICIALIZAÇÃO DA APLICAÇÃO ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
             renderAll();
-            alert('Dados importados com sucesso!');
-          } else {
-            alert('Arquivo JSON inválido.');
-          }
-        } catch (err) {
-          alert('Erro ao importar arquivo JSON.');
+            lucide.createIcons();
+            addParameterRow();
+        });
+
+        function loadData() {
+            const saved = localStorage.getItem('mediCoreData');
+            if (saved) {
+                try { appData = JSON.parse(saved); } catch (e) { appData = INITIAL_SEED_DATA; }
+            } else {
+                appData = INITIAL_SEED_DATA;
+                saveData();
+            }
         }
-      };
-      reader.readAsText(file);
-    }
 
-    // UTILITIES
-    function formatDateBR(dateStr) {
-      if (!dateStr) return '';
-      const parts = dateStr.split('-');
-      return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : dateStr;
-    }
+        function saveData() {
+            localStorage.setItem('mediCoreData', JSON.stringify(appData));
+        }
 
-    function escapeHtml(str) {
-      if (!str) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
-  </script>
+        function clearAllData() {
+            if (confirm("Tem certeza que deseja apagar TODOS os dados e zerar o aplicativo?")) {
+                appData = { exams: [], consultations: [], documents: [] };
+                saveData();
+                renderAll();
+            }
+        }
+
+        function renderAll() {
+            sortDataChronologically();
+            renderDashboard();
+            renderExams();
+            renderConsultations();
+            renderDocuments();
+            lucide.createIcons();
+        }
+
+        function sortDataChronologically() {
+            appData.exams.sort((a, b) => new Date(b.date) - new Date(a.date));
+            appData.consultations.sort((a, b) => new Date(b.date) - new Date(a.date));
+            appData.documents.sort((a, b) => new Date(b.date) - new Date(a.date));
+        }
+
+        // --- TAB 1: DASHBOARD ---
+        function renderDashboard() {
+            const totalExams = appData.exams.length;
+            let abnormalCount = 0;
+            let abnormalItems = [];
+
+            appData.exams.forEach(exam => {
+                if (exam.parameters) {
+                    exam.parameters.forEach(p => {
+                        if (p.abnormal) {
+                            abnormalCount++;
+                            abnormalItems.push({ examName: exam.name, paramName: p.name, val: p.value, unit: p.unit, ref: p.ref });
+                        }
+                    });
+                }
+            });
+
+            document.getElementById('stat-total-exams').textContent = totalExams;
+            document.getElementById('stat-abnormal-exams').textContent = abnormalCount;
+            document.getElementById('stat-consultations').textContent = appData.consultations.length;
+
+            const upcoming = appData.consultations.filter(c => c.status === 'Agendada' && new Date(c.date) >= new Date());
+            upcoming.sort((a,b) => new Date(a.date) - new Date(b.date));
+
+            if (upcoming.length > 0) {
+                const next = upcoming[0];
+                const d = new Date(next.date);
+                document.getElementById('stat-next-consultation').textContent = next.doctor;
+                document.getElementById('stat-next-consultation-date').textContent = `${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}`;
+            } else {
+                document.getElementById('stat-next-consultation').textContent = 'Nenhuma pendente';
+                document.getElementById('stat-next-consultation-date').textContent = '-';
+            }
+
+            const alertBanner = document.getElementById('urgent-alert-banner');
+            const alertItemsContainer = document.getElementById('urgent-alert-items');
+            alertItemsContainer.innerHTML = '';
+
+            if (abnormalCount > 0) {
+                alertBanner.classList.remove('hidden');
+                abnormalItems.slice(0, 5).forEach(item => {
+                    const tag = document.createElement('span');
+                    tag.className = 'px-2 py-1 bg-rose-100 text-rose-800 border border-rose-300 rounded-md text-xs font-semibold flex items-center gap-1';
+                    tag.innerHTML = `<i data-lucide="alert-circle" class="w-3 h-3"></i> ${item.paramName}: <strong>${item.val} ${item.unit}</strong> (Ref: ${item.ref})`;
+                    alertItemsContainer.appendChild(tag);
+                });
+            } else {
+                alertBanner.classList.add('hidden');
+            }
+
+            const recentContainer = document.getElementById('dashboard-recent-exams');
+            recentContainer.innerHTML = '';
+            if (appData.exams.length === 0) {
+                recentContainer.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center">Nenhum exame cadastrado no sistema.</p>`;
+            } else {
+                appData.exams.slice(0, 3).forEach(exam => {
+                    const hasAbnormal = exam.parameters && exam.parameters.some(p => p.abnormal);
+                    const el = document.createElement('div');
+                    el.className = `p-3 rounded-xl border flex items-center justify-between ${hasAbnormal ? 'bg-rose-50/50 border-rose-200' : 'bg-slate-50 border-slate-200'}`;
+                    el.innerHTML = `
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2 ${hasAbnormal ? 'bg-rose-500 text-white' : 'bg-teal-500 text-white'} rounded-lg">
+                                <i data-lucide="${hasAbnormal ? 'alert-triangle' : 'file-check'}" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-xs text-slate-800">${exam.name}</h4>
+                                <p class="text-[11px] text-slate-500">${exam.lab} • ${formatDate(exam.date)}</p>
+                            </div>
+                        </div>
+                        ${hasAbnormal ? '<span class="text-[10px] font-extrabold text-rose-600 bg-rose-100 border border-rose-200 px-2 py-0.5 rounded-md uppercase">Alterado</span>' : '<span class="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">Normal</span>'}
+                    `;
+                    recentContainer.appendChild(el);
+                });
+            }
+
+            const upcomingContainer = document.getElementById('dashboard-upcoming-consultations');
+            upcomingContainer.innerHTML = '';
+            const nextConsultations = appData.consultations.slice(0, 3);
+
+            if(nextConsultations.length === 0) {
+                upcomingContainer.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center">Nenhuma consulta cadastrada.</p>`;
+            } else {
+                nextConsultations.forEach(c => {
+                    const el = document.createElement('div');
+                    el.className = 'p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between';
+                    el.innerHTML = `
+                        <div>
+                            <p class="font-bold text-xs text-slate-900">${c.doctor}</p>
+                            <p class="text-[11px] text-teal-700 font-medium">${c.specialty}</p>
+                            <p class="text-[10px] text-slate-400 mt-1">${formatDateTime(c.date)}</p>
+                        </div>
+                        <span class="text-[10px] px-2 py-1 rounded-md font-semibold ${c.status === 'Agendada' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-slate-200 text-slate-600'}">${c.status}</span>
+                    `;
+                    upcomingContainer.appendChild(el);
+                });
+            }
+        }
+
+        // --- TAB 2: EXAMES ---
+        function renderExams(filterSearch = '') {
+            const container = document.getElementById('exams-container');
+            container.innerHTML = '';
+
+            let list = [...appData.exams];
+
+            if (activeExamFilter === 'abnormal') {
+                list = list.filter(ex => ex.parameters && ex.parameters.some(p => p.abnormal));
+            }
+
+            if (filterSearch) {
+                const term = filterSearch.toLowerCase();
+                list = list.filter(ex => 
+                    ex.name.toLowerCase().includes(term) ||
+                    ex.lab.toLowerCase().includes(term) ||
+                    (ex.doctor && ex.doctor.toLowerCase().includes(term))
+                );
+            }
+
+            if (list.length === 0) {
+                container.innerHTML = `
+                    <div class="p-8 text-center bg-white rounded-2xl border border-slate-200">
+                        <i data-lucide="folder-open" class="w-10 h-10 text-slate-300 mx-auto mb-2"></i>
+                        <p class="text-sm font-semibold text-slate-600">Nenhum exame encontrado</p>
+                        <p class="text-xs text-slate-400">Tire uma foto do laudo impresso para incluir instantaneamente.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.forEach(exam => {
+                const hasAbnormal = exam.parameters && exam.parameters.some(p => p.abnormal);
+                const card = document.createElement('div');
+                card.className = `bg-white rounded-2xl border transition-all duration-200 overflow-hidden shadow-sm ${hasAbnormal ? 'border-rose-300 ring-1 ring-rose-200' : 'border-slate-200'}`;
+
+                let paramRows = '';
+                if (exam.parameters && exam.parameters.length > 0) {
+                    exam.parameters.forEach(p => {
+                        paramRows += `
+                            <tr class="${p.abnormal ? 'bg-rose-50/80 text-rose-900 font-medium' : 'hover:bg-slate-50 text-slate-700'} text-xs border-b border-slate-100">
+                                <td class="py-2.5 px-4 font-semibold flex items-center gap-1.5">
+                                    ${p.abnormal ? '<i data-lucide="alert-circle" class="w-3.5 h-3.5 text-rose-500 flex-shrink-0"></i>' : '<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-500 flex-shrink-0"></i>'}
+                                    ${p.name}
+                                </td>
+                                <td class="py-2.5 px-4 font-bold ${p.abnormal ? 'text-rose-600 text-sm' : 'text-slate-900'}">${p.value} ${p.unit || ''}</td>
+                                <td class="py-2.5 px-4 text-slate-500 text-[11px]">${p.ref || '-'}</td>
+                                <td class="py-2.5 px-4 text-right">
+                                    ${p.abnormal ? '<span class="px-2 py-0.5 bg-rose-500 text-white text-[10px] font-extrabold rounded">ALTERADO</span>' : '<span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded">Normal</span>'}
+                                </td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    paramRows = `<tr><td colspan="4" class="py-3 text-center text-xs text-slate-400">Nenhum parâmetro cadastrado neste exame.</td></tr>`;
+                }
+
+                card.innerHTML = `
+                    <div class="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 ${hasAbnormal ? 'bg-rose-50/30' : 'bg-slate-50/50'}">
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <h3 class="font-bold text-base text-slate-900">${exam.name}</h3>
+                                ${hasAbnormal ? '<span class="px-2 py-0.5 bg-rose-600 text-white text-[10px] font-bold rounded-md uppercase tracking-wide">⚠️ Alterações Detectadas</span>' : ''}
+                            </div>
+                            <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-1">
+                                <span><i data-lucide="building-2" class="w-3.5 h-3.5 inline text-slate-400"></i> ${exam.lab}</span>
+                                <span><i data-lucide="calendar" class="w-3.5 h-3.5 inline text-slate-400"></i> Coleta: <strong>${formatDate(exam.date)}</strong></span>
+                                <span><i data-lucide="user-check" class="w-3.5 h-3.5 inline text-slate-400"></i> ${exam.doctor || 'Não informado'}</span>
+                                ${exam.insurance ? `<span class="font-mono text-[10px] bg-slate-200 px-1.5 py-0.5 rounded">${exam.insurance}</span>` : ''}
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-2 flex-shrink-0">
+                            ${exam.attachment ? `
+                                <button onclick="openLightbox('${exam.attachment}', '${exam.name}')" class="px-3 py-1.5 bg-teal-50 text-teal-700 hover:bg-teal-100 border border-teal-200 rounded-xl text-xs font-semibold flex items-center space-x-1.5">
+                                    <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                                    <span>Ver Foto (Zoom)</span>
+                                </button>
+                            ` : ''}
+                            <button onclick="deleteExam('${exam.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all" title="Excluir">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100/70 text-slate-500 text-[10px] uppercase tracking-wider border-b border-slate-200">
+                                    <th class="py-2 px-4">Parâmetro Analisado</th>
+                                    <th class="py-2 px-4">Resultado Obtido</th>
+                                    <th class="py-2 px-4">Valores de Referência</th>
+                                    <th class="py-2 px-4 text-right">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>${paramRows}</tbody>
+                        </table>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        function toggleExamFilter(type) {
+            activeExamFilter = type;
+            const btnAll = document.getElementById('filter-all-btn');
+            const btnAbnormal = document.getElementById('filter-abnormal-btn');
+
+            if (type === 'all') {
+                btnAll.className = "flex-1 md:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-600 text-white transition-all";
+                btnAbnormal.className = "flex-1 md:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition-all";
+            } else {
+                btnAbnormal.className = "flex-1 md:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-600 text-white shadow-sm transition-all";
+                btnAll.className = "flex-1 md:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-teal-50 transition-all";
+            }
+
+            renderExams(document.getElementById('exam-search-input').value);
+            lucide.createIcons();
+        }
+
+        function filterExams() {
+            const val = document.getElementById('exam-search-input').value;
+            renderExams(val);
+            lucide.createIcons();
+        }
+
+        function deleteExam(id) {
+            if (confirm("Excluir este exame do registro permanentemente?")) {
+                appData.exams = appData.exams.filter(e => e.id !== id);
+                saveData();
+                renderAll();
+            }
+        }
+
+        // --- TAB 3: CONSULTAS ---
+        function renderConsultations() {
+            const container = document.getElementById('consultations-container');
+            container.innerHTML = '';
+
+            if (appData.consultations.length === 0) {
+                container.innerHTML = `<p class="text-sm text-slate-500 col-span-2 text-center py-8">Nenhuma consulta registrada.</p>`;
+                return;
+            }
+
+            appData.consultations.forEach(c => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <h3 class="font-bold text-slate-900 text-base">${c.doctor}</h3>
+                                <p class="text-xs font-semibold text-teal-600">${c.specialty}</p>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full text-xs font-bold ${c.status === 'Agendada' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-slate-100 text-slate-700'}">${c.status}</span>
+                        </div>
+
+                        <div class="mt-4 space-y-1.5 text-xs text-slate-600">
+                            <p class="flex items-center gap-2">
+                                <i data-lucide="calendar" class="w-4 h-4 text-slate-400"></i>
+                                <strong>Data:</strong> ${formatDateTime(c.date)}
+                            </p>
+                            <p class="flex items-center gap-2">
+                                <i data-lucide="map-pin" class="w-4 h-4 text-slate-400"></i>
+                                <strong>Local:</strong> ${c.location || 'Não especificado'}
+                            </p>
+                        </div>
+
+                        ${c.diagnosis ? `
+                            <div class="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs">
+                                <p class="font-bold text-slate-800">Diagnóstico / Conduta:</p>
+                                <p class="text-slate-600 mt-0.5">${c.diagnosis}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                        <div></div>
+                        <button onclick="deleteConsultation('${c.id}')" class="text-xs text-rose-600 font-semibold hover:underline">Excluir</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function deleteConsultation(id) {
+            if (confirm("Excluir esta consulta?")) {
+                appData.consultations = appData.consultations.filter(c => c.id !== id);
+                saveData();
+                renderAll();
+            }
+        }
+
+        // --- TAB 4: DOCUMENTOS ---
+        function renderDocuments() {
+            const container = document.getElementById('documents-container');
+            container.innerHTML = '';
+
+            if (appData.documents.length === 0) {
+                container.innerHTML = `<p class="text-sm text-slate-500 col-span-3 text-center py-8">Nenhum documento ou atestado anexado.</p>`;
+                return;
+            }
+
+            appData.documents.forEach(doc => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="p-2.5 bg-teal-50 text-teal-600 rounded-xl">
+                                <i data-lucide="file-text" class="w-5 h-5"></i>
+                            </div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md">${doc.type}</span>
+                        </div>
+
+                        <h3 class="font-bold text-slate-900 text-sm leading-snug">${doc.title}</h3>
+                        <p class="text-xs text-slate-500 mt-1">Emissor: ${doc.doctor || 'Médico'}</p>
+                        <p class="text-xs text-slate-400">Data: ${formatDate(doc.date)}</p>
+
+                        ${doc.notes ? `<p class="text-xs text-slate-600 mt-3 p-2 bg-slate-50 rounded-lg border border-slate-100">${doc.notes}</p>` : ''}
+                    </div>
+
+                    <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+                        ${doc.attachment ? `
+                            <button onclick="openLightbox('${doc.attachment}', '${doc.title}')" class="text-xs font-semibold text-teal-600 hover:underline flex items-center gap-1">
+                                <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i> Visualizar Anexo
+                            </button>
+                        ` : '<span class="text-[10px] text-slate-400">Sem imagem anexada</span>'}
+                        <button onclick="deleteDocument('${doc.id}')" class="text-xs text-rose-600 hover:underline">Remover</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function deleteDocument(id) {
+            if (confirm("Excluir este documento?")) {
+                appData.documents = appData.documents.filter(d => d.id !== id);
+                saveData();
+                renderAll();
+            }
+        }
+
+        // --- CONSTRUTOR DINÂMICO E DETECÇÃO DE ALTERADOS ---
+        function addParameterRow(param = { name: '', value: '', unit: '', ref: '', abnormal: false }) {
+            const container = document.getElementById('parameters-container');
+            const rowId = 'param-' + Date.now() + Math.random().toString(36).substring(2, 4);
+
+            const row = document.createElement('div');
+            row.id = rowId;
+            row.className = "grid grid-cols-12 gap-2 items-center bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs";
+
+            row.innerHTML = `
+                <div class="col-span-12 md:col-span-4">
+                    <input type="text" list="medical-parameters-list" placeholder="Nome / Sigla (ex: Leucócitos, Consistência, TSH)" value="${param.name}" class="param-name w-full px-2 py-1.5 border rounded-lg border-slate-300 focus:outline-none focus:border-teal-500 font-medium">
+                </div>
+                <div class="col-span-4 md:col-span-2">
+                    <input type="text" placeholder="Valor" value="${param.value}" oninput="autoDetectAbnormal('${rowId}')" class="param-val w-full px-2 py-1.5 border rounded-lg border-slate-300 focus:outline-none focus:border-teal-500 font-bold">
+                </div>
+                <div class="col-span-3 md:col-span-2">
+                    <input type="text" placeholder="Unidade (ex: g/dL)" value="${param.unit}" class="param-unit w-full px-2 py-1.5 border rounded-lg border-slate-300 focus:outline-none focus:border-teal-500">
+                </div>
+                <div class="col-span-4 md:col-span-3">
+                    <input type="text" placeholder="Ref (ex: 4.5 - 11.0, Ausente)" value="${param.ref}" oninput="autoDetectAbnormal('${rowId}')" class="param-ref w-full px-2 py-1.5 border rounded-lg border-slate-300 focus:outline-none focus:border-teal-500">
+                </div>
+                <div class="col-span-1 flex items-center justify-center">
+                    <button type="button" onclick="removeParameterRow('${rowId}')" class="text-rose-500 hover:text-rose-700 p-1">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <div class="col-span-12 flex items-center justify-between mt-1 px-1">
+                    <label class="flex items-center space-x-1.5 cursor-pointer text-[11px] text-rose-700 font-semibold">
+                        <input type="checkbox" ${param.abnormal ? 'checked' : ''} class="param-abnormal rounded text-rose-600 focus:ring-rose-500">
+                        <span>Marcar / Fora de Referência (Alterado)</span>
+                    </label>
+                    <span id="${rowId}-status-badge" class="text-[10px] font-bold px-1.5 py-0.5 rounded hidden"></span>
+                </div>
+            `;
+
+            container.appendChild(row);
+            lucide.createIcons();
+
+            if(param.value && param.ref) {
+                autoDetectAbnormal(rowId);
+            }
+        }
+
+        function removeParameterRow(id) {
+            const row = document.getElementById(id);
+            if (row) row.remove();
+        }
+
+        function autoDetectAbnormal(rowId) {
+            const row = document.getElementById(rowId);
+            if (!row) return;
+
+            const valInput = row.querySelector('.param-val');
+            const refInput = row.querySelector('.param-ref');
+            const checkInput = row.querySelector('.param-abnormal');
+            const badge = document.getElementById(`${rowId}-status-badge`);
+
+            if (!valInput || !refInput || !checkInput) return;
+
+            const valRaw = valInput.value.trim().replace(',', '.');
+            const refRaw = refInput.value.trim().replace(',', '.');
+
+            if (!valRaw || !refRaw) {
+                if(badge) badge.classList.add('hidden');
+                return;
+            }
+
+            const valNum = parseFloat(valRaw);
+            if (isNaN(valNum)) {
+                if(badge) badge.classList.add('hidden');
+                return;
+            }
+
+            let isAbnormal = false;
+            let evaluated = false;
+
+            const rangeMatch = refRaw.match(/([\d\.]+)\s*(?:-|a|até)\s*([\d\.]+)/i);
+            if (rangeMatch) {
+                const min = parseFloat(rangeMatch[1]);
+                const max = parseFloat(rangeMatch[2]);
+                if (!isNaN(min) && !isNaN(max)) {
+                    isAbnormal = valNum < min || valNum > max;
+                    evaluated = true;
+                }
+            }
+
+            if (!evaluated) {
+                const lessMatch = refRaw.match(/(?:<|abaixo|menor|inferior)\s*([\d\.]+)/i);
+                if (lessMatch) {
+                    const max = parseFloat(lessMatch[1]);
+                    if (!isNaN(max)) {
+                        isAbnormal = valNum > max;
+                        evaluated = true;
+                    }
+                }
+            }
+
+            if (!evaluated) {
+                const greaterMatch = refRaw.match(/(?:>|acima|maior|superior)\s*([\d\.]+)/i);
+                if (greaterMatch) {
+                    const min = parseFloat(greaterMatch[1]);
+                    if (!isNaN(min)) {
+                        isAbnormal = valNum < min;
+                        evaluated = true;
+                    }
+                }
+            }
+
+            if (evaluated) {
+                checkInput.checked = isAbnormal;
+                if (badge) {
+                    badge.classList.remove('hidden');
+                    if (isAbnormal) {
+                        badge.className = "text-[10px] font-bold text-rose-700 bg-rose-100 border border-rose-300 px-2 py-0.5 rounded";
+                        badge.textContent = "⚡ Auto: Alterado";
+                    } else {
+                        badge.className = "text-[10px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded";
+                        badge.textContent = "✓ Auto: Normal";
+                    }
+                }
+            }
+        }
+
+        // --- SUBMISSÃO DE FORMULÁRIO ---
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const type = document.getElementById('form-record-type').value;
+
+            if (type === 'exam') {
+                const name = document.getElementById('exam-name').value.trim();
+                const lab = document.getElementById('exam-lab').value.trim();
+                const doctor = document.getElementById('exam-doctor').value.trim();
+                const insurance = document.getElementById('exam-insurance').value.trim();
+                const date = document.getElementById('exam-date').value;
+                const attachment = document.getElementById('record-attachment-base64').value || null;
+
+                if (!name || !lab || !date) {
+                    alert("Por favor, preencha o Nome do Exame, Laboratório e Data da Coleta.");
+                    return;
+                }
+
+                const paramRows = document.querySelectorAll('#parameters-container > div');
+                const parameters = [];
+
+                paramRows.forEach(row => {
+                    const pName = row.querySelector('.param-name').value.trim();
+                    const pVal = row.querySelector('.param-val').value.trim();
+                    const pUnit = row.querySelector('.param-unit').value.trim();
+                    const pRef = row.querySelector('.param-ref').value.trim();
+                    const pAbnormal = row.querySelector('.param-abnormal').checked;
+
+                    if (pName && pVal) {
+                        parameters.push({
+                            name: pName,
+                            value: pVal,
+                            unit: pUnit,
+                            ref: pRef,
+                            abnormal: pAbnormal
+                        });
+                    }
+                });
+
+                const newExam = {
+                    id: 'ex-' + Date.now(),
+                    name,
+                    lab,
+                    doctor,
+                    insurance,
+                    date,
+                    attachment,
+                    parameters
+                };
+
+                appData.exams.unshift(newExam);
+
+            } else if (type === 'consultation') {
+                const doctor = document.getElementById('consultation-doctor').value.trim();
+                const specialty = document.getElementById('consultation-specialty').value.trim();
+                const date = document.getElementById('consultation-date').value;
+                const location = document.getElementById('consultation-location').value.trim();
+                const status = document.getElementById('consultation-status').value;
+                const diagnosis = document.getElementById('consultation-diagnosis').value.trim();
+
+                if (!doctor || !specialty || !date) {
+                    alert("Por favor, preencha o Nome do Médico, Especialidade e Data/Hora da Consulta.");
+                    return;
+                }
+
+                const newConsultation = {
+                    id: 'cs-' + Date.now(),
+                    doctor,
+                    specialty,
+                    date,
+                    location,
+                    status,
+                    diagnosis,
+                    notes: ''
+                };
+
+                appData.consultations.unshift(newConsultation);
+
+            } else if (type === 'document') {
+                const title = document.getElementById('doc-title').value.trim();
+                const docType = document.getElementById('doc-type').value;
+                const doctor = document.getElementById('doc-doctor').value.trim();
+                const date = document.getElementById('doc-date').value;
+                const notes = document.getElementById('doc-notes').value.trim();
+                const attachment = document.getElementById('record-attachment-base64').value || null;
+
+                if (!title || !date) {
+                    alert("Por favor, preencha o Título e a Data do Documento.");
+                    return;
+                }
+
+                const newDoc = {
+                    id: 'doc-' + Date.now(),
+                    title,
+                    type: docType,
+                    doctor,
+                    date,
+                    notes,
+                    attachment
+                };
+
+                appData.documents.unshift(newDoc);
+            }
+
+            saveData();
+            renderAll();
+            closeModal('modal-new-record');
+            resetForm();
+        }
+
+        function resetForm() {
+            document.getElementById('form-record').reset();
+            document.getElementById('record-attachment-base64').value = '';
+            document.getElementById('parameters-container').innerHTML = '';
+            addParameterRow();
+        }
+
+        function convertFileToBase64(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('record-attachment-base64').value = e.target.result;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // --- SISTEMA MASTER OCR (DIGITALIZAÇÃO DINÂMICA E UNIVERSAL) ---
+        function openOcrScannerModal() {
+            document.getElementById('ocr-file-input').value = '';
+            document.getElementById('ocr-upload-prompt').classList.remove('hidden');
+            document.getElementById('ocr-preview-container').classList.add('hidden');
+            document.getElementById('ocr-progress-container').classList.add('hidden');
+            document.getElementById('ocr-result-msg').classList.add('hidden');
+            openModal('modal-ocr-scanner');
+        }
+
+        async function processImageOCR(input) {
+            if (!input.files || !input.files[0]) return;
+
+            const file = input.files[0];
+            const reader = new FileReader();
+
+            reader.onload = async function(e) {
+                const originalBase64 = e.target.result;
+
+                // Exibir preview da foto
+                document.getElementById('ocr-preview-img').src = originalBase64;
+                document.getElementById('ocr-preview-container').classList.remove('hidden');
+                document.getElementById('ocr-upload-prompt').classList.add('hidden');
+
+                const progressContainer = document.getElementById('ocr-progress-container');
+                const progressBar = document.getElementById('ocr-progress-bar');
+                const statusText = document.getElementById('ocr-status-text');
+                const percentText = document.getElementById('ocr-percent-text');
+                const resultMsg = document.getElementById('ocr-result-msg');
+
+                progressContainer.classList.remove('hidden');
+                resultMsg.classList.add('hidden');
+                progressBar.style.width = '10%';
+                percentText.textContent = '10%';
+
+                try {
+                    statusText.innerHTML = '<i data-lucide="sparkles" class="w-4 h-4 animate-spin text-teal-600"></i> Otimizando nitidez do laudo...';
+                    lucide.createIcons();
+
+                    const processedBase64 = await preprocessImageCanvas(originalBase64);
+                    progressBar.style.width = '30%';
+                    percentText.textContent = '30%';
+
+                    statusText.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-teal-600"></i> Lendo dados da foto...';
+                    lucide.createIcons();
+
+                    const ocrPromise = Tesseract.recognize(processedBase64, 'por', {
+                        logger: m => {
+                            if (m.status === 'recognizing text' && m.progress) {
+                                const pct = Math.round(30 + (m.progress * 65));
+                                percentText.textContent = `${pct}%`;
+                                progressBar.style.width = `${pct}%`;
+                            }
+                        }
+                    });
+
+                    const timeoutPromise = new Promise((_, reject) => {
+                        setTimeout(() => reject(new Error('Tempo limite excedido. Tente aproximar a foto.')), 25000);
+                    });
+
+                    const ret = await Promise.race([ocrPromise, timeoutPromise]);
+                    const rawText = ret.data ? ret.data.text : '';
+
+                    progressBar.style.width = '100%';
+                    percentText.textContent = '100%';
+
+                    // Extração 100% dinêmica sem dependência de listas estáticas
+                    const parsedData = parseMedicalReportText(rawText);
+                    parsedData.attachment = originalBase64;
+
+                    closeModal('modal-ocr-scanner');
+                    populateExamFormFromOcr(parsedData);
+
+                } catch (err) {
+                    console.error("Erro no OCR:", err);
+                    progressContainer.classList.add('hidden');
+                    resultMsg.className = "p-3 rounded-xl text-xs font-semibold bg-rose-100 text-rose-800 border border-rose-200 block";
+                    resultMsg.textContent = "Não foi possível concluir a leitura. Certifique-se de que a foto está bem focada e tente novamente.";
+                }
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        // REDIMENSIONA E APLICA ALTO CONTRASTE
+        function preprocessImageCanvas(imageSrc) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => {
+                    let width = img.width;
+                    let height = img.height;
+                    const maxDimension = 1400;
+
+                    if (width > maxDimension || height > maxDimension) {
+                        if (width > height) {
+                            height = Math.round((height * maxDimension) / width);
+                            width = maxDimension;
+                        } else {
+                            width = Math.round((width * maxDimension) / height);
+                            height = maxDimension;
+                        }
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const imgData = ctx.getImageData(0, 0, width, height);
+                    const data = imgData.data;
+
+                    for (let i = 0; i < data.length; i += 4) {
+                        const v = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
+                        const finalVal = v < 140 ? 0 : 255;
+                        data[i] = finalVal;
+                        data[i + 1] = finalVal;
+                        data[i + 2] = finalVal;
+                    }
+
+                    ctx.putImageData(imgData, 0, 0);
+                    resolve(canvas.toDataURL('image/jpeg', 0.85));
+                };
+                img.onerror = () => reject(new Error('Erro ao carregar a imagem.'));
+                img.src = imageSrc;
+            });
+        }
+
+        // PARSER 100% DINÂMICO, GENÉRICO E SEM DEPENDÊNCIA DE LISTAS
+        function parseMedicalReportText(rawText) {
+            if (!rawText) return { name: "Exame Laboratorial", lab: "Laboratório (Via Foto)", date: new Date().toISOString().split('T')[0], parameters: [] };
+
+            const lines = rawText.split('\n')
+                .map(l => l.trim())
+                .filter(l => l.length > 0);
+
+            let detectedExamName = "";
+            let detectedLab = "";
+            let detectedDate = new Date().toISOString().split('T')[0];
+            const parameters = [];
+
+            // Filtro para ignorar metadados e cabeçalhos de laudo
+            const metaHeaderRegex = /^(paciente|nome|solicitante|médico|medico|dr\.|dra\.|crm|convênio|convenio|idade|sexo|data|cpf|rg|registro|atendimento|pedido|requisição|requisicao|prontuário|prontuario|página|pagina|folha|laudo|emissão|emitido|unidade|matrícula|matricula|coleta|recebimento)\b/i;
+
+            // 1. Extração Dinâmica de Data (dd/mm/aaaa)
+            const dateMatch = rawText.match(/\b(\d{2})[\/\.-](\d{2})[\/\.-](\d{4})\b/);
+            if (dateMatch) {
+                detectedDate = `${dateMatch[3]}-${dateMatch[2]}-${dateMatch[1]}`;
+            }
+
+            // 2. Extração Dinâmica do Laboratório
+            const labMatch = rawText.match(/(?:laborat[óo]rio|lab|diagn[óo]sticos|cl[íi]nica|instituto|hospital)\s*[:\.-]?\s*([^\n\r,]+)/i);
+            if (labMatch && labMatch[1]) {
+                detectedLab = labMatch[1].trim();
+            }
+
+            // 3. Extração Dinâmica do Nome do Exame (Direto do Topo do Corpo do Laudo)
+            for (let i = 0; i < Math.min(lines.length, 15); i++) {
+                const line = lines[i];
+                const cleanLine = line.replace(/^[\*\.\-\s:=]+|[\*\.\-\s:=]+$/g, '').trim();
+
+                if (!cleanLine || metaHeaderRegex.test(cleanLine) || cleanLine.length < 3) continue;
+
+                // Títulos explícitos
+                const explicitMatch = cleanLine.match(/^(?:exame|dosagem|pesquisa|análise|analise|laudo|perfil|painel|prova|cultura)\s*(?:de|da|do|dos|das)?\s*[:\.-]?\s*(.+)/i);
+                if (explicitMatch && explicitMatch[1]) {
+                    const candidate = explicitMatch[1].trim();
+                    if (candidate.length >= 3 && !metaHeaderRegex.test(candidate)) {
+                        detectedExamName = candidate;
+                        break;
+                    }
+                }
+
+                // Linha isolada que funciona como Título
+                if (!/\d/.test(cleanLine) && cleanLine.length >= 4 && cleanLine.length <= 70) {
+                    const isTableHeader = /^(parâmetro|parametro|resultado|unidade|referência|referencia|valor|valores|vr|método|metodo)\b/i.test(cleanLine);
+                    if (!isTableHeader && !metaHeaderRegex.test(cleanLine)) {
+                        if (cleanLine === cleanLine.toUpperCase() || cleanLine.length > 8) {
+                            detectedExamName = cleanLine;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (!detectedExamName) {
+                detectedExamName = "Exame Laboratorial";
+            }
+
+            detectedExamName = detectedExamName.replace(/[:\.-]$/, '').trim();
+
+            // 4. Estruturação Dinâmica de Parâmetros, Valores, Unidades e Referências
+            const unitRegex = /\b(mg\/dL|g\/dL|g\/L|mg\/L|µg\/dL|ug\/dL|uUI\/mL|mUI\/mL|µIU\/mL|UI\/mL|ng\/mL|pg\/mL|fL|pg|mEq\/L|U\/L|u\/l|IU\/L|mm\/h|g\/24h|mg\/24h|milhões\/mm³|milhoes\/mm3|milhões\/mm3|\/mm³|\/mm3|\/µL|\/uL|\/mL|%|mg\/g|g\/g|nmol\/L|pmol\/L)\b/i;
+
+            const qualResultRegex = /\b(ausente[s]?|presente[s]?|negativo[s]?|reativo[s]?|n[ãa]o\s+reativo[s]?|amarelo[s]?|castanho[s]?|l[íi]mpido[s]?|turvo[s]?|fecaloide[s]?|fecal[óo]ide[s]?|normal[is]?|inalterado[s]?|preservado[s]?|raro[s]?|raras|numeroso[s]?|numerosas|moderado[s]?|moderadas|traços|tracos)\b/i;
+
+            lines.forEach(line => {
+                let cleanLine = line.replace(/[\._]{2,}/g, ' ').replace(/\s+/g, ' ').trim();
+
+                if (!cleanLine || cleanLine.length < 3) return;
+                if (metaHeaderRegex.test(cleanLine)) return;
+                if (/^(parâmetro|parametro|exame|resultado|unidade|referência|referencia|valores|vr|método|metodo|material)\s+/i.test(cleanLine)) return;
+
+                const hasDigit = /\d/.test(cleanLine);
+                const hasQual = qualResultRegex.test(cleanLine);
+
+                if (!hasDigit && !hasQual) return;
+
+                // Isolamento da Unidade
+                let unitStr = "";
+                const unitMatch = cleanLine.match(unitRegex);
+                if (unitMatch) {
+                    unitStr = unitMatch[1];
+                }
+
+                // Isolamento dos Valores de Referência
+                let refStr = "";
+                const refParenMatch = cleanLine.match(/\((?:ref|vr|refer[êe]ncia|valores|val\.?\s*ref\.?)?\s*[:=]?\s*([^\)]+)\)/i);
+                if (refParenMatch) {
+                    refStr = refParenMatch[1].trim();
+                } else {
+                    const refExplicitMatch = cleanLine.match(/(?:vr|ref|refer[êe]ncia|valores)\s*[:=]?\s*([0-9A-Za-zÀ-ÖØ-öø-ÿ\s\.,<>\-–a-z]+)$/i);
+                    if (refExplicitMatch) {
+                        refStr = refExplicitMatch[1].trim();
+                    }
+                }
+
+                let lineWithoutRef = cleanLine;
+                if (refParenMatch) {
+                    lineWithoutRef = cleanLine.replace(refParenMatch[0], '').trim();
+                } else if (refStr) {
+                    const idx = cleanLine.toLowerCase().lastIndexOf(refStr.toLowerCase());
+                    if (idx > 0) {
+                        lineWithoutRef = cleanLine.substring(0, idx).replace(/(?:vr|ref|refer[êe]ncia|valores)\s*[:=]?$/i, '').trim();
+                    }
+                }
+
+                let lineForParsing = lineWithoutRef;
+                if (unitStr) {
+                    lineForParsing = lineForParsing.replace(unitStr, ' ');
+                }
+
+                let paramName = "";
+                let paramValue = "";
+
+                if (hasDigit) {
+                    const numMatch = lineForParsing.match(/(?:[<>]\s*)?\b\d+(?:[\.,]\d+)?\b/);
+                    if (numMatch) {
+                        const valIdx = lineForParsing.indexOf(numMatch[0]);
+                        paramName = lineForParsing.substring(0, valIdx).replace(/[:\.-]+$/, '').trim();
+                        paramValue = numMatch[0].trim();
+
+                        if (!refStr) {
+                            const afterVal = lineForParsing.substring(valIdx + numMatch[0].length).trim();
+                            if (afterVal.length > 0 && !/^[:\.-]+$/.test(afterVal)) {
+                                refStr = afterVal.replace(/^[:\.-]+/, '').trim();
+                            }
+                        }
+                    }
+                }
+
+                if (!paramValue && hasQual) {
+                    const qualMatch = lineForParsing.match(qualResultRegex);
+                    if (qualMatch) {
+                        const qualIdx = lineForParsing.toLowerCase().indexOf(qualMatch[0].toLowerCase());
+                        paramName = lineForParsing.substring(0, qualIdx).replace(/[:\.-]+$/, '').trim();
+                        paramValue = qualMatch[0].trim();
+
+                        if (!refStr) {
+                            refStr = paramValue;
+                        }
+                    }
+                }
+
+                paramName = paramName.replace(/^[\*\.\-\s:=]+|[\*\.\-\s:=]+$/g, '').trim();
+
+                if (paramName.length >= 2 && paramValue && !metaHeaderRegex.test(paramName)) {
+                    if (!parameters.some(p => p.name.toLowerCase() === paramName.toLowerCase())) {
+                        parameters.push({
+                            name: paramName,
+                            value: paramValue,
+                            unit: unitStr,
+                            ref: refStr || '-',
+                            abnormal: checkIfAbnormal(paramValue, refStr)
+                        });
+                    }
+                }
+            });
+
+            return {
+                name: detectedExamName,
+                lab: detectedLab || "Laboratório (Via Foto)",
+                date: detectedDate,
+                parameters: parameters
+            };
+        }
+
+        // VERIFICA SE O VALOR ESTÁ FORA DA REFERÊNCIA
+        function checkIfAbnormal(valRaw, refRaw) {
+            if (!valRaw || !refRaw) return false;
+            const v = parseFloat(valRaw.replace(',', '.'));
+            if (isNaN(v)) return false;
+
+            const refClean = refRaw.replace(',', '.');
+            const rangeMatch = refClean.match(/([\d\.]+)\s*(?:-|a|até)\s*([\d\.]+)/i);
+            if (rangeMatch) {
+                const min = parseFloat(rangeMatch[1]);
+                const max = parseFloat(rangeMatch[2]);
+                if (!isNaN(min) && !isNaN(max)) {
+                    return v < min || v > max;
+                }
+            }
+            const lessMatch = refClean.match(/(?:<|abaixo|menor|inferior)\s*([\d\.]+)/i);
+            if (lessMatch) {
+                const max = parseFloat(lessMatch[1]);
+                if (!isNaN(max)) return v > max;
+            }
+            const greaterMatch = refClean.match(/(?:>|acima|maior|superior)\s*([\d\.]+)/i);
+            if (greaterMatch) {
+                const min = parseFloat(greaterMatch[1]);
+                if (!isNaN(min)) return v < min;
+            }
+            return false;
+        }
+
+        // PREENCHE O FORMULÁRIO COM OS DADOS DINÂMICOS LIDOS
+        function populateExamFormFromOcr(data) {
+            openNewRecordModal('exam');
+
+            document.getElementById('exam-name').value = data.name;
+            document.getElementById('exam-lab').value = data.lab;
+            document.getElementById('exam-date').value = data.date;
+
+            if (data.attachment) {
+                document.getElementById('record-attachment-base64').value = data.attachment;
+            }
+
+            document.getElementById('parameters-container').innerHTML = '';
+
+            if (data.parameters && data.parameters.length > 0) {
+                data.parameters.forEach(p => {
+                    addParameterRow(p);
+                });
+                alert(`✨ Leitura fidedigna concluída! ${data.parameters.length} parâmetros foram capturados dinamicamente.`);
+            } else {
+                addParameterRow({ name: 'Exame por Foto', value: 'Concluído', unit: '', ref: 'Normal', abnormal: false });
+                alert("✨ Laudo carregado! Verifique os dados e clique em 'Salvar Registro'.");
+            }
+        }
+
+        // --- RELATÓRIO MÉDICO IMPRESSO ---
+        function exportDoctorReport() {
+            document.getElementById('report-date').textContent = new Date().toLocaleDateString('pt-BR');
+            
+            const abnormalContainer = document.getElementById('report-abnormal-list');
+            abnormalContainer.innerHTML = '';
+            let abnormalCount = 0;
+
+            appData.exams.forEach(ex => {
+                if (ex.parameters) {
+                    ex.parameters.filter(p => p.abnormal).forEach(p => {
+                        abnormalCount++;
+                        const item = document.createElement('div');
+                        item.className = "p-2 bg-rose-50 border border-rose-200 rounded text-xs flex justify-between items-center";
+                        item.innerHTML = `
+                            <div>
+                                <strong class="text-rose-900">${p.name}</strong> (${ex.name} - ${formatDate(ex.date)})
+                                <span class="block text-slate-500">Ref: ${p.ref || '-'}</span>
+                            </div>
+                            <span class="text-sm font-bold text-rose-700">${p.value} ${p.unit || ''}</span>
+                        `;
+                        abnormalContainer.appendChild(item);
+                    });
+                }
+            });
+
+            if (abnormalCount === 0) {
+                abnormalContainer.innerHTML = `<p class="text-xs text-slate-500">Nenhum parâmetro alterado registrado até o momento.</p>`;
+            }
+
+            const examsContainer = document.getElementById('report-exams-list');
+            examsContainer.innerHTML = '';
+            if(appData.exams.length === 0) {
+                examsContainer.innerHTML = `<p class="text-xs text-slate-400">Nenhum exame cadastrado.</p>`;
+            } else {
+                appData.exams.slice(0, 5).forEach(ex => {
+                    const el = document.createElement('div');
+                    el.className = "text-xs border-b border-slate-200 pb-2";
+                    
+                    let pText = ex.parameters ? ex.parameters.map(p => `${p.name}: <strong>${p.value} ${p.unit || ''}</strong> (${p.abnormal ? 'ALTERADO' : 'OK'})`).join(' | ') : 'Sem parâmetros';
+
+                    el.innerHTML = `
+                        <div class="flex justify-between font-bold text-slate-900">
+                            <span>${ex.name} (${ex.lab})</span>
+                            <span>${formatDate(ex.date)}</span>
+                        </div>
+                        <p class="text-slate-600 text-[11px] mt-0.5">${pText}</p>
+                    `;
+                    examsContainer.appendChild(el);
+                });
+            }
+
+            const csContainer = document.getElementById('report-consultations-list');
+            csContainer.innerHTML = '';
+            if(appData.consultations.length === 0) {
+                csContainer.innerHTML = `<p class="text-xs text-slate-400">Nenhuma consulta registrada.</p>`;
+            } else {
+                appData.consultations.slice(0, 4).forEach(c => {
+                    const el = document.createElement('div');
+                    el.className = "border-b border-slate-100 pb-1.5";
+                    el.innerHTML = `
+                        <p class="font-semibold text-slate-800">${formatDate(c.date)} - ${c.doctor} (${c.specialty})</p>
+                        <p class="text-slate-600 text-[11px]">${c.diagnosis || 'Sem diagnóstico registrado'}</p>
+                    `;
+                    csContainer.appendChild(el);
+                });
+            }
+
+            openModal('modal-report');
+        }
+
+        // --- NAVEGAÇÃO DE TABS ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.className = "nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800";
+            });
+            const activeDesktop = document.getElementById(`nav-${tabId}`);
+            if(activeDesktop) activeDesktop.className = "nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all text-white bg-teal-600 shadow-sm";
+
+            document.querySelectorAll('.nav-mob-btn').forEach(btn => btn.className = "nav-mob-btn flex flex-col items-center p-2 text-slate-400");
+            const activeMobile = document.getElementById(`nav-mob-${tabId}`);
+            if(activeMobile) activeMobile.className = "nav-mob-btn flex flex-col items-center p-2 text-teal-400";
+        }
+
+        function setRecordType(type) {
+            document.getElementById('form-record-type').value = type;
+
+            const examFields = document.getElementById('form-fields-exam');
+            const consFields = document.getElementById('form-fields-consultation');
+            const docFields = document.getElementById('form-fields-document');
+
+            examFields.classList.add('hidden');
+            consFields.classList.add('hidden');
+            docFields.classList.add('hidden');
+
+            document.querySelectorAll('.type-selector-btn').forEach(btn => {
+                btn.className = "type-selector-btn py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all bg-white text-slate-700 border-slate-200 hover:bg-slate-100";
+            });
+
+            if (type === 'exam') {
+                examFields.classList.remove('hidden');
+                document.getElementById('type-btn-exam').className = "type-selector-btn py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all bg-teal-600 text-white border-teal-600";
+            } else if (type === 'consultation') {
+                consFields.classList.remove('hidden');
+                document.getElementById('type-btn-consultation').className = "type-selector-btn py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all bg-teal-600 text-white border-teal-600";
+            } else if (type === 'document') {
+                docFields.classList.remove('hidden');
+                document.getElementById('type-btn-document').className = "type-selector-btn py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all bg-teal-600 text-white border-teal-600";
+            }
+        }
+
+        // --- CONTROLE DE MODAIS ---
+        function openNewRecordModal(type = 'exam') {
+            resetForm();
+            setRecordType(type);
+            openModal('modal-new-record');
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function openLightbox(imgSrc, title) {
+            document.getElementById('lightbox-img').src = imgSrc;
+            document.getElementById('lightbox-caption').textContent = title;
+            document.getElementById('lightbox-download').href = imgSrc;
+            openModal('modal-lightbox');
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const [year, month, day] = dateStr.split('T')[0].split('-');
+            return `${day}/${month}/${year}`;
+        }
+
+        function formatDateTime(dateTimeStr) {
+            if (!dateTimeStr) return '-';
+            const d = new Date(dateTimeStr);
+            return `${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}`;
+        }
+    </script>
 </body>
 </html>
