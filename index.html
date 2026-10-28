@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MediCore - Registro de Saúde Pessoal</title>
+  <title>MediCore - Registro e Histórico de Saúde Pessoal</title>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -19,10 +19,10 @@
       .no-print { display: none !important; }
       .print-only { display: block !important; }
       body { background-color: #fff !important; color: #000 !important; }
+      .card-print { break-inside: avoid; border: 1px solid #ccc !important; shadow: none !important; }
     }
     .print-only { display: none; }
     
-    /* Smooth transitions & custom scrollbars */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -51,16 +51,32 @@
           </div>
           <div>
             <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-              MediCore <span class="text-xs bg-teal-500/20 text-teal-300 font-medium px-2 py-0.5 rounded-full border border-teal-500/30">v2.5</span>
+              MediCore <span class="text-xs bg-teal-500/20 text-teal-300 font-medium px-2 py-0.5 rounded-full border border-teal-500/30">v3.0</span>
             </h1>
             <p class="text-xs text-slate-400">Prontuário e Histórico de Saúde Pessoal</p>
           </div>
         </div>
         
-        <div class="flex items-center space-x-3">
-          <button onclick="openExamModal()" class="bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition shadow-sm">
+        <div class="flex items-center space-x-2 sm:space-x-3">
+          <button onclick="exportDataJSON()" class="px-3 py-1.5 border border-slate-700 hover:bg-slate-800 text-slate-300 rounded-lg text-xs font-medium flex items-center gap-1.5 transition" title="Exportar Backup dos Dados">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">Exportar</span>
+          </button>
+          
+          <label class="px-3 py-1.5 border border-slate-700 hover:bg-slate-800 text-slate-300 rounded-lg text-xs font-medium flex items-center gap-1.5 transition cursor-pointer" title="Importar Backup dos Dados">
+            <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">Importar</span>
+            <input type="file" accept=".json" onchange="importDataJSON(event)" class="hidden">
+          </label>
+
+          <button onclick="openConsultationModal()" class="bg-slate-800 hover:bg-slate-700 text-teal-300 border border-teal-500/30 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium flex items-center gap-1.5 transition">
+            <i data-lucide="stethoscope" class="w-4 h-4"></i>
+            <span>Nova Consulta</span>
+          </button>
+
+          <button onclick="openExamModal()" class="bg-teal-600 hover:bg-teal-500 text-white px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition shadow-sm">
             <i data-lucide="plus-circle" class="w-4 h-4"></i>
-            <span>Novo Exame / Consulta</span>
+            <span>Novo Exame</span>
           </button>
         </div>
       </div>
@@ -71,7 +87,7 @@
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
     
     <!-- DASHBOARD SUMMARY CARDS -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 no-print">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 no-print">
       <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
         <div>
           <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total de Exames</p>
@@ -94,21 +110,21 @@
 
       <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
         <div>
-          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Última Atualização</p>
-          <h3 id="statLastDate" class="text-base font-bold text-slate-800 mt-1">Nenhuma</h3>
-        </div>
-        <div class="p-3 bg-teal-50 text-teal-600 rounded-lg">
-          <i data-lucide="calendar" class="w-6 h-6"></i>
-        </div>
-      </div>
-
-      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-        <div>
           <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Consultas Registradas</p>
           <h3 id="statConsultsCount" class="text-2xl font-bold text-slate-800 mt-1">0</h3>
         </div>
         <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg">
           <i data-lucide="user-check" class="w-6 h-6"></i>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Última Atualização</p>
+          <h3 id="statLastDate" class="text-base font-bold text-slate-800 mt-1">Nenhuma</h3>
+        </div>
+        <div class="p-3 bg-teal-50 text-teal-600 rounded-lg">
+          <i data-lucide="calendar" class="w-6 h-6"></i>
         </div>
       </div>
     </div>
@@ -122,19 +138,23 @@
         </button>
         <button onclick="switchTab('consultations')" id="tabConsultations" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 font-medium py-4 px-1 border-b-2 text-sm flex items-center gap-2">
           <i data-lucide="stethoscope" class="w-4 h-4"></i>
-          Consultas e Pareceres
+          Consultas e Pareceres Médicos
+        </button>
+        <button onclick="switchTab('timeline')" id="tabTimeline" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 font-medium py-4 px-1 border-b-2 text-sm flex items-center gap-2">
+          <i data-lucide="clock" class="w-4 h-4"></i>
+          Linha do Tempo de Saúde
         </button>
       </nav>
     </div>
 
-    <!-- SECTION: EXAMS TAB -->
+    <!-- SECTION 1: EXAMS TAB -->
     <div id="sectionExams" class="tab-content space-y-6">
       
       <!-- CONTROLS & SEARCH BAR -->
       <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm no-print">
         <div class="relative w-full sm:w-96">
           <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-          <input type="text" id="searchInput" oninput="renderExamsList()" placeholder="Buscar por nome do exame, parâmetro ou laboratório..." class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none">
+          <input type="text" id="searchInput" oninput="renderExamsList()" placeholder="Buscar por exame, paciente, parâmetro, médico..." class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none">
         </div>
         <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
           <button onclick="toggleAbnormalFilter()" id="btnFilterAbnormal" class="px-3 py-2 border border-slate-300 rounded-lg text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 flex items-center gap-1.5 transition">
@@ -143,21 +163,45 @@
           </button>
           <button onclick="window.print()" class="px-3 py-2 border border-slate-300 rounded-lg text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 flex items-center gap-1.5 transition">
             <i data-lucide="printer" class="w-3.5 h-3.5"></i>
-            <span>Imprimir Sintético</span>
+            <span>Imprimir Relatório</span>
           </button>
         </div>
       </div>
 
       <!-- EXAMS LIST CONTAINER -->
       <div id="examsContainer" class="space-y-4">
-        <!-- Renderizado Dinamicamente -->
+        <!-- Renderizado dinamico dos cards de exames -->
       </div>
     </div>
 
-    <!-- SECTION: CONSULTATIONS TAB -->
+    <!-- SECTION 2: CONSULTATIONS TAB -->
     <div id="sectionConsultations" class="tab-content space-y-6 hidden">
+      <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm no-print">
+        <div class="relative w-full sm:w-96">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input type="text" id="searchConsultInput" oninput="renderConsultationsList()" placeholder="Buscar por médico, especialidade, diagnóstico..." class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+        </div>
+        <button onclick="openConsultationModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>Cadastrar Consulta</span>
+        </button>
+      </div>
+
       <div id="consultationsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Renderizado Dinamicamente -->
+        <!-- Renderizado dinamico das consultas -->
+      </div>
+    </div>
+
+    <!-- SECTION 3: HEALTH TIMELINE TAB -->
+    <div id="sectionTimeline" class="tab-content space-y-6 hidden">
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <h3 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <i data-lucide="history" class="w-5 h-5 text-teal-600"></i>
+          Histórico Unificado de Saúde
+        </h3>
+        <div id="timelineContainer" class="relative border-l-2 border-slate-200 ml-4 space-y-6 pl-6 py-2">
+          <!-- Renderizado dinamico da linha do tempo -->
+        </div>
       </div>
     </div>
 
@@ -165,7 +209,7 @@
 
   <!-- MODAL: ADD / EDIT EXAM -->
   <div id="examModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-100">
+    <div class="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-100">
       
       <!-- MODAL HEADER -->
       <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
@@ -182,15 +226,15 @@
       <div class="p-6 overflow-y-auto space-y-6 flex-1">
         
         <!-- OCR SCANNER DROPZONE -->
-        <div class="bg-slate-50 border-2 border-dashed border-teal-300/80 rounded-xl p-5 text-center relative hover:bg-teal-50/30 transition">
+        <div class="bg-slate-50 border-2 border-dashed border-teal-400/80 rounded-xl p-5 text-center relative hover:bg-teal-50/40 transition">
           <input type="file" id="ocrFileInput" accept="image/*" onchange="handleOCRUpload(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
           <div class="flex flex-col items-center justify-center space-y-2">
             <div class="p-3 bg-teal-100 text-teal-700 rounded-full">
               <i data-lucide="camera" class="w-6 h-6"></i>
             </div>
             <div>
-              <p class="text-sm font-semibold text-slate-800">Escanear Foto do Laudo (OCR Automático)</p>
-              <p class="text-xs text-slate-500 mt-0.5">Clique ou arraste uma foto legível do exame físico (Hemograma, Fezes, Urina, etc.)</p>
+              <p class="text-sm font-semibold text-slate-800">Escanear Foto do Laudo (OCR Inteligente)</p>
+              <p class="text-xs text-slate-500 mt-0.5">Selecione uma foto do laudo físico. O sistema mapeará automaticamente Paciente, Médico, Convênio, Exame e os Parâmetros.</p>
             </div>
           </div>
           
@@ -198,13 +242,13 @@
           <div id="ocrProgressOverlay" class="hidden absolute inset-0 bg-white/95 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center p-4 z-20">
             <div class="w-full max-w-xs space-y-3">
               <div class="flex items-center justify-between text-xs font-medium text-slate-600">
-                <span id="ocrStatusText">Processando OCR...</span>
+                <span id="ocrStatusText">Otimizando e escaneando laudo...</span>
                 <span id="ocrPercentText">0%</span>
               </div>
               <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
                 <div id="ocrProgressBar" class="bg-teal-600 h-full w-0 transition-all duration-300"></div>
               </div>
-              <p class="text-[11px] text-slate-400 text-center">Isolando parâmetros e higienizando cabeçalhos...</p>
+              <p class="text-[11px] text-slate-400 text-center">Isolando campos e higienizando ruídos...</p>
             </div>
           </div>
         </div>
@@ -213,45 +257,57 @@
           <input type="hidden" id="examId">
           
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="md:col-span-1">
+            <div>
               <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Data da Coleta *</label>
               <input type="date" id="examDate" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none">
             </div>
             
             <div class="md:col-span-2">
               <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Nome do Exame Exato *</label>
-              <input type="text" id="examTitle" required placeholder="Ex: Hemograma Completo, Parasitológico de Fezes..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+              <input type="text" id="examTitle" required placeholder="Ex: Hemograma Completo, Parasitológico de Fezes, Urina Tipo 1..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none">
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- DEDICATED METADATA FIELDS (PATIENT, DOCTOR, HEALTH PLAN, LAB) -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 bg-slate-50 p-3 rounded-xl border border-slate-200">
             <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Laboratório / Clínica</label>
-              <input type="text" id="examLab" placeholder="Ex: Laboratório Fleury, Hermes Pardini..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+              <label class="block text-[11px] font-semibold text-slate-600 uppercase mb-1">Nome do Paciente</label>
+              <input type="text" id="examPatient" placeholder="Ex: João da Silva" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-md text-xs focus:ring-1 focus:ring-teal-500 outline-none bg-white">
             </div>
             <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Médico Solicitante / CRM</label>
-              <input type="text" id="examDoctor" placeholder="Ex: Dr. Carlos Silva (CRM 123456)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+              <label class="block text-[11px] font-semibold text-slate-600 uppercase mb-1">Médico Solicitante / CRM</label>
+              <input type="text" id="examDoctor" placeholder="Ex: Dr. Carlos Silva (CRM 1234)" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-md text-xs focus:ring-1 focus:ring-teal-500 outline-none bg-white">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 uppercase mb-1">Convênio / Plano</label>
+              <input type="text" id="examInsurance" placeholder="Ex: Unimed, Bradesco..." class="w-full px-2.5 py-1.5 border border-slate-300 rounded-md text-xs focus:ring-1 focus:ring-teal-500 outline-none bg-white">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 uppercase mb-1">Laboratório / Clínica</label>
+              <input type="text" id="examLab" placeholder="Ex: Fleury, Pardini..." class="w-full px-2.5 py-1.5 border border-slate-300 rounded-md text-xs focus:ring-1 focus:ring-teal-500 outline-none bg-white">
             </div>
           </div>
 
           <!-- DYNAMIC PARAMETERS SECTION -->
           <div class="border-t border-slate-200 pt-4 mt-4">
             <div class="flex items-center justify-between mb-3">
-              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Resultados e Parâmetros Mapeados</h3>
-              <button type="button" onclick="addParameterRow()" class="text-xs text-teal-600 hover:text-teal-700 font-semibold flex items-center gap-1">
+              <div>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Parâmetros e Resultados Analisados</h3>
+                <p class="text-[11px] text-slate-500">Isole o parâmetro, o valor obtido, a unidade exata e o valor de referência do laudo.</p>
+              </div>
+              <button type="button" onclick="addParameterRow()" class="text-xs text-teal-600 hover:text-teal-700 font-semibold flex items-center gap-1 bg-teal-50 px-2.5 py-1.5 rounded-lg border border-teal-200 transition">
                 <i data-lucide="plus" class="w-3.5 h-3.5"></i> Adicionar Parâmetro
               </button>
             </div>
 
-            <div id="parametersList" class="space-y-3 max-h-60 overflow-y-auto pr-1">
-              <!-- Linhas de parâmetros dinamicas -->
+            <div id="parametersList" class="space-y-2 max-h-64 overflow-y-auto pr-1">
+              <!-- Linhas de parâmetros geradas dinamicamente -->
             </div>
           </div>
 
           <div class="border-t border-slate-200 pt-4">
-            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Observações Gerais / Conclusão</label>
-            <textarea id="examNotes" rows="2" placeholder="Observações do laudo ou notas pessoais..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none"></textarea>
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Observações Gerais / Conclusão do Laudo</label>
+            <textarea id="examNotes" rows="2" placeholder="Notas de conclusão do médico, observações de laudo ou anotações pessoais..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none"></textarea>
           </div>
 
           <!-- MODAL ACTIONS -->
@@ -265,7 +321,71 @@
     </div>
   </div>
 
-  <!-- SCRIPT LOGIC -->
+  <!-- MODAL: ADD / EDIT CONSULTATION -->
+  <div id="consultationModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-100">
+      
+      <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
+        <div class="flex items-center gap-2">
+          <i data-lucide="stethoscope" class="w-5 h-5 text-indigo-400"></i>
+          <h2 id="consultModalTitle" class="font-semibold text-lg">Cadastrar Consulta Médica</h2>
+        </div>
+        <button onclick="closeConsultationModal()" class="text-slate-400 hover:text-white transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-4 flex-1">
+        <form id="consultationForm" onsubmit="saveConsultation(event)" class="space-y-4">
+          <input type="hidden" id="consultId">
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Data da Consulta *</label>
+              <input type="date" id="consultDate" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Especialidade Médica *</label>
+              <input type="text" id="consultSpecialty" required placeholder="Ex: Cardiologia, Clinico Geral..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Nome do Médico / Profissional *</label>
+              <input type="text" id="consultDoctor" required placeholder="Ex: Dr. Roberto Alves" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Hospital / Clínica / Local</label>
+              <input type="text" id="consultClinic" placeholder="Ex: Hospital Albert Einstein" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Motivo / Diagnóstico Principal</label>
+            <input type="text" id="consultReason" placeholder="Ex: Acompanhamento de rotina, Hipertensão..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Prescrição e Conduta Médica</label>
+            <textarea id="consultPrescription" rows="3" placeholder="Medicamentos receitados, dosagens e orientações do médico..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Anotações e Parecer</label>
+            <textarea id="consultNotes" rows="2" placeholder="Notas e observações adicionais..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
+          </div>
+
+          <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+            <button type="button" onclick="closeConsultationModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition">Cancelar</button>
+            <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-semibold shadow-sm transition">Salvar Consulta</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT ENGINE -->
   <script>
     // Global Application State
     let appState = {
@@ -275,7 +395,7 @@
       filterAbnormalOnly: false
     };
 
-    // Initialize application on DOM ready
+    // Initialize application
     document.addEventListener('DOMContentLoaded', () => {
       loadLocalStorage();
       renderAll();
@@ -287,8 +407,10 @@
       if (stored) {
         try {
           appState = JSON.parse(stored);
+          if (!appState.exams) appState.exams = [];
+          if (!appState.consultations) appState.consultations = [];
         } catch (e) {
-          console.error("Erro ao carregar dados do localStorage", e);
+          console.error("Erro ao restaurar banco local", e);
         }
       }
     }
@@ -299,72 +421,43 @@
 
     function switchTab(tabName) {
       appState.activeTab = tabName;
-      document.getElementById('tabExams').className = tabName === 'exams' 
-        ? 'tab-btn border-teal-500 text-teal-600 font-semibold py-4 px-1 border-b-2 text-sm flex items-center gap-2' 
-        : 'tab-btn border-transparent text-slate-500 hover:text-slate-700 font-medium py-4 px-1 border-b-2 text-sm flex items-center gap-2';
       
-      document.getElementById('tabConsultations').className = tabName === 'consultations' 
-        ? 'tab-btn border-teal-500 text-teal-600 font-semibold py-4 px-1 border-b-2 text-sm flex items-center gap-2' 
-        : 'tab-btn border-transparent text-slate-500 hover:text-slate-700 font-medium py-4 px-1 border-b-2 text-sm flex items-center gap-2';
+      const tabExams = document.getElementById('tabExams');
+      const tabConsultations = document.getElementById('tabConsultations');
+      const tabTimeline = document.getElementById('tabTimeline');
+
+      const activeClass = "tab-btn border-teal-500 text-teal-600 font-semibold py-4 px-1 border-b-2 text-sm flex items-center gap-2";
+      const inactiveClass = "tab-btn border-transparent text-slate-500 hover:text-slate-700 font-medium py-4 px-1 border-b-2 text-sm flex items-center gap-2";
+
+      tabExams.className = tabName === 'exams' ? activeClass : inactiveClass;
+      tabConsultations.className = tabName === 'consultations' ? activeClass : inactiveClass;
+      tabTimeline.className = tabName === 'timeline' ? activeClass : inactiveClass;
 
       document.getElementById('sectionExams').classList.toggle('hidden', tabName !== 'exams');
       document.getElementById('sectionConsultations').classList.toggle('hidden', tabName !== 'consultations');
+      document.getElementById('sectionTimeline').classList.toggle('hidden', tabName !== 'timeline');
+
+      if (tabName === 'timeline') {
+        renderTimeline();
+      }
     }
 
     // =========================================================================
-    // NOVO ALGORITMO DE OCR E PROCESSAMENTO REESCRITO (REGRAS 1, 2, 3 E 4)
+    // ALGORITMO OCR E MAPEAMENTO EXATO DE CAMPOS
     // =========================================================================
 
-    // Palavras-chave estritamente reservadas para descarte de cabeçalho / rodapé (Regra 2)
-    const HEADER_FOOTER_KEYWORDS = [
-      'paciente', 'idade', 'sexo', 'médico', 'medico', 'crm', 'convenio', 'convênio',
-      'solicitante', 'atendimento', 'registro', 'requisiç', 'requisic', 'prontuário',
-      'prontuario', 'laudo', 'página', 'pagina', 'cpf', 'rg', 'nascimento', 'unidade',
-      'leito', 'amostra', 'recebido', 'impresso', 'assinado', 'laboratório', 'laboratorio',
-      'cnpj', 'rua', 'av.', 'avenida', 'fone', 'telefone', 'crm-sp', 'crm-rj', 'crm-mg',
-      'doutor', 'doutora', 'dr.', 'dra.', 'matrícula', 'matricula', 'endereço', 'endereco'
-    ];
-
-    // Títulos de exames laboratoriais conhecidos para correspondência direta de laudos (Regra 1)
     const KNOWN_EXAM_TITLES = [
       "HEMOGRAMA COMPLETO", "HEMOGRAMA", "PARASITOLÓGICO DE FEZES", "PARASITOLOGICO DE FEZES",
-      "EXAME PARASITOLÓGICO DE FEZES", "EXAME PARASITOLOGICO", "EPF",
-      "URINA TIPO 1", "URINA TIPO I", "EAS", "EXAME DE URINA", "SUMÁRIO DE URINA", "SUMARIO DE URINA",
-      "GLICEMIA EM JEJUM", "GLICOSE", "GLICEMIA", "PERFIL LIPÍDICO", "PERFIL LIPIDICO", "LIPIDOGRAMA",
-      "COLESTEROL E FRAÇÕES", "COLESTEROL TOTAL E FRAÇÕES", "DOSAGEM DE VITAMINA D", "VITAMINA D",
-      "TSH ULTRASENSÍVEL", "TSH", "T4 LIVRE", "COAGULOGRAMA", "GASOMETRIA ARTERIAL",
-      "CULTURA DE URINA", "UROCULTURA", "ELETROFORESE DE PROTEÍNAS", "FUNÇÃO RENAL", "FUNÇÃO HEPÁTICA",
+      "EXAME PARASITOLÓGICO", "URINA TIPO 1", "URINA TIPO I", "EAS", "EXAME DE URINA",
+      "SUMÁRIO DE URINA", "SUMARIO DE URINA", "GLICEMIA EM JEJUM", "GLICOSE", "PERFIL LIPÍDICO",
+      "COLESTEROL E FRAÇÕES", "DOSAGEM DE VITAMINA D", "VITAMINA D", "TSH ULTRASENSÍVEL", "TSH",
+      "T4 LIVRE", "COAGULOGRAMA", "GASOMETRIA ARTERIAL", "CULTURA DE URINA", "UROCULTURA",
       "TGO / TGP", "URÉIA E CREATININA", "UREIA E CREATININA", "BIOQUÍMICA", "BIOQUIMICA"
     ];
 
-    // Verifica se uma linha pertence ao cabeçalho ou rodapé institucional
-    function isHeaderOrFooterLine(line) {
-      if (!line) return true;
-      const lower = line.toLowerCase().trim();
-      
-      // Linhas decorativas (traços, pontilhados, asteriscos)
-      if (/^[=_\-\*\.\s]{3,}$/.test(lower)) return true;
-
-      // Verificação por palavras-chave
-      for (const kw of HEADER_FOOTER_KEYWORDS) {
-        if (lower.includes(kw + ':') || lower.includes(kw + ' :') || lower.startsWith(kw + ' ')) {
-          return true;
-        }
-      }
-
-      // Padrões específicos de metadados
-      if (/^(dr|dra|prof)\.?\s+/i.test(lower)) return true;
-      if (/\bcrm[-:\s]*\d+/i.test(lower)) return true;
-      if (/\b(cpf|rg)[-:\s]*\d+/i.test(lower)) return true;
-      if (/\bpag(ina|\.)?\s*\d+/i.test(lower)) return true;
-      if (/\bdata\s*(da\s*coleta|de\s*emissã|de\s*impressã)/i.test(lower)) return true;
-
-      return false;
-    }
-
-    // REGRA 4: Validação de Data com Ano Atual Garantido (Sem 2036 ou anos corrompidos)
+    // REGRA DE SEGURANÇA NA DATA (Valida e força o ano correto <= 2026)
     function extractAndValidateDate(rawText) {
-      const currentYear = new Date().getFullYear(); // Ex: 2026
+      const currentYear = new Date().getFullYear(); // 2026
       const dateMatches = rawText.matchAll(/\b(\d{1,2})[\/\.\-](\d{1,2})[\/\.\-](\d{2,4})\b/g);
 
       for (const match of dateMatches) {
@@ -374,19 +467,18 @@
         let year = parseInt(yearStr, 10);
 
         if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
-          // Ajusta ano com 2 dígitos (ex: 26 -> 2026)
           if (yearStr.length === 2) {
             year = 2000 + year;
           }
 
-          // Correção de falhas visuais do OCR (ex: 2036 -> 2026 / 2086 -> 2026)
+          // Correção de falhas do OCR no ano (ex: 2036 -> 2026 / 2086 -> 2026)
           if (year > currentYear) {
             let sanitizedYearStr = yearStr.replace(/^203/, '202').replace(/^208/, '202').replace(/^209/, '202');
             let sanitizedYear = parseInt(sanitizedYearStr, 10);
             if (sanitizedYear <= currentYear && sanitizedYear >= 2000) {
               year = sanitizedYear;
             } else {
-              year = currentYear; // Fallback seguro
+              year = currentYear;
             }
           }
 
@@ -398,33 +490,63 @@
         }
       }
 
-      // Caso não encontre uma data válida no texto, retorna o dia atual de 2026
       return new Date().toISOString().split('T')[0];
     }
 
-    // REGRA 1: Extração do Nome Exato do Exame (Buscado no corpo principal)
-    function extractExamTitle(lines) {
-      const fullText = lines.join(' ').toUpperCase();
+    // EXTRAÇÃO DE METADADOS (PACIENTE, MÉDICO, CONVÊNIO, LAB)
+    function extractMetadata(rawText) {
+      const metadata = {
+        patient: '',
+        doctor: '',
+        insurance: '',
+        lab: ''
+      };
 
-      // Busca por título conhecido no texto completo
-      for (const titleCandidate of KNOWN_EXAM_TITLES) {
-        if (fullText.includes(titleCandidate)) {
-          return titleCandidate.charAt(0) + titleCandidate.slice(1).toLowerCase().replace(/(?:^|\s)\S/g, a => a.toUpperCase());
+      // Paciente
+      const patientMatch = rawText.match(/(?:paciente|nome|cliente)\s*[:\.]?\s*([A-Za-zÀ-ÖØ-öø-ÿ\s]{3,40})/i);
+      if (patientMatch) {
+        const p = patientMatch[1].split(/\n|data|idade|sexo|cpf|rg|dr|médico/i)[0].trim();
+        if (p.length > 2) metadata.patient = p;
+      }
+
+      // Médico / CRM
+      const doctorMatch = rawText.match(/(?:médico|medico|dr\.|dra\.|solicitante)\s*[:\.]?\s*([A-Za-zÀ-ÖØ-öø-ÿ\s\.\d\/CRM-]+)/i);
+      if (doctorMatch) {
+        const d = doctorMatch[1].split(/\n|data|convenio|convênio|paciente/i)[0].trim();
+        if (d.length > 3) metadata.doctor = d;
+      }
+
+      // Convênio
+      const insuranceMatch = rawText.match(/(?:convênio|convenio|plano)\s*[:\.]?\s*([A-Za-zÀ-ÖØ-öø-ÿ0-9\s]{3,30})/i);
+      if (insuranceMatch) {
+        const ins = insuranceMatch[1].split(/\n|data|médico|paciente/i)[0].trim();
+        if (ins.length > 2) metadata.insurance = ins;
+      }
+
+      // Laboratório
+      const labMatch = rawText.match(/(?:laboratório|laboratorio|lab|diagnósticos|análises|instituto)\s*[:\.]?\s*([A-Za-zÀ-ÖØ-öø-ÿ0-9\s]{3,30})/i);
+      if (labMatch) {
+        const l = labMatch[1].split(/\n|data|paciente/i)[0].trim();
+        if (l.length > 2) metadata.lab = l;
+      }
+
+      return metadata;
+    }
+
+    // EXTRAÇÃO DO NOME DO EXAME
+    function extractExamTitle(lines, rawText) {
+      const upper = rawText.toUpperCase();
+      for (const candidate of KNOWN_EXAM_TITLES) {
+        if (upper.includes(candidate)) {
+          return candidate.charAt(0) + candidate.slice(1).toLowerCase().replace(/(?:^|\s)\S/g, a => a.toUpperCase());
         }
       }
 
-      // Se não houver correspondência direta, analisa as primeiras linhas após o cabeçalho
-      for (let i = 0; i < Math.min(lines.length, 15); i++) {
-        const line = lines[i].trim();
-        if (isHeaderOrFooterLine(line)) continue;
-
-        // Linhas em caixa alta sem números extensos ou dois-pontos de metadados
-        if (line.length >= 4 && line.length <= 60 && !line.includes(':') && !/\d{2,}/.test(line)) {
-          if (/^[A-ZÁÀÂÃÉÈÊÍÓÔÕÚÇ\s\-\/\(\)]+$/i.test(line)) {
-            const clean = line.replace(/^[^\w]+|[^\w]+$/g, '').trim();
-            if (clean.length > 3) {
-              return clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase().replace(/(?:^|\s)\S/g, a => a.toUpperCase());
-            }
+      for (const line of lines) {
+        const clean = line.trim();
+        if (clean.length >= 4 && clean.length <= 50 && !clean.includes(':') && !/\d{2,}/.test(clean)) {
+          if (!/paciente|médico|idade|data|convenio|laudo|pagina/i.test(clean)) {
+            return clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase().replace(/(?:^|\s)\S/g, a => a.toUpperCase());
           }
         }
       }
@@ -432,42 +554,39 @@
       return "Exame Laboratorial";
     }
 
-    // REGRA 3: Extração de Parâmetros, Valores, Unidades e Referências
+    // EXTRAÇÃO DE PARÂMETROS, VALORES, UNIDADES E REFERÊNCIAS
     function parseParameterLine(line) {
-      // Limpeza de pontilhados de alinhamento de laudo (ex: "Hemoglobina ............")
       let cleaned = line.replace(/[\._\–\-]{3,}/g, ' ').replace(/\s+/g, ' ').trim();
-      if (!cleaned || isHeaderOrFooterLine(cleaned)) return null;
+      if (!cleaned) return null;
 
-      // Valores qualitativos comuns (Ex: Fezes, Urina)
-      const QUALITATIVE_VALUES = [
-        "AUSENTE", "AUSENTES", "NEGATIVO", "NEGATIVA", "REATIVO", "NÃO REATIVO", "NAO REATIVO",
-        "LÍMPIDO", "LIMPIDO", "LIGEIRAMENTE TURVO", "TURVO", "AMARELO CITRINO", "AMARELO",
-        "NORMAL", "NÃO DETECTADO", "NAO DETECTADO", "PRESENTE", "PRESENTES"
-      ];
+      // Descarta linhas puras de cabeçalho
+      if (/^(paciente|médico|medico|idade|sexo|crm|convenio|convênio|solicitante|prontuário|cpf|rg|data|página|pagina)\b/i.test(cleaned)) {
+        return null;
+      }
 
-      // ESTRATÉGIA A: Parâmetro Numérico Quantitativo
-      // Ex: "Hemoglobina 14,2 g/dL 12,0 a 16,0"
-      const numMatch = cleaned.match(/^(.*?)\s+([<>≤≥]?\s*\d+(?:[\.,]\d+)?(?:\.\d+)?)\s*(g\/dL|mg\/dL|mg\/L|\/mm³|\/mm3|mm3|mm³|%|U\/L|UI\/mL|mEq\/L|µg\/dL|ug\/dL|ng\/mL|pg|fL|g\/L|mm\/h|\/campo|mil\/mm3|milhões\/mm3|milhoes\/mm3)?(?:\s+(.*))?$/i);
+      // Regex para identificar unidades de medida médicas comuns
+      const UNITS_REGEX = `(g\\/dL|g\\/dl|g\\/L|mg\\/dL|mg\\/dl|mg\\/L|g%|%|milhões\\/mm³|milhoes\\/mm3|milhões\\/mm3|mil\\/mm³|mil\\/mm3|\\/mm³|\\/mm3|mm3|fL|fl|pg|mEq\\/L|U\\/L|u\\/l|UI\\/mL|µg\\/dL|ug\\/dL|ng\\/mL|mm\\/h|\\/campo|campo)`;
 
-      if (numMatch) {
-        let paramName = numMatch[1].trim();
-        let valStr = numMatch[2].trim();
-        let unitStr = numMatch[3] ? numMatch[3].trim() : '';
-        let refStr = numMatch[4] ? numMatch[4].trim() : '';
+      // A. Parâmetro Quantitativo
+      const quantRegex = new RegExp(`^(.*?)\\s+([<>≤≥]?\\s*\\d+(?:[\\.,]\\d+)?)\\s*${UNITS_REGEX}?(?:\\s+(.*))?$`, 'i');
+      const qMatch = cleaned.match(quantRegex);
 
-        // Se a unidade estava colada no campo de referência
+      if (qMatch) {
+        let paramName = qMatch[1].trim().replace(/^[\d\.\-\*\:\s]+/, '').replace(/[\:\-]+$/, '').trim();
+        let valStr = qMatch[2].trim();
+        let unitStr = qMatch[3] ? qMatch[3].trim() : '';
+        let refStr = qMatch[4] ? qMatch[4].trim() : '';
+
+        // Se a unidade veio colada no campo de referência
         if (!unitStr && refStr) {
-          const unitInRef = refStr.match(/^(g\/dL|mg\/dL|mg\/L|\/mm³|\/mm3|mm3|mm³|%|U\/L|UI\/mL|mEq\/L|µg\/dL|ug\/dL|ng\/mL|pg|fL|g\/L|mm\/h|\/campo|mil\/mm3|milhões\/mm3|milhoes\/mm3)\b/i);
+          const unitInRef = refStr.match(new RegExp(`^${UNITS_REGEX}\\b`, 'i'));
           if (unitInRef) {
             unitStr = unitInRef[1];
             refStr = refStr.substring(unitInRef[0].length).trim();
           }
         }
 
-        // Higieniza o nome do parâmetro sem alterar termos originais (ex: mantém "Hb")
-        paramName = paramName.replace(/^[\d\.\-\*\:\s]+/, '').replace(/[\:\-]+$/, '').trim();
-
-        if (paramName.length >= 2 && !isHeaderOrFooterLine(paramName)) {
+        if (paramName.length >= 2 && !/^(paciente|médico|data|convenio|crm)/i.test(paramName)) {
           return {
             name: paramName,
             value: valStr,
@@ -477,22 +596,22 @@
         }
       }
 
-      // ESTRATÉGIA B: Parâmetro Qualitativo
-      // Ex: "Ovos de Helmintos Ausente Ausente"
-      for (const qualVal of QUALITATIVE_VALUES) {
-        const qualRegex = new RegExp(`^(.*?)\\s+(${qualVal})\\b(?:\\s+(.*))?$`, 'i');
-        const qMatch = cleaned.match(qualRegex);
-        if (qMatch) {
-          let paramName = qMatch[1].trim().replace(/^[\d\.\-\*\:\s]+/, '').replace(/[\:\-]+$/, '').trim();
-          let valStr = qMatch[2].trim();
-          let refStr = qMatch[3] ? qMatch[3].trim() : valStr;
+      // B. Parâmetro Qualitativo
+      const QUALITATIVE_WORDS = ["AUSENTE", "AUSENTES", "NEGATIVO", "NEGATIVA", "REATIVO", "NÃO REATIVO", "LÍMPIDO", "TURVO", "NORMAL", "PRESENTE"];
+      for (const qual of QUALITATIVE_WORDS) {
+        const qualRegex = new RegExp(`^(.*?)\\s+(${qual})\\b(?:\\s+(.*))?$`, 'i');
+        const qualMatch = cleaned.match(qualRegex);
+        if (qualMatch) {
+          let paramName = qualMatch[1].trim().replace(/^[\d\.\-\*\:\s]+/, '').replace(/[\:\-]+$/, '').trim();
+          let valStr = qualMatch[2].trim();
+          let refStr = qualMatch[3] ? qualMatch[3].trim() : 'Ausente';
 
-          if (paramName.length >= 2 && !isHeaderOrFooterLine(paramName)) {
+          if (paramName.length >= 2 && !/^(paciente|médico|data|convenio|crm)/i.test(paramName)) {
             return {
               name: paramName,
               value: valStr,
               unit: '',
-              ref: refStr || 'Ausente'
+              ref: refStr
             };
           }
         }
@@ -501,80 +620,51 @@
       return null;
     }
 
-    // FUNÇÃO PRINCIPAL REESCRITA DE ANÁLISE DO TEXTO DO EXAME
+    // PARSER GERAL DO LAUDO
     function parseMedicalReportText(rawText) {
-      if (!rawText || typeof rawText !== 'string') {
-        return {
-          title: 'Exame Laboratorial',
-          date: new Date().toISOString().split('T')[0],
-          lab: '',
-          items: []
-        };
-      }
+      if (!rawText) return { title: 'Exame Laboratorial', date: new Date().toISOString().split('T')[0], items: [] };
 
-      // 1. Linhas limpas
-      const rawLines = rawText.split('\n')
-        .map(l => l.trim())
-        .filter(l => l.length > 0);
-
-      // 2. Data de coleta validada (Regra 4)
+      const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
       const date = extractAndValidateDate(rawText);
+      const metadata = extractMetadata(rawText);
+      const title = extractExamTitle(lines, rawText);
 
-      // 3. Laboratório
-      let lab = '';
-      const labMatch = rawText.match(/(?:laboratório|lab|diagnósticos|análises|instituto)\s*[:\.]?\s*([A-ZÀ-Ú\s]{3,30})/i);
-      if (labMatch) {
-        lab = labMatch[1].trim();
-      }
-
-      // 4. Nome do Exame Exato (Regra 1)
-      const title = extractExamTitle(rawLines);
-
-      // 5. Mapeamento de Parâmetros com Filtragem (Regras 2 e 3)
       const items = [];
-      for (let i = 0; i < rawLines.length; i++) {
-        const line = rawLines[i];
-        
-        // Descarta rigorosamente cabeçalhos e rodapés
-        if (isHeaderOrFooterLine(line)) continue;
-
-        const parsedItem = parseParameterLine(line);
-        if (parsedItem) {
-          const abnormal = checkIfAbnormal(parsedItem.value, parsedItem.ref);
+      lines.forEach(line => {
+        const parsed = parseParameterLine(line);
+        if (parsed) {
           items.push({
-            name: parsedItem.name,
-            value: parsedItem.value,
-            unit: parsedItem.unit,
-            ref: parsedItem.ref,
-            abnormal: abnormal
+            name: parsed.name,
+            value: parsed.value,
+            unit: parsed.unit,
+            ref: parsed.ref,
+            abnormal: checkIfAbnormal(parsed.value, parsed.ref)
           });
         }
-      }
+      });
 
       return {
         title,
         date,
-        lab,
+        patient: metadata.patient,
+        doctor: metadata.doctor,
+        insurance: metadata.insurance,
+        lab: metadata.lab,
         items
       };
     }
 
-    // Avalia se o valor extraído está fora da faixa de referência
+    // VERIFICAÇÃO DE VALORES FORA DA FAIXA (ALTERADOS)
     function checkIfAbnormal(valRaw, refRaw) {
       if (!valRaw || !refRaw || refRaw === 'N/A') return false;
 
       const vLower = String(valRaw).toLowerCase().trim();
       const rLower = String(refRaw).toLowerCase().trim();
 
-      // Checagem Qualitativa
       if (vLower.includes('positivo') || vLower.includes('reativo') || vLower.includes('presente')) {
-        if (rLower.includes('negativo') || rLower.includes('não reativo') || rLower.includes('ausente')) {
-          return true;
-        }
+        if (rLower.includes('negativo') || rLower.includes('não reativo') || rLower.includes('ausente')) return true;
       }
-      if (vLower.includes('turvo') && rLower.includes('límpido')) return true;
 
-      // Conversão Numérica
       const parseNum = (str) => {
         if (!str) return NaN;
         let s = str.replace(/[^\d,\.-]/g, '');
@@ -582,11 +672,6 @@
           s = s.replace(/\./g, '').replace(',', '.');
         } else if (s.includes(',')) {
           s = s.replace(',', '.');
-        } else if ((s.match(/\./g) || []).length === 1) {
-          const parts = s.split('.');
-          if (parts[1].length === 3 && parseInt(parts[0]) > 0) {
-            s = parts[0] + parts[1]; // Ex: 6.500 -> 6500
-          }
         }
         return parseFloat(s);
       };
@@ -594,24 +679,19 @@
       const numVal = parseNum(valRaw);
       if (isNaN(numVal)) return false;
 
-      // Intervalo: "A a B" ou "A - B"
       const rangeMatch = refRaw.match(/([\d\.,]+)\s*(?:a|-|até)\s*([\d\.,]+)/i);
       if (rangeMatch) {
         const min = parseNum(rangeMatch[1]);
         const max = parseNum(rangeMatch[2]);
-        if (!isNaN(min) && !isNaN(max)) {
-          return numVal < min || numVal > max;
-        }
+        if (!isNaN(min) && !isNaN(max)) return numVal < min || numVal > max;
       }
 
-      // Limite Máximo: "< X" ou "até X"
-      const lessMatch = refRaw.match(/(?:<|inferior a|até|ate)\s*([\d\.,]+)/i);
+      const lessMatch = refRaw.match(/(?:<|inferior a|até)\s*([\d\.,]+)/i);
       if (lessMatch) {
         const max = parseNum(lessMatch[1]);
         if (!isNaN(max)) return numVal > max;
       }
 
-      // Limite Mínimo: "> X" ou "superior a X"
       const greaterMatch = refRaw.match(/(?:>|superior a)\s*([\d\.,]+)/i);
       if (greaterMatch) {
         const min = parseNum(greaterMatch[1]);
@@ -621,10 +701,7 @@
       return false;
     }
 
-    // =========================================================================
-    // OCR FLUXO DE EXECUÇÃO E PRÉ-PROCESSAMENTO DE IMAGEM
-    // =========================================================================
-
+    // FLUXO DE PROCESSAMENTO OCR
     async function handleOCRUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -635,48 +712,47 @@
       const percentText = document.getElementById('ocrPercentText');
 
       overlay.classList.remove('hidden');
-      progressBar.style.width = '5%';
-      statusText.innerText = 'Otimizando imagem para leitura...';
-      percentText.innerText = '5%';
+      progressBar.style.width = '10%';
+      statusText.innerText = 'Redimensionando imagem para leitura...';
+      percentText.innerText = '10%';
 
       try {
-        // Redimensionamento prévio via Canvas (Max 1400px) para evitar travamentos de memória
         const resizedCanvas = await preprocessImageCanvas(file);
-        
-        statusText.innerText = 'Iniciando motor Tesseract.js (Português)...';
-        progressBar.style.width = '20%';
-        percentText.innerText = '20%';
 
-        // Instância Tesseract
+        statusText.innerText = 'Iniciando Tesseract OCR (Português)...';
+        progressBar.style.width = '30%';
+        percentText.innerText = '30%';
+
         const worker = await Tesseract.createWorker('por');
         
-        // Timeout de segurança de 25 segundos
         const ocrTimeout = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout no OCR. Tente uma foto mais nítida.')), 25000)
+          setTimeout(() => reject(new Error('Tempo limite excedido na leitura.')), 25000)
         );
 
         const recognitionPromise = (async () => {
-          const result = await worker.recognize(resizedCanvas);
+          const res = await worker.recognize(resizedCanvas);
           await worker.terminate();
-          return result;
+          return res;
         })();
 
-        const ret = await Promise.race([recognitionPromise, ocrTimeout]);
-        const rawText = ret.data.text;
+        const result = await Promise.race([recognitionPromise, ocrTimeout]);
+        const rawText = result.data.text;
 
-        statusText.innerText = 'Higienizando laudo e aplicando regras...';
-        progressBar.style.width = '90%';
-        percentText.innerText = '90%';
+        statusText.innerText = 'Mapeando paciente, médico, convênio e parâmetros...';
+        progressBar.style.width = '85%';
+        percentText.innerText = '85%';
 
-        // Executa o novo algoritmo de extração
         const parsed = parseMedicalReportText(rawText);
 
-        // Preenche o formulário da modal
+        // Preenche os campos do formulário
         document.getElementById('examTitle').value = parsed.title;
         document.getElementById('examDate').value = parsed.date;
+        if (parsed.patient) document.getElementById('examPatient').value = parsed.patient;
+        if (parsed.doctor) document.getElementById('examDoctor').value = parsed.doctor;
+        if (parsed.insurance) document.getElementById('examInsurance').value = parsed.insurance;
         if (parsed.lab) document.getElementById('examLab').value = parsed.lab;
 
-        // Limpa e popula os parâmetros extraídos
+        // Limpa e popula parâmetros
         const paramContainer = document.getElementById('parametersList');
         paramContainer.innerHTML = '';
 
@@ -696,15 +772,15 @@
         }, 400);
 
       } catch (err) {
-        console.error('Erro no processamento de OCR:', err);
-        alert('Não foi possível reconhecer o laudo automaticamente: ' + err.message);
+        console.error('Falha no OCR:', err);
+        alert('Não foi possível ler os dados da foto: ' + err.message);
         overlay.classList.add('hidden');
       } finally {
         event.target.value = '';
       }
     }
 
-    // Redimensionador de Imagem Canvas
+    // CANVAS PRE-PROCESSING (MAX 1400PX)
     function preprocessImageCanvas(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -713,7 +789,6 @@
           img.onload = () => {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-            
             const maxDim = 1400;
             let width = img.width;
             let height = img.height;
@@ -730,22 +805,7 @@
 
             canvas.width = width;
             canvas.height = height;
-
-            // Renderiza com alto contraste
             ctx.drawImage(img, 0, 0, width, height);
-            
-            // Ajuste leve de contraste/escala de cinza
-            const imgData = ctx.getImageData(0, 0, width, height);
-            const data = imgData.data;
-            for (let i = 0; i < data.length; i += 4) {
-              const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-              const v = avg < 128 ? avg * 0.8 : Math.min(255, avg * 1.1);
-              data[i] = v;
-              data[i + 1] = v;
-              data[i + 2] = v;
-            }
-            ctx.putImageData(imgData, 0, 0);
-
             resolve(canvas);
           };
           img.onerror = reject;
@@ -757,7 +817,7 @@
     }
 
     // =========================================================================
-    // GERENCIAMENTO DA INTERFACE E FORMULÁRIOS
+    // EXAM MANAGEMENT & FORM CONTROLS
     // =========================================================================
 
     function openExamModal(examId = null) {
@@ -768,20 +828,20 @@
       document.getElementById('parametersList').innerHTML = '';
 
       if (examId) {
-        document.getElementById('modalTitle').innerText = 'Editar Exame';
+        document.getElementById('modalTitle').innerText = 'Editar Exame Médico';
         const exam = appState.exams.find(e => e.id === examId);
         if (exam) {
           document.getElementById('examId').value = exam.id;
           document.getElementById('examTitle').value = exam.title;
           document.getElementById('examDate').value = exam.date;
-          document.getElementById('examLab').value = exam.lab || '';
+          document.getElementById('examPatient').value = exam.patient || '';
           document.getElementById('examDoctor').value = exam.doctor || '';
+          document.getElementById('examInsurance').value = exam.insurance || '';
+          document.getElementById('examLab').value = exam.lab || '';
           document.getElementById('examNotes').value = exam.notes || '';
 
           if (exam.items && exam.items.length > 0) {
-            exam.items.forEach(item => {
-              addParameterRow(item.name, item.value, item.unit, item.ref, item.abnormal);
-            });
+            exam.items.forEach(item => addParameterRow(item.name, item.value, item.unit, item.ref, item.abnormal));
           } else {
             addParameterRow();
           }
@@ -808,16 +868,16 @@
       row.className = "grid grid-cols-12 gap-2 items-center bg-slate-50 p-2 rounded-lg border border-slate-200";
       row.innerHTML = `
         <div class="col-span-4">
-          <input type="text" placeholder="Parâmetro (ex: Hb)" value="${escapeHtml(name)}" class="param-name w-full px-2 py-1.5 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-teal-500 outline-none font-medium">
+          <input type="text" placeholder="Parâmetro (ex: Hemoglobina)" value="${escapeHtml(name)}" class="param-name w-full px-2 py-1.5 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-teal-500 outline-none font-medium">
         </div>
         <div class="col-span-2">
-          <input type="text" placeholder="Valor" value="${escapeHtml(value)}" class="param-value w-full px-2 py-1.5 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-teal-500 outline-none">
+          <input type="text" placeholder="Resultado" value="${escapeHtml(value)}" class="param-value w-full px-2 py-1.5 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-teal-500 outline-none font-bold text-slate-800">
         </div>
         <div class="col-span-2">
           <input type="text" placeholder="Unid. (g/dL)" value="${escapeHtml(unit)}" class="param-unit w-full px-2 py-1.5 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-teal-500 outline-none">
         </div>
         <div class="col-span-3">
-          <input type="text" placeholder="Referência" value="${escapeHtml(ref)}" class="param-ref w-full px-2 py-1.5 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-teal-500 outline-none">
+          <input type="text" placeholder="Referência (ex: 12-16)" value="${escapeHtml(ref)}" class="param-ref w-full px-2 py-1.5 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-teal-500 outline-none">
         </div>
         <div class="col-span-1 flex items-center justify-center">
           <button type="button" onclick="document.getElementById('${rowId}').remove()" class="text-slate-400 hover:text-red-500 transition p-1">
@@ -832,12 +892,14 @@
 
     function saveExam(event) {
       event.preventDefault();
-      
+
       const id = document.getElementById('examId').value || 'exam_' + Date.now();
       const title = document.getElementById('examTitle').value.trim();
       const date = document.getElementById('examDate').value;
-      const lab = document.getElementById('examLab').value.trim();
+      const patient = document.getElementById('examPatient').value.trim();
       const doctor = document.getElementById('examDoctor').value.trim();
+      const insurance = document.getElementById('examInsurance').value.trim();
+      const lab = document.getElementById('examLab').value.trim();
       const notes = document.getElementById('examNotes').value.trim();
 
       const paramRows = document.querySelectorAll('#parametersList > div');
@@ -860,8 +922,8 @@
         }
       });
 
+      const examData = { id, title, date, patient, doctor, insurance, lab, notes, items };
       const existingIndex = appState.exams.findIndex(e => e.id === id);
-      const examData = { id, title, date, lab, doctor, notes, items };
 
       if (existingIndex >= 0) {
         appState.exams[existingIndex] = examData;
@@ -875,7 +937,7 @@
     }
 
     function deleteExam(id) {
-      if (confirm('Tem certeza que deseja remover este exame?')) {
+      if (confirm('Deseja realmente excluir este registro de exame?')) {
         appState.exams = appState.exams.filter(e => e.id !== id);
         saveLocalStorage();
         renderAll();
@@ -892,17 +954,89 @@
     }
 
     // =========================================================================
-    // RENDERIZAÇÃO DE INTERFACE
+    // CONSULTATION MANAGEMENT
+    // =========================================================================
+
+    function openConsultationModal(consultId = null) {
+      const modal = document.getElementById('consultationModal');
+      const form = document.getElementById('consultationForm');
+      form.reset();
+      document.getElementById('consultId').value = '';
+
+      if (consultId) {
+        document.getElementById('consultModalTitle').innerText = 'Editar Consulta Médica';
+        const consult = appState.consultations.find(c => c.id === consultId);
+        if (consult) {
+          document.getElementById('consultId').value = consult.id;
+          document.getElementById('consultDate').value = consult.date;
+          document.getElementById('consultSpecialty').value = consult.specialty;
+          document.getElementById('consultDoctor').value = consult.doctor;
+          document.getElementById('consultClinic').value = consult.clinic || '';
+          document.getElementById('consultReason').value = consult.reason || '';
+          document.getElementById('consultPrescription').value = consult.prescription || '';
+          document.getElementById('consultNotes').value = consult.notes || '';
+        }
+      } else {
+        document.getElementById('consultModalTitle').innerText = 'Cadastrar Consulta Médica';
+        document.getElementById('consultDate').value = new Date().toISOString().split('T')[0];
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeConsultationModal() {
+      document.getElementById('consultationModal').classList.add('hidden');
+    }
+
+    function saveConsultation(event) {
+      event.preventDefault();
+
+      const id = document.getElementById('consultId').value || 'consult_' + Date.now();
+      const date = document.getElementById('consultDate').value;
+      const specialty = document.getElementById('consultSpecialty').value.trim();
+      const doctor = document.getElementById('consultDoctor').value.trim();
+      const clinic = document.getElementById('consultClinic').value.trim();
+      const reason = document.getElementById('consultReason').value.trim();
+      const prescription = document.getElementById('consultPrescription').value.trim();
+      const notes = document.getElementById('consultNotes').value.trim();
+
+      const consultData = { id, date, specialty, doctor, clinic, reason, prescription, notes };
+      const existingIndex = appState.consultations.findIndex(c => c.id === id);
+
+      if (existingIndex >= 0) {
+        appState.consultations[existingIndex] = consultData;
+      } else {
+        appState.consultations.unshift(consultData);
+      }
+
+      saveLocalStorage();
+      renderAll();
+      closeConsultationModal();
+    }
+
+    function deleteConsultation(id) {
+      if (confirm('Deseja remover este registro de consulta?')) {
+        appState.consultations = appState.consultations.filter(c => c.id !== id);
+        saveLocalStorage();
+        renderAll();
+      }
+    }
+
+    // =========================================================================
+    // UI RENDERING FUNCTIONS
     // =========================================================================
 
     function renderAll() {
       updateDashboardStats();
       renderExamsList();
+      renderConsultationsList();
+      if (appState.activeTab === 'timeline') renderTimeline();
     }
 
     function updateDashboardStats() {
       document.getElementById('statTotalExams').innerText = appState.exams.length;
-      
+      document.getElementById('statConsultsCount').innerText = appState.consultations.length;
+
       let abnormalTotal = 0;
       let latestDate = null;
 
@@ -915,21 +1049,27 @@
         }
       });
 
+      appState.consultations.forEach(c => {
+        if (!latestDate || new Date(c.date) > new Date(latestDate)) {
+          latestDate = c.date;
+        }
+      });
+
       document.getElementById('statAbnormalCount').innerText = abnormalTotal;
-      document.getElementById('statLastDate').innerText = latestDate 
-        ? formatDateBR(latestDate) 
-        : 'Nenhuma';
+      document.getElementById('statLastDate').innerText = latestDate ? formatDateBR(latestDate) : 'Nenhuma';
     }
 
     function renderExamsList() {
       const container = document.getElementById('examsContainer');
       const searchTerm = (document.getElementById('searchInput')?.value || '').toLowerCase();
-      
+
       let filtered = appState.exams.filter(exam => {
         const matchSearch = exam.title.toLowerCase().includes(searchTerm) ||
+          (exam.patient && exam.patient.toLowerCase().includes(searchTerm)) ||
+          (exam.doctor && exam.doctor.toLowerCase().includes(searchTerm)) ||
           (exam.lab && exam.lab.toLowerCase().includes(searchTerm)) ||
           exam.items.some(i => i.name.toLowerCase().includes(searchTerm));
-        
+
         if (appState.filterAbnormalOnly) {
           return matchSearch && exam.items.some(i => i.abnormal);
         }
@@ -940,8 +1080,8 @@
         container.innerHTML = `
           <div class="bg-white rounded-xl p-8 text-center border border-slate-200">
             <i data-lucide="file-x" class="w-10 h-10 text-slate-300 mx-auto mb-2"></i>
-            <p class="text-slate-600 font-medium text-sm">Nenhum exame cadastrado ou encontrado.</p>
-            <p class="text-xs text-slate-400 mt-1">Utilize o botão "Novo Exame / Consulta" para escanear ou cadastrar manualmente.</p>
+            <p class="text-slate-600 font-medium text-sm">Nenhum exame encontrado.</p>
+            <p class="text-xs text-slate-400 mt-1">Clique em "Novo Exame" para cadastrar ou escanear um laudo físico.</p>
           </div>
         `;
         lucide.createIcons();
@@ -950,10 +1090,9 @@
 
       container.innerHTML = filtered.map(exam => {
         const hasAbnormal = exam.items.some(i => i.abnormal);
-        
+
         return `
-          <div class="bg-white rounded-xl border ${hasAbnormal ? 'border-amber-300 shadow-sm' : 'border-slate-200'} overflow-hidden transition hover:shadow-md">
-            <!-- EXAM CARD HEADER -->
+          <div class="bg-white rounded-xl border ${hasAbnormal ? 'border-amber-300 shadow-sm' : 'border-slate-200'} overflow-hidden transition hover:shadow-md card-print">
             <div class="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
               <div class="flex items-center gap-3">
                 <div class="p-2 ${hasAbnormal ? 'bg-amber-100 text-amber-700' : 'bg-teal-100 text-teal-700'} rounded-lg">
@@ -964,25 +1103,26 @@
                     ${escapeHtml(exam.title)}
                     ${hasAbnormal ? '<span class="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full uppercase border border-amber-300">Alterado</span>' : ''}
                   </h3>
-                  <div class="flex items-center gap-4 text-xs text-slate-500 mt-0.5">
+                  <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 mt-0.5">
                     <span class="flex items-center gap-1"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> ${formatDateBR(exam.date)}</span>
+                    ${exam.patient ? `<span class="flex items-center gap-1 font-medium text-slate-700"><i data-lucide="user" class="w-3.5 h-3.5 text-slate-400"></i> ${escapeHtml(exam.patient)}</span>` : ''}
+                    ${exam.doctor ? `<span class="flex items-center gap-1"><i data-lucide="user-check" class="w-3.5 h-3.5"></i> ${escapeHtml(exam.doctor)}</span>` : ''}
+                    ${exam.insurance ? `<span class="flex items-center gap-1"><i data-lucide="shield" class="w-3.5 h-3.5"></i> ${escapeHtml(exam.insurance)}</span>` : ''}
                     ${exam.lab ? `<span class="flex items-center gap-1"><i data-lucide="building" class="w-3.5 h-3.5"></i> ${escapeHtml(exam.lab)}</span>` : ''}
-                    ${exam.doctor ? `<span class="flex items-center gap-1"><i data-lucide="user" class="w-3.5 h-3.5"></i> ${escapeHtml(exam.doctor)}</span>` : ''}
                   </div>
                 </div>
               </div>
 
               <div class="flex items-center gap-2 no-print">
-                <button onclick="openExamModal('${exam.id}')" class="p-1.5 text-slate-400 hover:text-teal-600 rounded transition" title="Editar Exame">
+                <button onclick="openExamModal('${exam.id}')" class="p-1.5 text-slate-400 hover:text-teal-600 rounded transition" title="Editar">
                   <i data-lucide="edit-3" class="w-4 h-4"></i>
                 </button>
-                <button onclick="deleteExam('${exam.id}')" class="p-1.5 text-slate-400 hover:text-red-500 rounded transition" title="Excluir Exame">
+                <button onclick="deleteExam('${exam.id}')" class="p-1.5 text-slate-400 hover:text-red-500 rounded transition" title="Excluir">
                   <i data-lucide="trash-2" class="w-4 h-4"></i>
                 </button>
               </div>
             </div>
 
-            <!-- EXAM PARAMETERS TABLE -->
             <div class="p-4 overflow-x-auto">
               <table class="w-full text-left text-xs border-collapse">
                 <thead>
@@ -996,10 +1136,10 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                   ${exam.items.map(item => `
-                    <tr class="${item.abnormal ? 'bg-amber-50/60 font-medium' : 'hover:bg-slate-50'} transition">
+                    <tr class="${item.abnormal ? 'bg-amber-50/70 font-medium' : 'hover:bg-slate-50'} transition">
                       <td class="py-2.5 px-3 font-semibold ${item.abnormal ? 'text-amber-900' : 'text-slate-800'}">${escapeHtml(item.name)}</td>
                       <td class="py-2.5 px-3 font-bold ${item.abnormal ? 'text-amber-700 text-sm' : 'text-slate-700'}">${escapeHtml(item.value)}</td>
-                      <td class="py-2.5 px-3 text-slate-500">${escapeHtml(item.unit || '-')}</td>
+                      <td class="py-2.5 px-3 text-slate-500 font-mono">${escapeHtml(item.unit || '-')}</td>
                       <td class="py-2.5 px-3 text-slate-500">${escapeHtml(item.ref || 'N/A')}</td>
                       <td class="py-2.5 px-3 text-center">
                         ${item.abnormal 
@@ -1024,14 +1164,141 @@
       lucide.createIcons();
     }
 
+    function renderConsultationsList() {
+      const container = document.getElementById('consultationsContainer');
+      const searchTerm = (document.getElementById('searchConsultInput')?.value || '').toLowerCase();
+
+      let filtered = appState.consultations.filter(c => 
+        c.specialty.toLowerCase().includes(searchTerm) ||
+        c.doctor.toLowerCase().includes(searchTerm) ||
+        (c.clinic && c.clinic.toLowerCase().includes(searchTerm)) ||
+        (c.reason && c.reason.toLowerCase().includes(searchTerm))
+      );
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-2 bg-white rounded-xl p-8 text-center border border-slate-200">
+            <i data-lucide="stethoscope" class="w-10 h-10 text-slate-300 mx-auto mb-2"></i>
+            <p class="text-slate-600 font-medium text-sm">Nenhuma consulta médica registrada.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = filtered.map(c => `
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-start mb-3">
+              <div>
+                <span class="text-[10px] bg-indigo-50 text-indigo-700 font-bold px-2 py-0.5 rounded-full uppercase border border-indigo-200">${escapeHtml(c.specialty)}</span>
+                <h4 class="font-bold text-slate-800 text-base mt-1">${escapeHtml(c.doctor)}</h4>
+              </div>
+              <div class="flex items-center gap-1 no-print">
+                <button onclick="openConsultationModal('${c.id}')" class="p-1 text-slate-400 hover:text-indigo-600 rounded"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                <button onclick="deleteConsultation('${c.id}')" class="p-1 text-slate-400 hover:text-red-500 rounded"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+              </div>
+            </div>
+
+            <div class="text-xs text-slate-500 space-y-1 mb-4">
+              <p class="flex items-center gap-1.5"><i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-400"></i> ${formatDateBR(c.date)}</p>
+              ${c.clinic ? `<p class="flex items-center gap-1.5"><i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-400"></i> ${escapeHtml(c.clinic)}</p>` : ''}
+              ${c.reason ? `<p class="flex items-center gap-1.5 font-medium text-slate-700"><i data-lucide="activity" class="w-3.5 h-3.5 text-indigo-500"></i> ${escapeHtml(c.reason)}</p>` : ''}
+            </div>
+
+            ${c.prescription ? `
+              <div class="p-3 bg-indigo-50/50 rounded-lg border border-indigo-100 text-xs text-indigo-950 mb-3">
+                <span class="font-bold block text-indigo-900 mb-0.5">Prescrição / Receita:</span>
+                <p class="whitespace-pre-line">${escapeHtml(c.prescription)}</p>
+              </div>
+            ` : ''}
+
+            ${c.notes ? `
+              <p class="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                <span class="font-semibold text-slate-700">Anotações:</span> ${escapeHtml(c.notes)}
+              </p>
+            ` : ''}
+          </div>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    function renderTimeline() {
+      const container = document.getElementById('timelineContainer');
+      
+      const timelineEvents = [
+        ...appState.exams.map(e => ({ type: 'exam', date: e.date, title: e.title, data: e })),
+        ...appState.consultations.map(c => ({ type: 'consultation', date: c.date, title: c.specialty + ' - ' + c.doctor, data: c }))
+      ];
+
+      timelineEvents.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      if (timelineEvents.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400">Nenhum evento no histórico.</p>`;
+        return;
+      }
+
+      container.innerHTML = timelineEvents.map(evt => {
+        const isExam = evt.type === 'exam';
+        return `
+          <div class="relative">
+            <span class="absolute -left-[31px] top-1 w-4 h-4 rounded-full ${isExam ? 'bg-teal-500' : 'bg-indigo-500'} ring-4 ring-white"></span>
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs">
+              <span class="text-[10px] font-bold uppercase ${isExam ? 'text-teal-700' : 'text-indigo-700'}">${formatDateBR(evt.date)} • ${isExam ? 'Exame Laboratorial' : 'Consulta Médica'}</span>
+              <h4 class="font-bold text-slate-800 text-sm mt-0.5">${escapeHtml(evt.title)}</h4>
+              ${isExam ? `<p class="text-slate-500 mt-1">${evt.data.items.length} parâmetro(s) analisado(s)</p>` : `<p class="text-slate-500 mt-1">${escapeHtml(evt.data.reason || 'Consulta de rotina')}</p>`}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    // =========================================================================
+    // EXPORT & IMPORT DATA JSON
+    // =========================================================================
+
+    function exportDataJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+      const dlAnchor = document.createElement('a');
+      dlAnchor.setAttribute("href", dataStr);
+      dlAnchor.setAttribute("download", `medicore_backup_${new Date().toISOString().split('T')[0]}.json`);
+      document.body.appendChild(dlAnchor);
+      dlAnchor.click();
+      dlAnchor.remove();
+    }
+
+    function importDataJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (imported && (imported.exams || imported.consultations)) {
+            appState = imported;
+            saveLocalStorage();
+            renderAll();
+            alert('Dados importados com sucesso!');
+          } else {
+            alert('Arquivo JSON inválido.');
+          }
+        } catch (err) {
+          alert('Erro ao importar arquivo JSON.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
     // UTILITIES
     function formatDateBR(dateStr) {
       if (!dateStr) return '';
       const parts = dateStr.split('-');
-      if (parts.length === 3) {
-        return `${parts[2]}/${parts[1]}/${parts[0]}`;
-      }
-      return dateStr;
+      return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : dateStr;
     }
 
     function escapeHtml(str) {
