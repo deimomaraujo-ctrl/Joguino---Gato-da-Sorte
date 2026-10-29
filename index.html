@@ -391,6 +391,15 @@
                 </button>
             </div>
 
+            <!-- Filtros de Navegação de Consultas (Agendadas vs Realizadas) -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                <div class="flex items-center gap-2 w-full md:w-auto">
+                    <button id="filter-consultation-all-btn" onclick="toggleConsultationFilter('all')" class="flex-1 md:flex-none px-4 py-2 rounded-xl text-xs font-bold bg-teal-600 text-white shadow-sm transition-all">Todas as Consultas</button>
+                    <button id="filter-consultation-scheduled-btn" onclick="toggleConsultationFilter('scheduled')" class="flex-1 md:flex-none px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-teal-50 border border-transparent transition-all">📅 Agendadas (Futuras)</button>
+                    <button id="filter-consultation-completed-btn" onclick="toggleConsultationFilter('completed')" class="flex-1 md:flex-none px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-teal-50 border border-transparent transition-all">✅ Realizadas (Histórico)</button>
+                </div>
+            </div>
+
             <div id="consultations-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
         </section>
 
@@ -659,7 +668,7 @@
 
                     <div class="mt-6 flex justify-end space-x-3">
                         <button type="button" onclick="closeModal('modal-new-record')" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100">Cancelar</button>
-                        <button type="submit" class="px-6 py-2 rounded-xl text-sm font-semibold bg-teal-600 text-white hover:bg-teal-500 shadow-md">Salvar Registro</button>
+                        <button type="submit" id="btn-submit-record" class="px-6 py-2 rounded-xl text-sm font-semibold bg-teal-600 text-white hover:bg-teal-500 shadow-md">Salvar Registro</button>
                     </div>
                 </form>
             </div>
@@ -740,6 +749,7 @@
         const INITIAL_SEED_DATA = { exams: [], consultations: [], documents: [] };
         let appData = { exams: [], consultations: [], documents: [] };
         let activeExamFilter = 'all';
+        let activeConsultationFilter = 'all';
 
         // --- INICIALIZAÇÃO DA APLICAÇÃO ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -760,7 +770,45 @@
         }
 
         function saveData() {
-            localStorage.setItem('mediCoreData', JSON.stringify(appData));
+            try {
+                localStorage.setItem('mediCoreData', JSON.stringify(appData));
+            } catch (e) {
+                console.error("Erro ao salvar no localStorage:", e);
+                alert("Atenção: Limite de armazenamento local atingido. O registro foi mantido na sessão atual, mas recomendamos remover fotos antigas para garantir o salvamento automático permanente.");
+            }
+        }
+
+        // FUNÇÃO DE COMPRESSÃO DE IMAGEM PARA EVITAR TRAVAMENTOS E ERROS DE LOCALSTORAGE
+        function compressImage(base64Str, maxDim = 1000, quality = 0.65, callback) {
+            if (!base64Str || !base64Str.startsWith('data:image')) {
+                if (callback) callback(base64Str);
+                return;
+            }
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                let w = img.width;
+                let h = img.height;
+                if (w > maxDim || h > maxDim) {
+                    if (w > h) {
+                        h = Math.round((h * maxDim) / w);
+                        w = maxDim;
+                    } else {
+                        w = Math.round((w * maxDim) / h);
+                        h = maxDim;
+                    }
+                }
+                canvas.width = w;
+                canvas.height = h;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, w, h);
+                const compressed = canvas.toDataURL('image/jpeg', quality);
+                if (callback) callback(compressed);
+            };
+            img.onerror = function() {
+                if (callback) callback(base64Str);
+            };
+            img.src = base64Str;
         }
 
         function clearAllData() {
@@ -1058,16 +1106,37 @@
         }
 
         // --- TAB 3: CONSULTAS ---
+        function toggleConsultationFilter(type) {
+            activeConsultationFilter = type;
+            const btnAll = document.getElementById('filter-consultation-all-btn');
+            const btnSch = document.getElementById('filter-consultation-scheduled-btn');
+            const btnComp = document.getElementById('filter-consultation-completed-btn');
+
+            btnAll.className = type === 'all' ? "flex-1 md:flex-none px-4 py-2 rounded-xl text-xs font-bold bg-teal-600 text-white shadow-sm transition-all" : "flex-1 md:flex-none px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-teal-50 transition-all";
+            btnSch.className = type === 'scheduled' ? "flex-1 md:flex-none px-4 py-2 rounded-xl text-xs font-bold bg-teal-600 text-white shadow-sm transition-all" : "flex-1 md:flex-none px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-teal-50 transition-all";
+            btnComp.className = type === 'completed' ? "flex-1 md:flex-none px-4 py-2 rounded-xl text-xs font-bold bg-teal-600 text-white shadow-sm transition-all" : "flex-1 md:flex-none px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-teal-50 transition-all";
+
+            renderConsultations();
+            lucide.createIcons();
+        }
+
         function renderConsultations() {
             const container = document.getElementById('consultations-container');
             container.innerHTML = '';
 
-            if (appData.consultations.length === 0) {
-                container.innerHTML = `<p class="text-sm text-slate-500 col-span-2 text-center py-8">Nenhuma consulta registrada.</p>`;
+            let list = [...appData.consultations];
+            if (activeConsultationFilter === 'scheduled') {
+                list = list.filter(c => c.status === 'Agendada');
+            } else if (activeConsultationFilter === 'completed') {
+                list = list.filter(c => c.status === 'Realizada');
+            }
+
+            if (list.length === 0) {
+                container.innerHTML = `<p class="text-sm text-slate-500 col-span-2 text-center py-8">Nenhuma consulta registrada nesta categoria.</p>`;
                 return;
             }
 
-            appData.consultations.forEach(c => {
+            list.forEach(c => {
                 const card = document.createElement('div');
                 card.className = "bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between";
                 card.innerHTML = `
@@ -1100,12 +1169,54 @@
                     </div>
 
                     <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                        <div></div>
-                        <button onclick="deleteConsultation('${c.id}')" class="text-xs text-rose-600 font-semibold hover:underline">Excluir</button>
+                        <div>
+                            ${c.attachment ? `
+                                <button onclick="openLightbox('${c.attachment}', 'Consulta com ${c.doctor}')" class="px-3 py-1.5 bg-teal-50 text-teal-700 hover:bg-teal-100 border border-teal-200 rounded-xl text-xs font-semibold flex items-center space-x-1.5">
+                                    <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                                    <span>Ver Foto (Zoom)</span>
+                                </button>
+                            ` : '<span class="text-[10px] text-slate-400">Sem foto anexada</span>'}
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="editConsultation('${c.id}')" class="p-1.5 text-slate-500 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-all" title="Editar Consulta">
+                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteConsultation('${c.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all" title="Excluir Consulta">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
                     </div>
                 `;
                 container.appendChild(card);
             });
+        }
+
+        function editConsultation(id) {
+            const c = appData.consultations.find(item => item.id === id);
+            if (!c) return;
+
+            resetForm();
+            setRecordType('consultation');
+
+            document.getElementById('form-editing-id').value = c.id;
+            document.getElementById('modal-title').textContent = "Editar Consulta";
+            document.getElementById('consultation-doctor').value = c.doctor || '';
+            document.getElementById('consultation-specialty').value = c.specialty || '';
+            document.getElementById('consultation-date').value = c.date || '';
+            document.getElementById('consultation-location').value = c.location || '';
+            document.getElementById('consultation-status').value = c.status || 'Agendada';
+            document.getElementById('consultation-diagnosis').value = c.diagnosis || '';
+
+            if (c.attachment) {
+                document.getElementById('record-attachment-base64').value = c.attachment;
+                const fileDisplay = document.getElementById('attachment-filename-display');
+                if (fileDisplay) {
+                    fileDisplay.textContent = "✓ Imagem anexada existente";
+                    fileDisplay.classList.remove('hidden');
+                }
+            }
+
+            openModal('modal-new-record');
         }
 
         function deleteConsultation(id) {
@@ -1151,11 +1262,43 @@
                                 <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i> Visualizar Anexo
                             </button>
                         ` : '<span class="text-[10px] text-slate-400">Sem imagem anexada</span>'}
-                        <button onclick="deleteDocument('${doc.id}')" class="text-xs text-rose-600 hover:underline">Remover</button>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="editDocument('${doc.id}')" class="p-1.5 text-slate-500 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-all" title="Editar Documento">
+                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteDocument('${doc.id}')" class="text-xs text-rose-600 hover:underline">Remover</button>
+                        </div>
                     </div>
                 `;
                 container.appendChild(card);
             });
+        }
+
+        function editDocument(id) {
+            const doc = appData.documents.find(d => d.id === id);
+            if (!doc) return;
+
+            resetForm();
+            setRecordType('document');
+
+            document.getElementById('form-editing-id').value = doc.id;
+            document.getElementById('modal-title').textContent = "Editar Documento";
+            document.getElementById('doc-title').value = doc.title || '';
+            document.getElementById('doc-type').value = doc.type || 'Atestado Médico';
+            document.getElementById('doc-doctor').value = doc.doctor || '';
+            document.getElementById('doc-date').value = doc.date || '';
+            document.getElementById('doc-notes').value = doc.notes || '';
+
+            if (doc.attachment) {
+                document.getElementById('record-attachment-base64').value = doc.attachment;
+                const fileDisplay = document.getElementById('attachment-filename-display');
+                if (fileDisplay) {
+                    fileDisplay.textContent = "✓ Imagem anexada existente";
+                    fileDisplay.classList.remove('hidden');
+                }
+            }
+
+            openModal('modal-new-record');
         }
 
         function deleteDocument(id) {
@@ -1316,24 +1459,41 @@
                 const location = document.getElementById('consultation-location').value.trim();
                 const status = document.getElementById('consultation-status').value;
                 const diagnosis = document.getElementById('consultation-diagnosis').value.trim();
+                const attachment = document.getElementById('record-attachment-base64').value || null;
 
                 if (!doctor || !specialty || !date) {
                     alert("Por favor, preencha o Nome do Médico, Especialidade e Data/Hora da Consulta.");
                     return;
                 }
 
-                const newConsultation = {
-                    id: 'cs-' + Date.now(),
-                    doctor,
-                    specialty,
-                    date,
-                    location,
-                    status,
-                    diagnosis,
-                    notes: ''
-                };
-
-                appData.consultations.unshift(newConsultation);
+                if (editingId) {
+                    const index = appData.consultations.findIndex(c => c.id === editingId);
+                    if (index !== -1) {
+                        appData.consultations[index] = {
+                            ...appData.consultations[index],
+                            doctor,
+                            specialty,
+                            date,
+                            location,
+                            status,
+                            diagnosis,
+                            attachment: attachment || appData.consultations[index].attachment
+                        };
+                    }
+                } else {
+                    const newConsultation = {
+                        id: 'cs-' + Date.now(),
+                        doctor,
+                        specialty,
+                        date,
+                        location,
+                        status,
+                        diagnosis,
+                        notes: '',
+                        attachment
+                    };
+                    appData.consultations.unshift(newConsultation);
+                }
 
             } else if (type === 'document') {
                 const title = document.getElementById('doc-title').value.trim();
@@ -1348,17 +1508,31 @@
                     return;
                 }
 
-                const newDoc = {
-                    id: 'doc-' + Date.now(),
-                    title,
-                    type: docType,
-                    doctor,
-                    date,
-                    notes,
-                    attachment
-                };
-
-                appData.documents.unshift(newDoc);
+                if (editingId) {
+                    const index = appData.documents.findIndex(d => d.id === editingId);
+                    if (index !== -1) {
+                        appData.documents[index] = {
+                            ...appData.documents[index],
+                            title,
+                            type: docType,
+                            doctor,
+                            date,
+                            notes,
+                            attachment: attachment || appData.documents[index].attachment
+                        };
+                    }
+                } else {
+                    const newDoc = {
+                        id: 'doc-' + Date.now(),
+                        title,
+                        type: docType,
+                        doctor,
+                        date,
+                        notes,
+                        attachment
+                    };
+                    appData.documents.unshift(newDoc);
+                }
             }
 
             saveData();
@@ -1388,12 +1562,15 @@
                 const file = input.files[0];
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    document.getElementById('record-attachment-base64').value = e.target.result;
-                    const display = document.getElementById('attachment-filename-display');
-                    if (display) {
-                        display.textContent = `✓ Imagem Selecionada: ${file.name}`;
-                        display.classList.remove('hidden');
-                    }
+                    // Compressão de foto para prevenir estouro de memória/localstorage
+                    compressImage(e.target.result, 1000, 0.65, function(compressedBase64) {
+                        document.getElementById('record-attachment-base64').value = compressedBase64;
+                        const display = document.getElementById('attachment-filename-display');
+                        if (display) {
+                            display.textContent = `✓ Imagem Selecionada: ${file.name}`;
+                            display.classList.remove('hidden');
+                        }
+                    });
                 }
                 reader.readAsDataURL(file);
             }
@@ -1458,11 +1635,14 @@
                     percentText.textContent = '100%';
                     progressBar.style.width = '100%';
 
-                    const parsedData = parseMedicalReportText(rawText);
-                    parsedData.attachment = originalBase64;
+                    // Compressão otimizada da foto do anexo escaneado antes de enviar ao formulário
+                    compressImage(originalBase64, 1000, 0.65, function(compressedAttachment) {
+                        const parsedData = parseMedicalReportText(rawText);
+                        parsedData.attachment = compressedAttachment;
 
-                    closeModal('modal-ocr-scanner');
-                    populateExamFormFromOcr(parsedData);
+                        closeModal('modal-ocr-scanner');
+                        populateExamFormFromOcr(parsedData);
+                    });
 
                 } catch (err) {
                     console.error("Erro no OCR:", err);
